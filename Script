@@ -1,0 +1,54 @@
+#!/bin/bash
+./Experiment/Gen
+for a in IPBW IPGray CRC FFT Windowing
+do
+    for n in QDSL CDSL
+    do
+	for f in True False
+	do
+	   for i in {1..10}
+	   do
+               echo ${a}${n}${f}
+	       ./clean
+	       rm Experiment/run${a}${n}${f}
+	       /usr/bin/time -f "%e" -a -o Experiment/time${a}${n}${f}HC ghc -o Experiment/run${a}${n}${f} Experiment/run${a}${n}${f}.hs -Wall -fno-warn-orphans -XNoMonomorphismRestriction -XPolyKinds -XDataKinds -XConstraintKinds -XTypeOperators -XTypeFamilies -XGADTs -XFlexibleInstances -XFlexibleContexts -XStandaloneDeriving -XDeriveFoldable -XDeriveFunctor -XDeriveTraversable -XDeriveDataTypeable -XDeriveGeneric -XNoUndecidableInstances -XMonoLocalBinds -XScopedTypeVariables -XMultiParamTypeClasses -XImplicitParams -XTemplateHaskell -XRankNTypes -XPatternSynonyms -XViewPatterns -XNoImplicitPrelude
+               rm Experiment/${a}${n}${f}.c
+	       /usr/bin/time -f "%e" -a -o Experiment/time${a}${n}${f}HR ./Experiment/run${a}${n}${f}
+               rm Experiment/${a}${n}${f}
+	       /usr/bin/time -f "%e" -a -o Experiment/time${a}${n}${f}CC gcc -o Experiment/${a}${n}${f} Experiment/${a}${n}${f}.c -lm -std=c99
+	       rm Experiment/ImageIPBW.pbm
+	       rm Experiment/ImageIPGray.pgm
+	       rm Experiment/ImageFFT.pgm
+	       rm Experiment/ImageWindowing.pgm
+	       if [ ${a}${n}${f} != FFTCDSLFalse ]; then
+		   /usr/bin/time -f "%e" -a -o Experiment/time${a}${n}${f}CR ./Experiment/${a}${n}${f}
+               fi
+	   done
+	done
+    done
+done
+./clean
+rm Experiment/ImageIPBW.pbm
+rm Experiment/ImageIPGray.pgm
+rm Experiment/ImageFFT.pgm
+rm Experiment/ImageWindowing.pgm
+rm Experiment/run*
+rm Experiment/*.c
+for a in IPBW IPGray CRC FFT Windowing
+do
+    for n in QDSL CDSL
+    do
+	for f in True False
+	do
+	    rm Experiment/${a}${n}${f}
+	done
+    done
+done
+./clean
+F=Experiment_$(date +%Y-%m-%d-%H-%M-%S)
+mkdir Experiment/$F
+for file in Experiment/time*; do
+    mv $file ./Experiment/$F/${file#Experiment/}
+done
+./Experiment/Process ./Experiment/$F/
+./Experiment/CSV ./Experiment/$F/

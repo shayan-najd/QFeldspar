@@ -1,0 +1,190 @@
+module QFeldspar.Type.Feldspar.GADT where
+
+import QFeldspar.MyPrelude
+
+import qualified QFeldspar.Environment.Typed as ET
+
+import QFeldspar.Singleton
+
+data Typ :: * -> * where
+  Int :: Typ Int
+  Bol :: Typ Bol
+  Flt :: Typ Flt
+  Arr :: Typ ta -> Typ tb -> Typ (ta -> tb)
+  Tpl :: Typ tf -> Typ ts -> Typ ((tf , ts))
+  Ary :: Typ t  -> Typ (Ary t)
+  May :: Typ t  -> Typ (May t)
+  Cmx :: Typ Cmx
+
+instance HasSin Typ Int where
+  sin = Int
+
+instance HasSin Typ Bol where
+  sin = Bol
+
+instance HasSin Typ Flt where
+  sin = Flt
+
+instance (HasSin Typ ta , HasSin Typ tb) => HasSin Typ (Arr ta tb) where
+  sin = Arr sin sin
+
+instance (HasSin Typ tf , HasSin Typ ts) => HasSin Typ (Tpl tf ts) where
+  sin = Tpl sin sin
+
+instance HasSin Typ ta => HasSin Typ (Ary ta) where
+  sin = Ary sin
+
+instance HasSin Typ ta => HasSin Typ (May ta) where
+  sin = May sin
+
+instance HasSin Typ Cmx where
+  sin = Cmx
+
+instance EqlSin Typ where
+  eqlSin Int         Int           = return Rfl
+  eqlSin Bol         Bol           = return Rfl
+  eqlSin Flt         Flt           = return Rfl
+  eqlSin (Arr ta tb) (Arr ta' tb') = do Rfl <- eqlSin ta ta'
+                                        Rfl <- eqlSin tb tb'
+                                        return Rfl
+  eqlSin (Tpl tf ts) (Tpl tf' ts') = do Rfl <- eqlSin tf tf'
+                                        Rfl <- eqlSin ts ts'
+                                        return Rfl
+  eqlSin (Ary t)     (Ary t')      = do Rfl <- eqlSin t t'
+                                        return Rfl
+  eqlSin (May t)     (May t')      = do Rfl <- eqlSin t t'
+                                        return Rfl
+  eqlSin Cmx         Cmx           = return Rfl
+  eqlSin _              _          = fail "Type Error!"
+
+instance GetPrfHasSin Typ where
+  getPrfHasSin t  = case t of
+    Int       -> PrfHasSin
+    Bol       -> PrfHasSin
+    Flt       -> PrfHasSin
+    Arr ta tb -> case (getPrfHasSin ta , getPrfHasSin tb) of
+      (PrfHasSin , PrfHasSin) -> PrfHasSin
+    Tpl tf ts -> case (getPrfHasSin tf , getPrfHasSin ts) of
+      (PrfHasSin , PrfHasSin) -> PrfHasSin
+    Ary ta    -> case getPrfHasSin ta of
+      PrfHasSin -> PrfHasSin
+    May ta    -> case getPrfHasSin ta of
+      PrfHasSin -> PrfHasSin
+    Cmx       -> PrfHasSin
+
+getPrfHasSinArr :: forall ta tb t. HasSin Typ (Arr ta tb) =>
+                   t (Arr ta tb) -> (PrfHasSin Typ ta , PrfHasSin Typ tb)
+getPrfHasSinArr _ = case sin :: Typ (Arr ta tb) of
+  Arr ta tb -> (getPrfHasSin ta , getPrfHasSin tb)
+
+getPrfHasSinTpl :: forall tf ts t. HasSin Typ (Tpl tf ts) =>
+                   t (Tpl tf ts) -> (PrfHasSin Typ tf , PrfHasSin Typ ts)
+getPrfHasSinTpl _ = case sin :: Typ (Tpl tf ts) of
+  Tpl tf ts -> (getPrfHasSin tf , getPrfHasSin ts)
+
+getPrfHasSinAry :: forall ta t. HasSin Typ (Ary ta) =>
+                   t (Ary ta) -> PrfHasSin Typ ta
+getPrfHasSinAry _ = case sin :: Typ (Ary ta) of
+  Ary ta    -> getPrfHasSin ta
+
+getPrfHasSinMay :: forall ta t. HasSin Typ (May ta) =>
+                   t (May ta) -> PrfHasSin Typ ta
+getPrfHasSinMay _ = case sin :: Typ (May ta) of
+  May ta    -> getPrfHasSin ta
+
+getPrfHasSinArrM :: HasSin Typ (Arr ta tb) =>
+                    t (Arr ta tb) -> ErrM (PrfHasSin Typ ta , PrfHasSin Typ tb)
+getPrfHasSinArrM = return . getPrfHasSinArr
+
+getPrfHasSinTplM :: HasSin Typ (Tpl tf ts) =>
+                    t (Tpl tf ts) -> ErrM (PrfHasSin Typ tf , PrfHasSin Typ ts)
+getPrfHasSinTplM = return . getPrfHasSinTpl
+
+getPrfHasSinAryM :: HasSin Typ (Ary ta) =>
+                   t (Ary ta) -> ErrM (PrfHasSin Typ ta)
+getPrfHasSinAryM = return  . getPrfHasSinAry
+
+getPrfHasSinMayM :: HasSin Typ (May ta) =>
+                   t (May ta) -> ErrM (PrfHasSin Typ ta)
+getPrfHasSinMayM = return  . getPrfHasSinMay
+
+
+type family Out (t :: *) :: * where
+  Out (ta -> tb) = Out tb
+  Out t          = t
+
+data EqlOut :: * -> * -> * where
+  EqlOut :: EqlOut (Out t2) t2
+
+eqlOut :: Typ t1 -> Typ t2 -> ErrM (EqlOut t1 t2)
+eqlOut Int         Int           = return EqlOut
+eqlOut Bol         Bol           = return EqlOut
+eqlOut Flt         Flt           = return EqlOut
+eqlOut t           (Arr _ tb)    = do EqlOut <- eqlOut t tb
+                                      return EqlOut
+eqlOut (Ary ta)    (Ary ta')     = do Rfl <- eqlSin ta ta'
+                                      return EqlOut
+eqlOut (May ta)    (May ta')     = do Rfl <- eqlSin ta ta'
+                                      return EqlOut
+eqlOut (Tpl tf ts) (Tpl tf' ts') = do Rfl <- eqlSin tf tf'
+                                      Rfl <- eqlSin ts ts'
+                                      return EqlOut
+eqlOut Cmx         Cmx           = return EqlOut
+eqlOut _              _          = fail "Normalization Error!"
+
+
+type family Arg (t :: *) :: [*] where
+  Arg (ta -> tb) = ta ': Arg tb
+  Arg t          = '[]
+
+data EqlArg :: [*] -> * -> * where
+  EqlArg :: EqlArg (Arg t2) t2
+
+eqlArg :: ET.Env Typ r -> Typ t -> ErrM (EqlArg r t)
+eqlArg ET.Emp         Int          = return EqlArg
+eqlArg ET.Emp         Bol          = return EqlArg
+eqlArg ET.Emp         Flt          = return EqlArg
+eqlArg (ET.Ext ta ts) (Arr ta' tb) = do Rfl    <- eqlSin ta ta'
+                                        EqlArg <- eqlArg ts tb
+                                        return EqlArg
+eqlArg ET.Emp         (Ary _)      = return EqlArg
+eqlArg ET.Emp         (May _)      = return EqlArg
+eqlArg ET.Emp         (Tpl _ _)    = return EqlArg
+eqlArg ET.Emp         Cmx          = return EqlArg
+eqlArg _              _            = fail "Normalization Error!"
+
+mapC :: r ~ Arg tt =>
+        Typ tt -> (forall t. HasSin Typ t => tfa t -> tfb t) ->
+        ET.Env tfa r -> ET.Env tfb r
+mapC _              _ ET.Emp     = ET.Emp
+mapC (Arr t ts) f (ET.Ext x xs)  = case getPrfHasSin t of
+  PrfHasSin                     -> ET.Ext (f x) (mapC ts f xs)
+mapC _              _ _          = impossible
+
+mapMC :: (Monad m , r ~ Arg tt) =>
+        Typ tt -> (forall t. HasSin Typ t => tfa t -> m (tfb t)) ->
+        ET.Env tfa r -> m (ET.Env tfb r)
+mapMC _              _ ET.Emp    = return (ET.Emp)
+mapMC (Arr t ts) f (ET.Ext x xs) = case getPrfHasSin t of
+  PrfHasSin -> do x'  <- f x
+                  xs' <- mapMC ts f xs
+                  return (ET.Ext x' xs')
+mapMC _              _ _        = impossibleM
+
+getArgTyp :: Typ (Arr ta tb) -> Typ ta
+getArgTyp (Arr ta _) = ta
+
+getBdyTyp :: Typ (Arr ta tb) -> Typ tb
+getBdyTyp (Arr _ tb) = tb
+
+getFstTyp :: Typ (Tpl tf ts) -> Typ tf
+getFstTyp (Tpl tf _) = tf
+
+getSndTyp :: Typ (Tpl tf ts) -> Typ ts
+getSndTyp (Tpl _  ts) = ts
+
+getAryTyp :: Typ (Ary ta) -> Typ ta
+getAryTyp (Ary ta) = ta
+
+getMayTyp :: Typ (May ta) -> Typ ta
+getMayTyp (May ta) = ta
