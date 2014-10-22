@@ -15,7 +15,6 @@ import QFeldspar.Variable.Typed
 import Data.Constraint
 import Data.Constraint.Unsafe
 
-
 isVal :: Exp n t -> Bool
 isVal ee = case ee of
   ConI _       -> True
@@ -98,7 +97,7 @@ instance HasSin TFG.Typ t => NrmOne (Exp n t) where
     ConF f                       -> pure (ConF f)
     AppV x             es
         | hasNV es               -> cmt x Emp es
-        | otherwise              -> AppV x <$> (nrmOneEnv (sinTypOf x t , es))
+        | otherwise              -> AppV x <$> TFG.mapMC (sinTypOf x t) nrmOne es
     Cnd (NV ec)      et ef       -> chg (Let ec (\ x -> Cnd x et ef))
     Cnd (ConB True)  et _        -> chg et
     Cnd (ConB False) _  ef       -> chg ef
@@ -176,13 +175,3 @@ instance (HasSin TFG.Typ tb, HasSin TFG.Typ ta) =>
                  v = "_xn" ++ show i
              in do eb <- nrmOne (f (Tmp v))
                    return (\ x -> absTmp x v eb)
-
-nrmOneEnv :: (TFG.Arg t ~ r') =>
-               (TFG.Typ t , Env (Exp r) r') -> Chg (Env (Exp r) r')
-nrmOneEnv (TFG.Arr t ts , Ext e es) = case getPrfHasSin t of
-    PrfHasSin -> do e'  <- nrmOne e
-                    es' <- nrmOneEnv (ts , es)
-                    pure (Ext e' es')
-nrmOneEnv (TFG.Arr _ _  , _)        = impossibleM
-nrmOneEnv (_            , Emp)      = pure Emp
-nrmOneEnv (_            , Ext _ _)  = impossibleM

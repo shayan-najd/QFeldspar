@@ -1,5 +1,6 @@
 module QFeldspar.CDSL(module QFeldspar.Prelude.MiniWellScoped
-                     ,Dp,evaluate,compile,compileF,normalise,normaliseF) where
+                     ,Dp,evaluate,compile,compileF,normalise,normaliseF
+                     ,simplify,simplifyF) where
 
 import QFeldspar.Prelude.MiniWellScoped
 import QFeldspar.Prelude.Environment
@@ -18,7 +19,8 @@ import QFeldspar.Compiler(scompile)
 import QFeldspar.Normalization
 import QFeldspar.Normalization.Feldspar.MiniWellscoped ()
 import QFeldspar.CSE
-
+import QFeldspar.ChangeMonad
+import QFeldspar.Simplify
 
 type Dp a = FMWS.Exp Prelude a
 
@@ -52,3 +54,12 @@ normaliseF :: (HasSin TFG.Typ b, HasSin TFG.Typ a) =>
               Bool -> (FMWS.Exp r a -> FMWS.Exp r b) ->
                        FMWS.Exp r a -> FMWS.Exp r b
 normaliseF c f = nrm (if c then cseF f else remTag . f)
+
+simplify :: HasSin TFG.Typ t =>
+            FMWS.Exp r t -> FMWS.Exp r t
+simplify = tilNotChg smpOne
+
+simplifyF :: (HasSin TFG.Typ b, HasSin TFG.Typ a) =>
+             (FMWS.Exp r a -> FMWS.Exp r b) ->
+             FMWS.Exp r a -> FMWS.Exp r b
+simplifyF = tilNotChg smpOne
