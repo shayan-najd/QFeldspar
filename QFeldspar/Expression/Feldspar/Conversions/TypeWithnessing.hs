@@ -80,9 +80,9 @@ instance (n ~ Len r , HasSin TFG.Typ t) =>
          Cnv (FGFO.Exp r t , Env TFG.Typ r) (FGTD.Exp n TFA.Typ)
               where
   cnv (ee , r) = let ?r = r in let t = sin :: TFG.Typ t in case ee of
-    FGFO.ConI i               -> FGTD.ConI <$@> i
-    FGFO.ConB b               -> FGTD.ConB <$@> b
-    FGFO.ConF f               -> FGTD.ConF <$@> f
+    FGFO.ConI i               -> pure (FGTD.ConI i)
+    FGFO.ConB b               -> pure (FGTD.ConB b)
+    FGFO.ConF f               -> pure (FGTD.ConF f)
     FGFO.Var x                -> FGTD.Var  <$@> x
     FGFO.Abs eb               -> case TFG.getPrfHasSinArr t of
       (PrfHasSin , PrfHasSin) -> FGTD.Abs <$@> eb

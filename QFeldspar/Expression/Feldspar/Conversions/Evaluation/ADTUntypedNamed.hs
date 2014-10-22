@@ -12,9 +12,9 @@ import QFeldspar.Variable.Conversion ()
 
 instance Eq v => Cnv (Exp v , Env v FAV.Exp) FAV.Exp where
   cnv (ee , r) = let ?r = r in join (case ee of
-    ConI i             -> FAV.conI <$@> i
-    ConB b             -> FAV.conB <$@> b
-    ConF b             -> FAV.conF <$@> b
+    ConI i             -> pure (FAV.conI i)
+    ConB b             -> pure (FAV.conB b)
+    ConF f             -> pure (FAV.conF f)
     Var x              -> FAV.var  <$@> x
     Abs x eb           -> FAV.abs  <$@> (x , eb)
     App ef ea          -> FAV.app  <$@> ef <*@> ea

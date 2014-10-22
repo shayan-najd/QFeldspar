@@ -49,7 +49,7 @@ instance HasSin TFG.Typ t => Cnv (FGV.Exp t , ()) FAV.Exp where
                                  <$@> (samTyp tf . FGV.Exp . fst) ee
                                  <*@> (samTyp ts . FGV.Exp . snd) ee
     TFG.Ary ta                -> case TFG.getPrfHasSinAry t of
-       PrfHasSin              -> FAV.Ary <$@> (fmap (samTyp ta . FGV.Exp) ee)
+       PrfHasSin              -> FAV.Ary <$> (mapM (cnvImp . samTyp ta . FGV.Exp) ee)
     TFG.Cmx                   -> pure (FAV.Cmx ee)
     TFG.May ta                -> case TFG.getPrfHasSinMay t of
        PrfHasSin              -> case ee of

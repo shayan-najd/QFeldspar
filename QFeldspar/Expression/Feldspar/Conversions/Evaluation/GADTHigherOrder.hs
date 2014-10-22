@@ -17,9 +17,9 @@ import QFeldspar.Singleton
 instance (HasSin TFG.Typ t , t' ~ t) =>
          Cnv (Exp r t , Env FGV.Exp r) (FGV.Exp t') where
   cnv (ee , r) = let ?r = r in let t = sin :: TFG.Typ t in case ee of
-    ConI i                   -> FGV.conI <$@> i
-    ConB b                   -> FGV.conB <$@> b
-    ConF b                   -> FGV.conF <$@> b
+    ConI i                   -> pure (FGV.conI i)
+    ConB b                   -> pure (FGV.conB b)
+    ConF f                   -> pure (FGV.conF f)
     Var x                    -> FGV.var  <$@> x
     Abs eb                   -> case TFG.getPrfHasSinArr t of
      (PrfHasSin , PrfHasSin) -> cnvImp eb
@@ -56,9 +56,9 @@ instance (HasSin TFG.Typ t , r ~ r' , t ~ t') =>
          Cnv (FGV.Exp t' , Env FGV.Exp r') (Exp r t)
          where
   cnv (FGV.Exp v , r) = let ?r = r in let t = sin :: TFG.Typ t in case t of
-    TFG.Int                   -> ConI <$@> v
-    TFG.Bol                   -> ConB <$@> v
-    TFG.Flt                   -> ConF <$@> v
+    TFG.Int                   -> pure (ConI v)
+    TFG.Bol                   -> pure (ConB v)
+    TFG.Flt                   -> pure (ConF v)
     TFG.Arr _ _               -> case TFG.getPrfHasSinArr t of
      (PrfHasSin , PrfHasSin)  -> Abs  <$@> samTyp t (FGV.Exp v)
     TFG.Tpl _ _               -> case TFG.getPrfHasSinTpl t of

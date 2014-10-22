@@ -20,9 +20,9 @@ instance Eq x =>
 instance Eq x =>
          Cnv (FAUN.Exp x , EM.Env x Var) FAUD.Exp where
   cnv (eaup , r) = let ?r = r in case eaup of
-    FAUN.ConI i              -> FAUD.ConI <$@> i
-    FAUN.ConB b              -> FAUD.ConB <$@> b
-    FAUN.ConF b              -> FAUD.ConF <$@> b
+    FAUN.ConI i              -> pure (FAUD.ConI i)
+    FAUN.ConB b              -> pure (FAUD.ConB b)
+    FAUN.ConF f              -> pure (FAUD.ConF f)
     FAUN.Var  x              -> FAUD.Var  <$@> x
     FAUN.Abs  xb eb          -> FAUD.Abs  <$@> (xb , eb)
     FAUN.App  ef ea          -> FAUD.App  <$@> ef <*@> ea
@@ -49,9 +49,9 @@ instance Eq x =>
 instance (x ~ x') =>
          Cnv (FAUD.Exp , (EP.Env x , EM.Env Var x)) (FAUN.Exp x') where
   cnv (eaup , r) = let ?r = r in case eaup of
-    FAUD.ConI i        -> FAUN.ConI <$@> i
-    FAUD.ConB b        -> FAUN.ConB <$@> b
-    FAUD.ConF b        -> FAUN.ConF <$@> b
+    FAUD.ConI i        -> pure (FAUN.ConI i)
+    FAUD.ConB b        -> pure (FAUN.ConB b)
+    FAUD.ConF f        -> pure (FAUN.ConF f)
     FAUD.Var  x        -> let ?r = snd r in FAUN.Var  <$@> x
     FAUD.Abs  eb       -> do (xb , eb') <- cnvf eb
                              pure (FAUN.Abs xb eb')

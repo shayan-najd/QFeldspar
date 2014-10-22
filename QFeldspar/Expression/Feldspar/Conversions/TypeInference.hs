@@ -29,20 +29,20 @@ instance n ~ n' => Cnv (FGUD.Exp n , rr) (FGTD.Exp n' ()) where
     FGUD.ConF f       -> pure (FGTD.ConF f)
     FGUD.Var v        -> FGTD.Var  <$@> v
     FGUD.Abs eb       -> FGTD.Abs  <$@> eb
-    FGUD.App ef ea    -> FGTD.App  <$@> () <*@> ef <*@> ea
+    FGUD.App ef ea    -> FGTD.App  <$> pure () <*@> ef <*@> ea
     FGUD.Cnd ec et ef -> FGTD.Cnd  <$@> ec <*@> et <*@> ef
     FGUD.Whl ec eb ei -> FGTD.Whl  <$@> ec <*@> eb <*@> ei
     FGUD.Tpl ef es    -> FGTD.Tpl  <$@> ef <*@> es
-    FGUD.Fst e        -> FGTD.Fst  <$@> () <*@> e
-    FGUD.Snd e        -> FGTD.Snd  <$@> () <*@> e
+    FGUD.Fst e        -> FGTD.Fst  <$> pure () <*@> e
+    FGUD.Snd e        -> FGTD.Snd  <$> pure () <*@> e
     FGUD.Ary el ef    -> FGTD.Ary  <$@> el <*@> ef
-    FGUD.Len e        -> FGTD.Len  <$@> () <*@> e
+    FGUD.Len e        -> FGTD.Len  <$> pure () <*@> e
     FGUD.Ind ea ei    -> FGTD.Ind  <$@> ea <*@> ei
-    FGUD.Let el eb    -> FGTD.Let  <$@> () <*@> el <*@> eb
+    FGUD.Let el eb    -> FGTD.Let  <$> pure () <*@> el <*@> eb
     FGUD.Cmx er ei    -> FGTD.Cmx  <$@> er <*@> ei
     FGUD.Non          -> pure FGTD.Non
     FGUD.Som e        -> FGTD.Som  <$@> e
-    FGUD.May em en es -> FGTD.May  <$@> () <*@> em <*@> en <*@> es
+    FGUD.May em en es -> FGTD.May  <$> pure () <*@> em <*@> en <*@> es
 
 instance n ~ n' => Cnv (FGTD.Exp n () , Env n TFA.Typ)(FGTD.Exp n' TFA.Typ) where
   cnv (e , r) = let ?r = r in

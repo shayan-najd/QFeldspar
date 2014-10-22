@@ -19,9 +19,9 @@ instance (HasSin TFG.Typ t, r' ~ r , t' ~ t) =>
          Cnv (Exp r t , Env FGV.Exp r) (FGV.Exp t')
          where
   cnv (egfo , r) = let ?r = r in let t = sin :: TFG.Typ t in case egfo of
-    ConI i                   -> FGV.conI <$@> i
-    ConB b                   -> FGV.conB <$@> b
-    ConF b                   -> FGV.conF <$@> b
+    ConI i                   -> pure (FGV.conI i)
+    ConB b                   -> pure (FGV.conB b)
+    ConF f                   -> pure (FGV.conF f)
     AppV (v :: Var rv tv) es -> appV (T :: T tv) <$@> v <*@> (T :: T tv , es)
     Cnd ec et ef             -> FGV.cnd  <$@> ec <*@> et <*@> ef
     Whl ec eb ei             -> FGV.whl  <$@> ec <*@> eb <*@> ei
@@ -92,9 +92,9 @@ instance (HasSin TFG.Typ t , r ~ r' , t ~ t') =>
          Cnv (FGV.Exp t' , Env FGV.Exp r') (Exp r t)
          where
   cnv (FGV.Exp v , r) = let ?r = r in let t = sin :: TFG.Typ t in case t of
-    TFG.Int                   -> ConI <$@> v
-    TFG.Bol                   -> ConB <$@> v
-    TFG.Flt                   -> ConF <$@> v
+    TFG.Int                   -> pure (ConI v)
+    TFG.Bol                   -> pure (ConB v)
+    TFG.Flt                   -> pure (ConF v)
     TFG.Tpl _ _               -> case TFG.getPrfHasSinTpl (T :: T t) of
      (PrfHasSin , PrfHasSin)  -> Tpl  <$@> FGV.Exp (fst v) <*@> FGV.Exp (snd v)
     TFG.Ary ta                -> case TFG.getPrfHasSinAry (T :: T t) of

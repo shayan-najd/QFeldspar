@@ -16,18 +16,18 @@ import QFeldspar.Singleton
 instance (HasSin TFG.Typ t , t ~ t' , r ~ r') =>
          Cnv (FGHO.Exp r t , rr) (FMWS.Exp r' t') where
   cnv (ee , r) = let ?r = r in let t = (sin :: TFG.Typ t) in case ee of
-    FGHO.ConI i               -> FMWS.ConI <$@> i
-    FGHO.ConB b               -> FMWS.ConB <$@> b
-    FGHO.ConF b               -> FMWS.ConF <$@> b
+    FGHO.ConI i               -> pure (FMWS.ConI i)
+    FGHO.ConB b               -> pure (FMWS.ConB b)
+    FGHO.ConF f               -> pure (FMWS.ConF f)
     FGHO.Var v                -> case sin :: TFG.Typ t of
-      TFG.Int                 -> return (FMWS.AppV v Emp)
-      TFG.Bol                 -> return (FMWS.AppV v Emp)
-      TFG.Flt                 -> return (FMWS.AppV v Emp)
+      TFG.Int                 -> pure (FMWS.AppV v Emp)
+      TFG.Bol                 -> pure (FMWS.AppV v Emp)
+      TFG.Flt                 -> pure (FMWS.AppV v Emp)
       TFG.Arr _ _             -> fail "Normalization Error!"
-      TFG.Tpl _ _             -> return (FMWS.AppV v Emp)
-      TFG.Ary _               -> return (FMWS.AppV v Emp)
-      TFG.Cmx                 -> return (FMWS.AppV v Emp)
-      TFG.May _               -> return (FMWS.AppV v Emp)
+      TFG.Tpl _ _             -> pure (FMWS.AppV v Emp)
+      TFG.Ary _               -> pure (FMWS.AppV v Emp)
+      TFG.Cmx                 -> pure (FMWS.AppV v Emp)
+      TFG.May _               -> pure (FMWS.AppV v Emp)
     FGHO.Abs _                -> fail "Normalization Error!"
     FGHO.App _ _              -> do Exs1 v tv <- getVar ee
                                     PrfHasSin <- getPrfHasSinM tv
@@ -35,7 +35,7 @@ instance (HasSin TFG.Typ t , t ~ t' , r ~ r') =>
                                                         (DblExsSin Emp Emp)
                                     TFG.EqlOut <- TFG.eqlOut t tv
                                     TFG.EqlArg <- TFG.eqlArg tys tv
-                                    return (FMWS.AppV v es)
+                                    pure (FMWS.AppV v es)
     FGHO.Cnd ec et ef         -> FMWS.Cnd <$@> ec <*@> et <*@> ef
     FGHO.Whl ec eb ei         -> FMWS.Whl <$@> ec <*@> eb <*@> ei
     FGHO.Tpl ef es            -> case TFG.getPrfHasSinTpl t of
@@ -64,16 +64,16 @@ instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb , r ~ r' , ta ~ ta' ,tb ~ tb') =
 instance (HasSin TFG.Typ t , t' ~ t , r' ~ r) =>
          Cnv (FMWS.Exp r' t' , rr) (FGHO.Exp r t)  where
   cnv (ee , r) = let ?r = r in let t = (sin :: TFG.Typ t) in case ee of
-    FMWS.ConI i               -> FGHO.ConI <$@> i
-    FMWS.ConB b               -> FGHO.ConB <$@> b
-    FMWS.ConF b               -> FGHO.ConF <$@> b
+    FMWS.ConI i               -> pure (FGHO.ConI i)
+    FMWS.ConB b               -> pure (FGHO.ConB b)
+    FMWS.ConF f               -> pure (FGHO.ConF f)
     FMWS.AppV v es            -> case (sinTyp v , es) of
       (TFG.Int     , Emp)     -> FGHO.Var <$> pure v
       (TFG.Bol     , Emp)     -> FGHO.Var <$> pure v
       (TFG.Flt     , Emp)     -> FGHO.Var <$> pure v
       (TFG.Arr _ _ , Ext _ _) -> do Exs1 e te <- fldApp (FGHO.Var v) es
                                     Rfl <- eqlSin te t
-                                    return e
+                                    pure e
       (TFG.Tpl _ _ , Emp)     -> FGHO.Var <$> pure v
       (TFG.Ary _   , Emp)     -> FGHO.Var <$> pure v
       (TFG.Cmx     , Emp)     -> FGHO.Var <$> pure v
@@ -115,7 +115,7 @@ fldApp e ess = let ?r = () in case TFG.getPrfHasSinArr (T :: T t) of
       fldApp (FGHO.App e ea') es
     (TFG.Arr _ tb            , Ext ea Emp)          -> do
       ea' <- cnvImp ea
-      return (Exs1 (FGHO.App e ea') tb)
+      pure (Exs1 (FGHO.App e ea') tb)
     _                                               ->
       impossibleM
 
@@ -134,7 +134,7 @@ getArg :: forall r t. FGHO.Exp r t -> DblExsSin Env (FMWS.Exp r) TFG.Typ ->
 getArg e (DblExsSin args tys) = let ?r = () in case e of
   FGHO.App (FGHO.Var _)       ea -> do
     ea' <- cnvImp ea
-    return (DblExsSin (Ext ea' args) (Ext (sinTyp ea) tys))
+    pure (DblExsSin (Ext ea' args) (Ext (sinTyp ea) tys))
   FGHO.App ef@(FGHO.App _ _) ea -> do
     ea' <- cnvImp ea
     getArg ef (DblExsSin (Ext ea' args) (Ext (sinTyp ea) tys))
