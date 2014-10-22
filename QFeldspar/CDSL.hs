@@ -1,5 +1,5 @@
 module QFeldspar.CDSL(module QFeldspar.Prelude.MiniWellScoped
-                     ,Dp,evaluate,compile,compileF) where
+                     ,Dp,evaluate,compile,compileF,normalise,normaliseF) where
 
 import QFeldspar.Prelude.MiniWellScoped
 import QFeldspar.Prelude.Environment
@@ -33,7 +33,7 @@ compile :: forall a.
             Dp a -> String
 compile c e = let es = frmRgt (scompile (sin :: TFG.Typ a)
                                               esString
-                               (nrm (if c then cse e else remTag e)))
+                               (normalise c e))
               in  es
 
 compileF :: forall a b.
@@ -41,5 +41,14 @@ compileF :: forall a b.
             MP.Bool ->
             (Dp a -> Dp b) -> String
 compileF c f = let fs = frmRgt (scompile (sin :: TFG.Typ b) esString
-                               (nrm (if c then cseF f else remTag . f)))
+                                (normaliseF c f))
                in  fs
+
+normalise :: HasSin TFG.Typ t =>
+             Bool -> FMWS.Exp r t -> FMWS.Exp r t
+normalise c e = nrm (if c then cse e else remTag e)
+
+normaliseF :: (HasSin TFG.Typ b, HasSin TFG.Typ a) =>
+              Bool -> (FMWS.Exp r a -> FMWS.Exp r b) ->
+                       FMWS.Exp r a -> FMWS.Exp r b
+normaliseF c f = nrm (if c then cseF f else remTag . f)

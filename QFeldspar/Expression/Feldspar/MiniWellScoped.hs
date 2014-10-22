@@ -1,5 +1,6 @@
 module QFeldspar.Expression.Feldspar.MiniWellScoped
-    (Exp(..),sucAll,prdAll,mapVar,isFresh,absVar,absTmp,eql) where
+    (Exp(..),sucAll,prdAll,mapVar,isFresh,absVar,absTmp,eql
+    ,cntTmp,hasOneOrZro) where
 
 import QFeldspar.MyPrelude hiding (foldl)
 
@@ -275,6 +276,47 @@ hasTmp s ee = case ee of
 
 hasTmpF :: String -> (Exp r ta -> Exp r tb) -> Bool
 hasTmpF s f = hasTmp s (f (Tmp "__dummy__"))
+
+-- when input string is not "__dummy__"
+cntTmp :: String -> Exp r t -> Int
+cntTmp s ee = case ee of
+  ConI _                    -> 0
+  ConB _                    -> 0
+  ConF _                    -> 0
+  AppV _ es                 -> foldl (\ b e -> b + cntTmp s e) 0 es
+  Cnd ec et ef              -> cntTmp  s ec + cntTmp  s et + cntTmp  s ef
+  Whl ec eb ei              -> cntTmpF s ec + cntTmpF s eb + cntTmp  s ei
+  Tpl ef es                 -> cntTmp  s ef + cntTmp  s es
+  Fst e                     -> cntTmp  s e
+  Snd e                     -> cntTmp  s e
+  Ary el ef                 -> cntTmp  s el + cntTmpF s ef
+  Len e                     -> cntTmp  s e
+  Ind ea ei                 -> cntTmp  s ea + cntTmp  s ei
+  Let el eb                 -> cntTmp  s el + cntTmpF s eb
+  Cmx er ei                 -> cntTmp  s er + cntTmp  s ei
+  Tmp x
+    | s == x                -> 1
+    | otherwise             -> 0
+  Tag _ e                   -> cntTmp  s e
+  Non                       -> 0
+  Som e                     -> cntTmp  s e
+  May em en es              -> cntTmp  s em + cntTmp  s en + cntTmpF  s es
+
+cntTmpF :: String -> (Exp r ta -> Exp r tb) -> Int
+cntTmpF s f = cntTmp s (f (Tmp "__dummy__"))
+
+
+refHasOneOrZro :: IORef Int
+{-# NOINLINE refHasOneOrZro #-}
+refHasOneOrZro = unsafePerformIO (newIORef 0)
+
+hasOneOrZro :: (Exp r ta -> Exp r tb) -> Bool
+hasOneOrZro f = let i = unsafePerformIO
+                        (do j <- readIORef refHasOneOrZro
+                            modifyIORef refHasOneOrZro (+1)
+                            return j)
+                    v = "_x" ++ show i
+                in  cntTmp v (f (Tmp v)) <= 1
 
 isFresh :: (Exp r ta -> Exp r tb) -> Bool
 isFresh f = not (hasTmp "__fresh__" (f (Tmp "__fresh__")))
