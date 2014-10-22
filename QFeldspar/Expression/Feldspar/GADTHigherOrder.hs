@@ -96,16 +96,8 @@ eql (May (em  :: Exp r (May tm)) en  es)
     _       -> False
 eql _           _             = False
 
-refEql :: IORef Int
-{-# NOINLINE refEql #-}
-refEql = unsafePerformIO (newIORef 0)
-
 eqlF :: forall r ta tb.  (Exp r ta -> Exp r tb) -> (Exp r ta -> Exp r tb) -> Bool
-eqlF f f' = let i = unsafePerformIO
-                    (do j <- readIORef refEql
-                        modifyIORef refEql (+1)
-                        return j)
-                v = "_x" ++ show i
+eqlF f f' = let v = genNewNam
             in eql (f (Tmp v)) (f' (Tmp v))
 
 sucAll :: Exp r t' -> Exp (t ': r) t'

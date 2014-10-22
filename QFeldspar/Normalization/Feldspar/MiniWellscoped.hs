@@ -5,8 +5,6 @@ import QFeldspar.MyPrelude hiding (foldl,fmap)
 import QFeldspar.Expression.Feldspar.MiniWellScoped
 
 import QFeldspar.Normalization
-import Data.IORef
-import System.IO.Unsafe
 import QFeldspar.Singleton
 import qualified QFeldspar.Type.Feldspar.GADT as TFG
 import QFeldspar.Environment.Typed
@@ -162,16 +160,8 @@ instance HasSin TFG.Typ t => NrmOne (Exp n t) where
     May (Som e) _       es       -> chg (es e)
     May em      en      es       -> May  <$@> em <*@> en <*@> es
 
-
-ref :: IORef Int
-{-# NOINLINE ref #-}
-ref = unsafePerformIO (newIORef 0)
-
 instance (HasSin TFG.Typ tb, HasSin TFG.Typ ta) =>
          NrmOne (Exp n ta -> Exp n tb) where
-  nrmOne f = let i = unsafePerformIO (do j <- readIORef ref
-                                         modifyIORef ref (+1)
-                                         return j)
-                 v = "_xn" ++ show i
-             in do eb <- nrmOne (f (Tmp v))
-                   return (\ x -> absTmp x v eb)
+  nrmOne f = let n = genNewNam
+             in do eb <- nrmOne (f (Tmp n))
+                   return (\ x -> absTmp x n eb)

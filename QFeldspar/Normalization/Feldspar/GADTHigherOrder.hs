@@ -5,8 +5,6 @@ import QFeldspar.MyPrelude
 import QFeldspar.Expression.Feldspar.GADTHigherOrder
 
 import QFeldspar.Normalization
-import Data.IORef
-import System.IO.Unsafe
 import QFeldspar.Singleton
 import qualified QFeldspar.Type.Feldspar.GADT as TFG
 
@@ -80,12 +78,8 @@ etasub ee = let t = sin :: TFG.Typ t in case ee of
 
 etaF :: forall n ta tb. (HasSin TFG.Typ ta , HasSin TFG.Typ tb) =>
            (Exp n ta -> Exp n tb) -> (Exp n ta -> Exp n tb)
-etaF f = let i  = unsafePerformIO (do j <- readIORef ref
-                                      modifyIORef ref (+1)
-                                      return j)
-             v  = "_xn" ++ show i
-             eb = eta (f (Tmp v))
-         in (\ x -> absTmp x v eb)
+etaF f = let v  = genNewNam
+         in (\ x -> absTmp x v (eta (f (Tmp v))))
 
 instance HasSin TFG.Typ t => NrmOne (Exp n t) where
   nrmOne ee = let t = sin :: TFG.Typ t in case ee of
@@ -162,16 +156,8 @@ instance HasSin TFG.Typ t => NrmOne (Exp n t) where
     May (Som e) _       es       -> chg (es e)
     May em      en      es       -> May  <$@> em <*@> en <*@> es
 
-
-ref :: IORef Int
-{-# NOINLINE ref #-}
-ref = unsafePerformIO (newIORef 0)
-
 instance (HasSin TFG.Typ tb, HasSin TFG.Typ ta) =>
          NrmOne (Exp n ta -> Exp n tb) where
-  nrmOne f = let i = unsafePerformIO (do j <- readIORef ref
-                                         modifyIORef ref (+1)
-                                         return j)
-                 v = "_xn" ++ show i
+  nrmOne f = let v = genNewNam
              in do eb <- nrmOne (f (Tmp v))
                    return (\ x -> absTmp x v eb)

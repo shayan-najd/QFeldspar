@@ -21,7 +21,8 @@ module QFeldspar.MyPrelude
         otherwise, impossible , impossibleM,badUse,badTypVal,badTypValM,
         lookup,
         State,getState,put,modify,runState,execState,evalState,StateT
-             ,lift,runStateT,
+             ,lift,runStateT,evalStateT,
+        genNewNam,
         module QFeldspar.ErrorMonad,
         module QFeldspar.Existential,
         module Data.Monoid,
@@ -50,6 +51,8 @@ import Data.Word
 import Data.Bits
 import Data.Char(ord)
 import System.Environment
+import Data.Unique
+import System.IO.Unsafe
 
 impossible :: a
 impossible = error "Impossible!"
@@ -77,3 +80,7 @@ type May a   = Maybe a
 type Cmx     = Complex Flt
 type Arr a b = a -> b
 type Tpl a b = (a , b)
+
+{-# NOINLINE genNewNam #-}
+genNewNam :: String
+genNewNam = unsafePerformIO (fmap (show . hashUnique) newUnique)

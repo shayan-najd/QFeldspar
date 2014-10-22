@@ -1,5 +1,5 @@
 module QFeldspar.Expression.Feldspar.MiniWellScoped
-    (Exp(..),sucAll,prdAll,mapVar,isFresh,absVar,absTmp,eql
+    (Exp(..),sucAll,prdAll,mapVar,isFresh,absVar,absTmp,eql,eqlF
     ,cntTmp,hasOneOrZro) where
 
 import QFeldspar.MyPrelude hiding (foldl)
@@ -9,10 +9,11 @@ import qualified QFeldspar.Type.Feldspar.GADT     as TFG
 import QFeldspar.Variable.Typed
 
 import QFeldspar.Environment.Typed as ET
+import QFeldspar.Singleton
+
 import Data.IORef
 import System.IO.Unsafe
 
-import QFeldspar.Singleton
 
 data Exp :: [*] -> * -> * where
   ConI  :: Int      -> Exp r Int
@@ -111,16 +112,8 @@ eql (May (em  :: Exp r (May tm)) en  es)
     _       -> False
 eql _           _             = False
 
-refEql :: IORef Int
-{-# NOINLINE refEql #-}
-refEql = unsafePerformIO (newIORef 0)
-
 eqlF :: forall r ta tb.  (Exp r ta -> Exp r tb) -> (Exp r ta -> Exp r tb) -> Bool
-eqlF f f' = let i = unsafePerformIO
-                    (do j <- readIORef refEql
-                        modifyIORef refEql (+1)
-                        return j)
-                v = "_x" ++ show i
+eqlF f f' = let v = genNewNam
             in eql (f (Tmp v)) (f' (Tmp v))
 
 sucAll :: Exp r t' -> Exp (t ': r) t'
@@ -234,19 +227,12 @@ absVar' xx ee = let b = sin :: TFG.Typ b in case ee of
    PrfHasSin                -> Som (absVar' xx e)
   May ec en es              -> May (absVar' xx ec) (absVar' xx en)
                                    (absVar'F xx es)
-refAbsVar :: IORef Int
-{-# NOINLINE refAbsVar #-}
-refAbsVar = unsafePerformIO (newIORef 0)
 
 absVar'F :: forall r a b c.
             (HasSin TFG.Typ a, HasSin TFG.Typ b, HasSin TFG.Typ c) =>
            Exp r a -> (Exp (a ': r) b -> Exp (a ': r) c) ->
                       (Exp r b -> Exp r c)
-absVar'F xx ef = let i = unsafePerformIO
-                         (do j <- readIORef refAbsVar
-                             modifyIORef refAbsVar (+1)
-                             return j)
-                     v = "_x" ++ show i
+absVar'F xx ef = let v = genNewNam
                  in (\ x -> absTmp x v (absVar' xx (ef (Tmp v))))
 
 -- when input string is not "__dummy__"
@@ -275,7 +261,8 @@ hasTmp s ee = case ee of
   May em en es              -> hasTmp  s em || hasTmp  s en || hasTmpF  s es
 
 hasTmpF :: String -> (Exp r ta -> Exp r tb) -> Bool
-hasTmpF s f = hasTmp s (f (Tmp "__dummy__"))
+hasTmpF s f = let n = genNewNam
+              in  hasTmp s (f (Tmp n))
 
 -- when input string is not "__dummy__"
 cntTmp :: String -> Exp r t -> Int
@@ -303,20 +290,13 @@ cntTmp s ee = case ee of
   May em en es              -> cntTmp  s em + cntTmp  s en + cntTmpF  s es
 
 cntTmpF :: String -> (Exp r ta -> Exp r tb) -> Int
-cntTmpF s f = cntTmp s (f (Tmp "__dummy__"))
-
-
-refHasOneOrZro :: IORef Int
-{-# NOINLINE refHasOneOrZro #-}
-refHasOneOrZro = unsafePerformIO (newIORef 0)
+cntTmpF s f = let n = genNewNam
+              in  cntTmp s (f (Tmp n))
 
 hasOneOrZro :: (Exp r ta -> Exp r tb) -> Bool
-hasOneOrZro f = let i = unsafePerformIO
-                        (do j <- readIORef refHasOneOrZro
-                            modifyIORef refHasOneOrZro (+1)
-                            return j)
-                    v = "_x" ++ show i
+hasOneOrZro f = let v = genNewNam
                 in  cntTmp v (f (Tmp v)) <= 1
 
 isFresh :: (Exp r ta -> Exp r tb) -> Bool
-isFresh f = not (hasTmp "__fresh__" (f (Tmp "__fresh__")))
+isFresh f = let n = genNewNam
+            in  not (hasTmp n (f (Tmp n)))

@@ -7,26 +7,15 @@ import QFeldspar.MyPrelude hiding (foldl)
 import qualified QFeldspar.Type.Feldspar.GADT as TFG
 import qualified QFeldspar.Environment.Typed  as ET
 import QFeldspar.ChangeMonad
-import Data.IORef
-import System.IO.Unsafe
 import QFeldspar.Singleton
 
 cse :: forall r t. HasSin TFG.Typ t => Exp r t -> Exp r t
 cse e = remTag (tilNotChg cseOne e)
 
-
-reff :: IORef Int
-{-# NOINLINE reff #-}
-reff = unsafePerformIO (newIORef 0)
-
 cseF :: forall r a b. (HasSin TFG.Typ a , HasSin TFG.Typ b) =>
            (Exp r a -> Exp r b) -> (Exp r a -> Exp r b)
-cseF f  = let i = unsafePerformIO (do j <- readIORef reff
-                                      modifyIORef ref (+1)
-                                      return j)
-              v = "_xn" ++ show i
-          in remTag . (\ x -> absTmp x v (cse (f (Tmp v))))
-
+cseF f  = let v = genNewNam
+          in  remTag . (\ x -> absTmp x v (cse (f (Tmp v))))
 
 remTag :: Exp r t -> Exp r t
 remTag ee = case ee of
@@ -125,16 +114,9 @@ cseOne ee = let t = sin :: TFG.Typ t in case ee of
           chg (Let ex (\ xx -> May em (absTag xx x en) (absTag xx x . es)))
      _ -> May <$> cseOne em <*> cseOne en <*> cseOneF es
 
-ref :: IORef Int
-{-# NOINLINE ref #-}
-ref = unsafePerformIO (newIORef 0)
-
 cseOneF :: forall r a b. (HasSin TFG.Typ a , HasSin TFG.Typ b) =>
            (Exp r a -> Exp r b) -> Chg (Exp r a -> Exp r b)
-cseOneF f  = let i = unsafePerformIO (do j <- readIORef ref
-                                         modifyIORef ref (+1)
-                                         return j)
-                 v = "_xn" ++ show i
+cseOneF f  = let v = genNewNam
              in do eb <- cseOne (f (Tmp v))
                    return (\ x -> absTmp x v eb)
 
@@ -144,21 +126,13 @@ infixl 4 <||>
 Nothing  <||> m = m
 (Just x) <||> _ = Just x
 
-fld :: (forall t. HasSin TFG.Typ t => b -> e t -> b) -> b ->
-       TFG.Typ tt -> ET.Env e (TFG.Arg tt) -> b
-fld _ z _              ET.Emp        = z
-fld f z (TFG.Arr a b) (ET.Ext e es)  = case getPrfHasSin a of
-    PrfHasSin -> f (fld f z b es) e
-fld _ _  _             _             = impossible
-
-
 findTag :: forall r t. HasSin TFG.Typ t =>
           Exp r t -> Maybe (String , Exs1 (Exp r) TFG.Typ)
 findTag ee = let t = sin :: TFG.Typ t in case ee of
   ConI _                    -> Nothing
   ConB _                    -> Nothing
   ConF _                    -> Nothing
-  AppV v es                 -> fld (\ b e -> b <||> (findTag e)) Nothing
+  AppV v es                 -> TFG.fld (\ b e -> b <||> (findTag e)) Nothing
                                (sinTyp v) es
   Cnd ec et ef              -> findTag  ec <||> findTag  et <||> findTag ef
   Whl ec eb ei              -> findTagF ec <||> findTagF eb <||> findTag ei
@@ -181,7 +155,8 @@ findTag ee = let t = sin :: TFG.Typ t in case ee of
 
 findTagF :: (HasSin TFG.Typ a , HasSin TFG.Typ b) =>
             (Exp r a -> Exp r b) -> Maybe (String , Exs1 (Exp r) TFG.Typ)
-findTagF f = findTag (f (Tmp "dummy"))
+findTagF f = let n = genNewNam
+             in  findTag (f (Tmp n))
 
 
 absTag :: forall r t t'. (HasSin TFG.Typ t', HasSin TFG.Typ t) =>
@@ -243,4 +218,5 @@ hasTag s ee = case ee of
   May ec eb ei              -> hasTag s ec || hasTag s eb || hasTagF s ei
 
 hasTagF :: String -> (Exp r ta -> Exp r tb) -> Bool
-hasTagF s f = hasTag s (f (Tmp "__dummy__"))
+hasTagF s f = let n = genNewNam
+              in  hasTag s (f (Tmp n))

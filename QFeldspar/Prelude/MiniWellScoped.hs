@@ -20,9 +20,8 @@ module QFeldspar.Prelude.MiniWellScoped
        ,replicateA,appendA,hashTable
        ) where
 
-import qualified Prelude   as P
 import QFeldspar.MyPrelude (Int,Flt,Cmx,Ary,Bol,Tpl,Bool(..),Num(..)
-                           ,Fractional(..),impossible)
+                           ,Fractional(..),impossible,genNewNam)
 import qualified QFeldspar.MyPrelude as MP
 
 import QFeldspar.Expression.Feldspar.MiniWellScoped hiding (eql)
@@ -31,9 +30,6 @@ import qualified QFeldspar.Type.Feldspar.GADT            as TFG
 import QFeldspar.Singleton
 import QFeldspar.Environment.Typed (Env(Emp,Ext))
 import QFeldspar.Prelude.Environment
-
-import Data.Unique
-import System.IO.Unsafe
 
 type Type t = HasSin TFG.Typ t
 
@@ -116,7 +112,8 @@ share :: Type tl => Exp r tl -> (Exp r tl -> Exp r tb) -> Exp r tb
 share = Let
 
 shared :: Exp r t -> Exp r t
-shared e = Tag (unsafePerformIO (P.fmap (P.show P.. hashUnique) newUnique)) e
+shared e = let n = genNewNam
+           in Tag n e
 
 forLoop :: Type s => Data Int -> Data s ->
            (Data Int -> Data s -> Data s ) -> Data s

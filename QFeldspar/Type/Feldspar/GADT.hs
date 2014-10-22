@@ -132,7 +132,6 @@ eqlOut (Tpl tf ts) (Tpl tf' ts') = do Rfl <- eqlSin tf tf'
 eqlOut Cmx         Cmx           = return EqlOut
 eqlOut _              _          = fail "Normalization Error!"
 
-
 type family Arg (t :: *) :: [*] where
   Arg (ta -> tb) = ta ': Arg tb
   Arg t          = '[]
@@ -153,23 +152,29 @@ eqlArg ET.Emp         (Tpl _ _)    = return EqlArg
 eqlArg ET.Emp         Cmx          = return EqlArg
 eqlArg _              _            = fail "Normalization Error!"
 
-mapC :: r ~ Arg tt =>
-        Typ tt -> (forall t. HasSin Typ t => tfa t -> tfb t) ->
-        ET.Env tfa r -> ET.Env tfb r
+mapC :: Typ tt -> (forall t. HasSin Typ t => tfa t -> tfb t) ->
+        ET.Env tfa (Arg tt) -> ET.Env tfb (Arg tt)
 mapC _              _ ET.Emp     = ET.Emp
 mapC (Arr t ts) f (ET.Ext x xs)  = case getPrfHasSin t of
   PrfHasSin                     -> ET.Ext (f x) (mapC ts f xs)
 mapC _              _ _          = impossible
 
-mapMC :: (Monad m , r ~ Arg tt) =>
+mapMC :: Monad m =>
         Typ tt -> (forall t. HasSin Typ t => tfa t -> m (tfb t)) ->
-        ET.Env tfa r -> m (ET.Env tfb r)
+        ET.Env tfa (Arg tt) -> m (ET.Env tfb (Arg tt))
 mapMC _              _ ET.Emp    = return (ET.Emp)
 mapMC (Arr t ts) f (ET.Ext x xs) = case getPrfHasSin t of
   PrfHasSin -> do x'  <- f x
                   xs' <- mapMC ts f xs
                   return (ET.Ext x' xs')
 mapMC _              _ _        = impossibleM
+
+fld :: (forall t. HasSin Typ t => b -> e t -> b) -> b ->
+       Typ tt -> ET.Env e (Arg tt) -> b
+fld _ z _              ET.Emp   = z
+fld f z (Arr a b) (ET.Ext e es) = case getPrfHasSin a of
+    PrfHasSin -> f (fld f z b es) e
+fld _ _  _             _        = impossible
 
 getArgTyp :: Typ (Arr ta tb) -> Typ ta
 getArgTyp (Arr ta _) = ta
