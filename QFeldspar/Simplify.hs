@@ -33,13 +33,23 @@ instance (HasSin TFG.Typ t) =>
     Fst e                        -> Fst  <$@> e
     Snd e                        -> Snd  <$@> e
     Ary el      ef               -> case TFG.getPrfHasSinAry t of
-      PrfHasSin                  -> Ary  <$@> el <*@> ef
+      PrfHasSin                  -> case el of
+        Len (e :: Exp n (Ary te))-> let v = genNewNam "__smpOneAry__"
+                                        {-# NOINLINE v #-}
+                                    in deepseq v $ case ef (Tmp v) of
+          Ind (e' :: Exp n (Ary te')) (Tmp m)
+            | m == v -> case eqlSin (sin :: TFG.Typ te) (sin :: TFG.Typ te') of
+               Rgt Rfl
+                   | eql e e'    -> chg e
+               _                 -> Ary  <$@> el <*@> ef
+          _                      -> Ary  <$@> el <*@> ef
+        _                        -> Ary  <$@> el <*@> ef
     Len e                        -> Len  <$@> e
     Ind ea             ei        -> Ind  <$@> ea <*@> ei
     Cmx er ei                    -> Cmx  <$@> er <*@> ei
 
     Let ea         eb
-      | hasOneOrZro eb               -> chg (eb ea)
+      | hasOneOrZro eb           -> chg (eb ea)
     Let el             eb        -> Let  <$@> el <*@> eb
     Tmp x                        -> pure (Tmp x)
     Tag x e                      -> Tag x <$@> e
@@ -50,6 +60,7 @@ instance (HasSin TFG.Typ t) =>
 
 instance (HasSin TFG.Typ tb, HasSin TFG.Typ ta) =>
          SmpOne (Exp n ta -> Exp n tb) where
-  smpOne f = let v = genNewNam
-             in do eb <- smpOne (f (Tmp v))
-                   return (\ x -> absTmp x v eb)
+  smpOne f = let v = genNewNam "__SmpOneF__"
+                 {-# NOINLINE v #-}
+             in deepseq v $ do eb <- smpOne (f (Tmp v))
+                               return (\ x -> absTmp x v eb)

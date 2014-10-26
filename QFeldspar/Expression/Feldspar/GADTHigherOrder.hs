@@ -6,9 +6,6 @@ import QFeldspar.MyPrelude
 import QFeldspar.Variable.Typed
 
 import qualified QFeldspar.Type.Feldspar.GADT as TFG
-
-import Data.IORef
-import System.IO.Unsafe
 import QFeldspar.Singleton
 
 data Exp :: [*] -> * -> * where
@@ -38,18 +35,11 @@ data Exp :: [*] -> * -> * where
 
 deriving instance Show (Exp r t)
 
-ref :: IORef Int
-{-# NOINLINE ref #-}
-ref = unsafePerformIO (newIORef 0)
-
 instance Show (Exp r ta -> Exp r tb) where
   show f =
-
-    let i = unsafePerformIO (do j <- readIORef ref
-                                modifyIORef ref (+1)
-                                return j)
-        v = "_x" ++ show i
-    in ("(\\ "++ v ++ " -> (" ++
+    let v = genNewNam "x"
+        {-# NOINLINE v #-}
+    in deepseq v $ ("(\\ "++ v ++ " -> (" ++
         show (f (Tmp v))
         ++ "))")
 
@@ -97,8 +87,9 @@ eql (May (em  :: Exp r (May tm)) en  es)
 eql _           _             = False
 
 eqlF :: forall r ta tb.  (Exp r ta -> Exp r tb) -> (Exp r ta -> Exp r tb) -> Bool
-eqlF f f' = let v = genNewNam
-            in eql (f (Tmp v)) (f' (Tmp v))
+eqlF f f' = let v = genNewNam "__eqlFHO__"
+                {-# NOINLINE v #-}
+            in deepseq v $ eql (f (Tmp v)) (f' (Tmp v))
 
 sucAll :: Exp r t' -> Exp (t ': r) t'
 sucAll = mapVar Suc prd

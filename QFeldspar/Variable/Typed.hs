@@ -15,7 +15,7 @@ int Zro     = 0
 int (Suc x) = 1 + int x
 
 instance Show (Var r t) where
-  show v = show (int v)
+  show v = "$(nat "++show (int v)++" \"\")"
 
 prd :: Var (t' ': r) t -> Var r t
 prd (Suc x) = x

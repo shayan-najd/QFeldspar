@@ -193,3 +193,29 @@ getAryTyp (Ary ta) = ta
 
 getMayTyp :: Typ (May ta) -> Typ ta
 getMayTyp (May ta) = ta
+
+getPrf :: (Arg t ~ Add ra (tb ': rb)) =>
+          Typ t -> ET.Env T ra -> ET.Env T (tb ': rb) -> PrfHasSin Typ tb
+getPrf Int                   _          _           = impossible
+getPrf Bol                   _          _           = impossible
+getPrf Flt                   _          _           = impossible
+getPrf (Tpl _ _)             _          _           = impossible
+getPrf (Ary _)               _          _           = impossible
+getPrf Cmx                   _          _           = impossible
+getPrf (May _)               _          _           = impossible
+getPrf (Arr t Int)       ET.Emp        (ET.Ext T ET.Emp) = getPrfHasSin t
+getPrf (Arr _ Int)       _          _           = impossible
+getPrf (Arr t Bol)       ET.Emp        (ET.Ext T ET.Emp) = getPrfHasSin t
+getPrf (Arr _ Bol)       _          _           = impossible
+getPrf (Arr t Flt)       ET.Emp        (ET.Ext T ET.Emp) = getPrfHasSin t
+getPrf (Arr _ Flt)       _          _           = impossible
+getPrf (Arr t (Tpl _ _)) ET.Emp        (ET.Ext T ET.Emp) = getPrfHasSin t
+getPrf (Arr _ (Tpl _ _)) _          _           = impossible
+getPrf (Arr t (Ary _))   ET.Emp        (ET.Ext T ET.Emp) = getPrfHasSin t
+getPrf (Arr _ (Ary _))   _          _           = impossible
+getPrf (Arr t Cmx)       ET.Emp        (ET.Ext T ET.Emp) = getPrfHasSin t
+getPrf (Arr _ Cmx)       _          _           = impossible
+getPrf (Arr t (May _))   ET.Emp        (ET.Ext T ET.Emp) = getPrfHasSin t
+getPrf (Arr _ (May _))   _          _           = impossible
+getPrf (Arr t (Arr _ _)) ET.Emp        (ET.Ext T _)   = getPrfHasSin t
+getPrf (Arr _ ts@(Arr _ _)) (ET.Ext T es) es'      = getPrf ts es es'

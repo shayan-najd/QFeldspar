@@ -15,7 +15,9 @@ fftCore = \ n -> \ vv ->
 
 ixf :: Vec Cmx
     -> Data Int -> Data Int -> Data Cmx
-ixf = \ v -> \ k -> \ i ->
+ixf = \ v -> \ kk -> \ i ->
+      let k    = shared  kk in
+
       let k2   = shared (shfLft 1 k) in
       let twid = shared (cis ((mul pi (i2f (lsbs k i))) / (i2f k2))) in
       let a    = shared (indV v i) in
@@ -27,7 +29,9 @@ bitRev = \ n -> \ x ->
          forLoopVec n x (\ i -> permute (\ _j -> rotBit (add i 1)))
 
 rotBit :: Data Int -> Data Int -> Data Int
-rotBit = \ k -> \ i ->
+rotBit = \ kk -> \ i ->
+         let k = shared kk in
+
          bitOr
          (shfLft (bitOr
                   (shfLft (shfRgt (shfRgt i 1) k) 1)

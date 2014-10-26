@@ -21,7 +21,7 @@ module QFeldspar.Prelude.MiniWellScoped
        ) where
 
 import QFeldspar.MyPrelude (Int,Flt,Cmx,Ary,Bol,Tpl,Bool(..),Num(..)
-                           ,Fractional(..),impossible,genNewNam)
+                           ,Fractional(..),impossible,genNewNam,deepseq,($))
 import qualified QFeldspar.MyPrelude as MP
 
 import QFeldspar.Expression.Feldspar.MiniWellScoped hiding (eql)
@@ -111,9 +111,11 @@ whl = Whl
 share :: Type tl => Exp r tl -> (Exp r tl -> Exp r tb) -> Exp r tb
 share = Let
 
+{-# NOINLINE shared #-}
 shared :: Exp r t -> Exp r t
-shared e = let n = genNewNam
-           in Tag n e
+shared e = let v = genNewNam "shared"
+               {-# NOINLINE v #-}
+           in deepseq v $ Tag v e
 
 forLoop :: Type s => Data Int -> Data s ->
            (Data Int -> Data s -> Data s ) -> Data s

@@ -78,8 +78,9 @@ etasub ee = let t = sin :: TFG.Typ t in case ee of
 
 etaF :: forall n ta tb. (HasSin TFG.Typ ta , HasSin TFG.Typ tb) =>
            (Exp n ta -> Exp n tb) -> (Exp n ta -> Exp n tb)
-etaF f = let v  = genNewNam
-         in (\ x -> absTmp x v (eta (f (Tmp v))))
+etaF f = let v  = genNewNam "__etaF__"
+             {-# NOINLINE v #-}
+         in deepseq v $ (\ x -> absTmp x v (eta (f (Tmp v))))
 
 instance HasSin TFG.Typ t => NrmOne (Exp n t) where
   nrmOne ee = let t = sin :: TFG.Typ t in case ee of
@@ -158,6 +159,7 @@ instance HasSin TFG.Typ t => NrmOne (Exp n t) where
 
 instance (HasSin TFG.Typ tb, HasSin TFG.Typ ta) =>
          NrmOne (Exp n ta -> Exp n tb) where
-  nrmOne f = let v = genNewNam
-             in do eb <- nrmOne (f (Tmp v))
-                   return (\ x -> absTmp x v eb)
+  nrmOne f = let v = genNewNam "__NrmOneHO__"
+                 {-# NOINLINE v #-}
+             in deepseq v $ do eb <- nrmOne (f (Tmp v))
+                               return (\ x -> absTmp x v eb)

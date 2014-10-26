@@ -22,7 +22,7 @@ module QFeldspar.MyPrelude
         lookup,
         State,getState,put,modify,runState,execState,evalState,StateT
              ,lift,runStateT,evalStateT,
-        genNewNam,
+        genNewNam,deepseq,($),
         module QFeldspar.ErrorMonad,
         module QFeldspar.Existential,
         module Data.Monoid,
@@ -33,6 +33,7 @@ module QFeldspar.MyPrelude
         module Control.Monad,
         module Data.Array,Bol,Ary,May,Cmx,Flt,Int,Arr,Tpl)
        where
+import Control.DeepSeq
 import Prelude hiding (Int)
 import QFeldspar.Existential
 import Data.Maybe
@@ -82,5 +83,5 @@ type Arr a b = a -> b
 type Tpl a b = (a , b)
 
 {-# NOINLINE genNewNam #-}
-genNewNam :: String
-genNewNam = unsafePerformIO (fmap (show . hashUnique) newUnique)
+genNewNam :: String -> String
+genNewNam x = unsafePerformIO (fmap (x ++) (fmap (show . hashUnique) newUnique))

@@ -1,4 +1,5 @@
-module QFeldspar.Environment.Typed(Env(Emp,Ext),fmap,foldMap,foldl,traverse,len,get) where
+module QFeldspar.Environment.Typed
+    (Env(Emp,Ext),fmap,foldMap,foldl,traverse,len,get,add) where
 
 import QFeldspar.MyPrelude hiding (mapM,fmap,traverse,foldMap,foldl)
 
@@ -37,6 +38,10 @@ get :: Var r t -> Env tf r -> tf t
 get Zro     (Ext x  _ ) = x
 get (Suc n) (Ext _  xs) = get n xs
 get _       Emp         = impossible
+
+add :: Env t ra -> Env t rb -> Env t (Add ra rb)
+add Emp        ys = ys
+add (Ext x xs) ys = Ext x (add xs ys)
 
 -- add :: (?env :: Env tf r') => Var r t -> Var (Add r' r) t
 -- add v = case ?env of

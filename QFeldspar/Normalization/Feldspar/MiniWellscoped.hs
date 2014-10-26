@@ -42,42 +42,12 @@ val ee = (isVal ee , ee)
 pattern V  v <- (val -> (True  , v))
 pattern NV v <- (val -> (False , v))
 
-add :: Env t ra -> Env t rb -> Env t (Add ra rb)
-add Emp        ys = ys
-add (Ext x xs) ys = Ext x (add xs ys)
-
-getPrf :: (TFG.Arg t ~ Add ra (tb ': rb)) =>
-          TFG.Typ t -> Env T ra -> Env T (tb ': rb) -> PrfHasSin TFG.Typ tb
-getPrf TFG.Int                   _          _           = impossible
-getPrf TFG.Bol                   _          _           = impossible
-getPrf TFG.Flt                   _          _           = impossible
-getPrf (TFG.Tpl _ _)             _          _           = impossible
-getPrf (TFG.Ary _)               _          _           = impossible
-getPrf TFG.Cmx                   _          _           = impossible
-getPrf (TFG.May _)               _          _           = impossible
-getPrf (TFG.Arr t TFG.Int)       Emp        (Ext T Emp) = getPrfHasSin t
-getPrf (TFG.Arr _ TFG.Int)       _          _           = impossible
-getPrf (TFG.Arr t TFG.Bol)       Emp        (Ext T Emp) = getPrfHasSin t
-getPrf (TFG.Arr _ TFG.Bol)       _          _           = impossible
-getPrf (TFG.Arr t TFG.Flt)       Emp        (Ext T Emp) = getPrfHasSin t
-getPrf (TFG.Arr _ TFG.Flt)       _          _           = impossible
-getPrf (TFG.Arr t (TFG.Tpl _ _)) Emp        (Ext T Emp) = getPrfHasSin t
-getPrf (TFG.Arr _ (TFG.Tpl _ _)) _          _           = impossible
-getPrf (TFG.Arr t (TFG.Ary _))   Emp        (Ext T Emp) = getPrfHasSin t
-getPrf (TFG.Arr _ (TFG.Ary _))   _          _           = impossible
-getPrf (TFG.Arr t TFG.Cmx)       Emp        (Ext T Emp) = getPrfHasSin t
-getPrf (TFG.Arr _ TFG.Cmx)       _          _           = impossible
-getPrf (TFG.Arr t (TFG.May _))   Emp        (Ext T Emp) = getPrfHasSin t
-getPrf (TFG.Arr _ (TFG.May _))   _          _           = impossible
-getPrf (TFG.Arr t (TFG.Arr _ _)) Emp        (Ext T _)   = getPrfHasSin t
-getPrf (TFG.Arr _ ts@(TFG.Arr _ _)) (Ext T es) es'      = getPrf ts es es'
-
 cmt :: forall t ra rb r.
        (HasSin TFG.Typ t , TFG.Arg t ~ Add ra rb) =>
        Var r t -> Env (Exp r) ra -> Env (Exp r) rb -> Chg (Exp r (TFG.Out t))
 cmt v r r' = case r' of
   Emp           -> return (AppV v (add r r'))
-  Ext (NV e) es -> case getPrf (sinTyp v) (fmap (\ _ -> T) r)
+  Ext (NV e) es -> case TFG.getPrf (sinTyp v) (fmap (\ _ -> T) r)
                    (fmap (\ _ -> T) r') of
     PrfHasSin   -> chg (Let e (\ x -> AppV v (add r (Ext x es))))
   Ext (x :: Exp r tx) (xs :: Env (Exp r) txs) ->
@@ -162,6 +132,7 @@ instance HasSin TFG.Typ t => NrmOne (Exp n t) where
 
 instance (HasSin TFG.Typ tb, HasSin TFG.Typ ta) =>
          NrmOne (Exp n ta -> Exp n tb) where
-  nrmOne f = let n = genNewNam
-             in do eb <- nrmOne (f (Tmp n))
-                   return (\ x -> absTmp x n eb)
+  nrmOne f = let v = genNewNam "__NrmOneMW__"
+                 {-# NOINLINE v #-}
+             in deepseq v $ do eb <- nrmOne (f (Tmp v))
+                               return (\ x -> absTmp x v eb)

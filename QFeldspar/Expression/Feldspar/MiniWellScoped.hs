@@ -3,17 +3,13 @@ module QFeldspar.Expression.Feldspar.MiniWellScoped
     ,cntTmp,hasOneOrZro) where
 
 import QFeldspar.MyPrelude hiding (foldl)
-
+import GHC.Show
 import qualified QFeldspar.Type.Feldspar.GADT     as TFG
 
 import QFeldspar.Variable.Typed
 
 import QFeldspar.Environment.Typed as ET
 import QFeldspar.Singleton
-
-import Data.IORef
-import System.IO.Unsafe
-
 
 data Exp :: [*] -> * -> * where
   ConI  :: Int      -> Exp r Int
@@ -43,26 +39,14 @@ data Exp :: [*] -> * -> * where
   May   :: HasSin TFG.Typ a =>
            Exp r (May a) -> Exp r b -> (Exp r a -> Exp r b) -> Exp r b
 
-deriving instance Show (Exp r t)
-
-ref :: IORef Int
-{-# NOINLINE ref #-}
-ref = unsafePerformIO (newIORef 0)
-
 instance Show (Exp r ta -> Exp r tb) where
-  show f =
+  show f = let v = genNewNam "x"
+               {-# NOINLINE v #-}
+           in deepseq v $ ("(\\ "++ v ++ " -> (" ++
+                     show (f (Tmp v))
+                              ++ "))")
 
-    let i = unsafePerformIO (do j <- readIORef ref
-                                modifyIORef ref (+1)
-                                return j)
-        v = ("_x" ++ show i)
-    in ("(\\ "++ v ++ " -> (" ++
-        show (f (Tmp v))
-        ++ "))")
-
-instance Show (Env (Exp r) r') where
-  show Emp        = "[]"
-  show (Ext x xs) = "(" ++ show x ++ ") , " ++ show xs
+deriving instance Show (Env (Exp r) r')
 
 eqlE :: Env (Exp r) r' -> Env (Exp r) r' -> Bool
 eqlE Emp        Emp        = True
@@ -113,8 +97,9 @@ eql (May (em  :: Exp r (May tm)) en  es)
 eql _           _             = False
 
 eqlF :: forall r ta tb.  (Exp r ta -> Exp r tb) -> (Exp r ta -> Exp r tb) -> Bool
-eqlF f f' = let v = genNewNam
-            in eql (f (Tmp v)) (f' (Tmp v))
+eqlF f f' = let v = genNewNam "__eqlFMS__"
+                {-# NOINLINE v #-}
+            in deepseq v $ eql (f (Tmp v)) (f' (Tmp v))
 
 sucAll :: Exp r t' -> Exp (t ': r) t'
 sucAll = mapVar Suc prd
@@ -232,8 +217,9 @@ absVar'F :: forall r a b c.
             (HasSin TFG.Typ a, HasSin TFG.Typ b, HasSin TFG.Typ c) =>
            Exp r a -> (Exp (a ': r) b -> Exp (a ': r) c) ->
                       (Exp r b -> Exp r c)
-absVar'F xx ef = let v = genNewNam
-                 in (\ x -> absTmp x v (absVar' xx (ef (Tmp v))))
+absVar'F xx ef = let v = genNewNam "absVar'F"
+                     {-# NOINLINE v #-}
+                 in deepseq v $ (\ x -> absTmp x v (absVar' xx (ef (Tmp v))))
 
 -- when input string is not "__dummy__"
 hasTmp :: String -> Exp r t -> Bool
@@ -261,8 +247,9 @@ hasTmp s ee = case ee of
   May em en es              -> hasTmp  s em || hasTmp  s en || hasTmpF  s es
 
 hasTmpF :: String -> (Exp r ta -> Exp r tb) -> Bool
-hasTmpF s f = let n = genNewNam
-              in  hasTmp s (f (Tmp n))
+hasTmpF s f = let v = genNewNam "hasTmpF"
+                  {-# NOINLINE v #-}
+              in  deepseq v $ hasTmp s (f (Tmp v))
 
 -- when input string is not "__dummy__"
 cntTmp :: String -> Exp r t -> Int
@@ -290,13 +277,202 @@ cntTmp s ee = case ee of
   May em en es              -> cntTmp  s em + cntTmp  s en + cntTmpF  s es
 
 cntTmpF :: String -> (Exp r ta -> Exp r tb) -> Int
-cntTmpF s f = let n = genNewNam
-              in  cntTmp s (f (Tmp n))
+cntTmpF s f = let v = genNewNam "cntTmpF"
+                  {-# NOINLINE v #-}
+              in  deepseq v $ cntTmp s (f (Tmp v))
 
 hasOneOrZro :: (Exp r ta -> Exp r tb) -> Bool
-hasOneOrZro f = let v = genNewNam
-                in  cntTmp v (f (Tmp v)) <= 1
+hasOneOrZro f = let v = genNewNam "hasOneOrZro"
+                    {-# NOINLINE v #-}
+                in  deepseq v $ cntTmp v (f (Tmp v)) <= 1
 
 isFresh :: (Exp r ta -> Exp r tb) -> Bool
-isFresh f = let n = genNewNam
-            in  not (hasTmp n (f (Tmp n)))
+isFresh f = let v = genNewNam "isFresh"
+                {-# NOINLINE v #-}
+            in  deepseq v $ not (hasTmp v (f (Tmp v)))
+
+
+instance Show
+             (Exp
+                r_aawf t_aawg) where
+    showsPrec
+      a_aaEz
+      (ConI b1_aaEA)
+      = showParen
+          ((a_aaEz >= 11))
+          ((.)
+             (showString "ConI ") (showsPrec 11 b1_aaEA))
+    showsPrec
+      a_aaEB
+      (ConB b1_aaEC)
+      = showParen
+          ((a_aaEB >= 11))
+          ((.)
+             (showString "ConB ") (showsPrec 11 b1_aaEC))
+    showsPrec
+      a_aaED
+      (ConF b1_aaEE)
+      = showParen
+          ((a_aaED >= 11))
+          ((.)
+             (showString "ConF ") (showsPrec 11 b1_aaEE))
+    showsPrec
+      a_aaEF
+      (AppV b1_aaEG b2_aaEH)
+      = showParen
+          ((a_aaEF >= 11))
+          ((.)
+             (showString "AppV ")
+             ((.)
+                (showsPrec 11 b1_aaEG)
+                ((.) showSpace (showsPrec 11 b2_aaEH))))
+    showsPrec
+      a_aaEI
+      (Cnd b1_aaEJ
+                                                        b2_aaEK
+                                                        b3_aaEL)
+      = showParen
+          ((a_aaEI >= 11))
+          ((.)
+             (showString "Cnd ")
+             ((.)
+                (showsPrec 11 b1_aaEJ)
+                ((.)
+                   showSpace
+                   ((.)
+                      (showsPrec 11 b2_aaEK)
+                      ((.)
+                         showSpace (showsPrec 11 b3_aaEL))))))
+    showsPrec
+      a_aaEM
+      (Whl b1_aaEN
+                                                        b2_aaEO
+                                                        b3_aaEP)
+      = showParen
+          ((a_aaEM >= 11))
+          ((.)
+             (showString "Whl ")
+             ((.)
+                (showsPrec 11 b1_aaEN)
+                ((.)
+                   showSpace
+                   ((.)
+                      (showsPrec 11 b2_aaEO)
+                      ((.)
+                         showSpace (showsPrec 11 b3_aaEP))))))
+    showsPrec
+      a_aaEQ
+      (Tpl b1_aaER b2_aaES)
+      = showParen
+          ((a_aaEQ >= 11))
+          ((.)
+             (showString "Tpl ")
+             ((.)
+                (showsPrec 11 b1_aaER)
+                ((.) showSpace (showsPrec 11 b2_aaES))))
+    showsPrec
+      a_aaET
+      (Fst b1_aaEU)
+      = showParen
+          ((a_aaET >= 11))
+          ((.)
+             (showString "Fst ") (showsPrec 11 b1_aaEU))
+    showsPrec
+      a_aaEV
+      (Snd b1_aaEW)
+      = showParen
+          ((a_aaEV >= 11))
+          ((.)
+             (showString "Snd ") (showsPrec 11 b1_aaEW))
+    showsPrec
+      a_aaEX
+      (Ary b1_aaEY b2_aaEZ)
+      = showParen
+          ((a_aaEX >= 11))
+          ((.)
+             (showString "Ary ")
+             ((.)
+                (showsPrec 11 b1_aaEY)
+                ((.) showSpace (showsPrec 11 b2_aaEZ))))
+    showsPrec
+      a_aaF0
+      (Len b1_aaF1)
+      = showParen
+          ((a_aaF0 >= 11))
+          ((.)
+             (showString "Len ") (showsPrec 11 b1_aaF1))
+    showsPrec
+      a_aaF2
+      (Ind b1_aaF3 b2_aaF4)
+      = showParen
+          ((a_aaF2 >= 11))
+          ((.)
+             (showString "Ind ")
+             ((.)
+                (showsPrec 11 b1_aaF3)
+                ((.) showSpace (showsPrec 11 b2_aaF4))))
+    showsPrec
+      a_aaF5
+      (Let b1_aaF6 b2_aaF7)
+      = showParen
+          ((a_aaF5 >= 11))
+          ((.)
+             (showString "Let ")
+             ((.)
+                (showsPrec 11 b1_aaF6)
+                ((.) showSpace (showsPrec 11 b2_aaF7))))
+    showsPrec
+      a_aaF8
+      (Cmx b1_aaF9 b2_aaFa)
+      = showParen
+          ((a_aaF8 >= 11))
+          ((.)
+             (showString "Cmx ")
+             ((.)
+                (showsPrec 11 b1_aaF9)
+                ((.) showSpace (showsPrec 11 b2_aaFa))))
+    showsPrec
+      a_aaFb
+      (Tmp b1_aaFc)
+      = showParen
+          ((a_aaFb >= 11))
+          (showString b1_aaFc)
+    showsPrec
+      a_aaFd
+      (Tag b1_aaFe b2_aaFf)
+      = showParen
+          ((a_aaFd >= 11))
+          ((.)
+             (showString "Tag ")
+             ((.)
+                (showsPrec 11 b1_aaFe)
+                ((.) showSpace (showsPrec 11 b2_aaFf))))
+    showsPrec
+      _
+      Non
+      = showString "Non"
+    showsPrec
+      a_aaFg
+      (Som b1_aaFh)
+      = showParen
+          ((a_aaFg >= 11))
+          ((.)
+             (showString "Som ") (showsPrec 11 b1_aaFh))
+    showsPrec
+      a_aaFi
+      (May b1_aaFj
+                                                        b2_aaFk
+                                                        b3_aaFl)
+      = showParen
+          ((a_aaFi >= 11))
+          ((.)
+             (showString "May ")
+             ((.)
+                (showsPrec 11 b1_aaFj)
+                ((.)
+                   showSpace
+                   ((.)
+                      (showsPrec 11 b2_aaFk)
+                      ((.)
+                         showSpace (showsPrec 11 b3_aaFl))))))
+    showList = showList__ (showsPrec 0)
