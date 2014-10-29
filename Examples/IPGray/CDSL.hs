@@ -22,12 +22,12 @@ rgbToGray = \ r -> \ g -> \ b ->
 
 ipgrayVec :: Vec Int -> Vec Int
 ipgrayVec = \ v ->
-         vec (div (lenV v) 3)
-                 (\ i -> let j = shared (mul i 3) in
+         vec (div (len v) 3)
+                 (\ i -> share (mul i 3) (\ j ->
                          rgbToGray
-                         (indV v j)
-                         (indV v (add j 1))
-                         (indV v (add j 2)))
+                         (ind v j)
+                         (ind v (add j 1))
+                         (ind v (add j 2))))
 
 ipgray :: Data (Ary Int) -> Data (Ary Int)
 ipgray a = vec2ary (ipgrayVec (ary2vec a))

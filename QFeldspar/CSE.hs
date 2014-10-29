@@ -1,6 +1,5 @@
 module QFeldspar.CSE where
 
-import Prelude (($))
 import QFeldspar.Expression.Feldspar.MiniWellScoped
 
 import QFeldspar.MyPrelude hiding (foldl)
@@ -14,16 +13,14 @@ import QFeldspar.Variable.Typed
 import Data.Constraint
 import Data.Constraint.Unsafe
 
-import Debug.Trace
-
 cse :: forall r t. HasSin TFG.Typ t => Exp r t -> Exp r t
-cse e = remTag (tilNotChg cseOne e)
+cse e = tilNotChg cseOne e
 
 cseF :: forall r a b. (HasSin TFG.Typ a , HasSin TFG.Typ b) =>
            (Exp r a -> Exp r b) -> (Exp r a -> Exp r b)
 cseF f  = let v = genNewNam "cseF"
               {-# NOINLINE v #-}
-          in deepseq v $ remTag . (\ x -> absTmp x v (cse (f (Tmp v))))
+          in deepseq v $ (\ x -> absTmp x v (cse (f (Tmp v))))
 
 hasTagEnv :: String -> ET.Env (Exp r) r' -> Bool
 hasTagEnv x es = ET.foldl (\ b e -> b || hasTag x e) False es
@@ -34,21 +31,24 @@ remTag ee = case ee of
   ConB i                    -> ConB i
   ConF i                    -> ConF i
   AppV v es                 -> AppV v (TFG.mapC (sinTyp v) remTag es)
-  Cnd ec et ef              -> Cnd (remTag ec) (remTag et) (remTag ef)
-  Whl ec eb ei              -> Whl (remTag . ec) (remTag . eb) (remTag ei)
-  Tpl ef es                 -> Tpl (remTag ef)   (remTag es)
+  Cnd ec et ef              -> Cnd (remTag ec)  (remTag et)  (remTag ef)
+  Whl ec eb ei              -> Whl (remTagF ec) (remTagF eb) (remTag ei)
+  Tpl ef es                 -> Tpl (remTag ef)  (remTag es)
   Fst e                     -> Fst (remTag e)
   Snd e                     -> Snd (remTag e)
-  Ary el ef                 -> Ary (remTag el)   (remTag . ef)
+  Ary el ef                 -> Ary (remTag el)  (remTagF ef)
   Len e                     -> Len (remTag e)
-  Ind ea ei                 -> Ind (remTag ea)   (remTag ei)
-  Let el eb                 -> Let (remTag el)   (remTag . eb)
-  Cmx er ei                 -> Cmx (remTag er)   (remTag ei)
+  Ind ea ei                 -> Ind (remTag ea)  (remTag ei)
+  Let el eb                 -> Let (remTag el)  (remTagF eb)
+  Cmx er ei                 -> Cmx (remTag er)  (remTag ei)
   Tmp x                     -> Tmp x
   Tag _ e                   -> remTag e
   Non                       -> Non
   Som e                     -> Som (remTag e)
-  May em en es              -> May (remTag em) (remTag en) (remTag . es)
+  May em en es              -> May (remTag em) (remTag en) (remTagF es)
+
+remTagF :: (Exp r a -> Exp r b) -> (Exp r a -> Exp r b)
+remTagF = (remTag .)
 
 remTheTag :: String -> Exp r t -> Exp r t
 remTheTag x ee = case ee of
@@ -203,7 +203,7 @@ findTag ee = let t = sin :: TFG.Typ t in case ee of
   ConI _                    -> Nothing
   ConB _                    -> Nothing
   ConF _                    -> Nothing
-  AppV v es                 -> TFG.fld (\ b e -> b <||> (findTag e)) Nothing
+  AppV v es                 -> TFG.fld (\ b e -> (findTag e) <||> b) Nothing
                                (sinTyp v) es
   Cnd ec et ef              -> findTag  ec <||> findTag  et <||> findTag ef
   Whl ec eb ei              -> findTagF ec <||> findTagF eb <||> findTag ei

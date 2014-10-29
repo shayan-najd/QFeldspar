@@ -1,9 +1,9 @@
 module QFeldspar.Prelude.TemplateHaskell
        (Data
-       ,Int,litI
-       ,Flt,litF
+       ,Int --,litI
+       ,Flt --,litF
        ,Bol,Bool(True,False)
-       ,Tpl,{-((,)),-}fst,snd
+       ,fst,snd
        ,Cmx,cmx,real,imag
        ,Ary,ary,len,ind
        ,{-ifThenElse,-}whl,forLoop,memorize
@@ -30,49 +30,23 @@ import qualified QFeldspar.VanillaPrelude as VP
 
 type Data t = Q (TExp t)
 
-
 class    FO a                           where {}
 instance FO Bol                         where {}
 instance FO Int                         where {}
 instance FO Flt                         where {}
-instance (FO a , FO b) => FO (Tpl a b)  where {}
+instance (FO a , FO b) => FO (a , b)    where {}
 instance FO a => FO (Ary a)             where {}
-instance FO Cmx                     where {}
-
----------------------------------------------------------------------------------
--- Integer
----------------------------------------------------------------------------------
+instance FO Cmx                         where {}
 
 instance Lift Int where
-    lift i = MP.return (LitE (IntegerL (MP.toInteger i)))
-
-litI :: Int -> Data Int
-litI i = [|| i ||]
-
-class FrmInt t where
-    frmInt :: Data (Int -> t)
-
-instance FrmInt Int where
-    frmInt =  [|| \ i -> i ||]
-
----------------------------------------------------------------------------------
--- Float
----------------------------------------------------------------------------------
+  lift i = MP.return (LitE (IntegerL (MP.toInteger i)))
 
 instance Lift Flt where
   lift f = MP.return (LitE (RationalL (toRational f)))
 
-litF :: Flt -> Data Flt
-litF f = [|| f ||]
-
-instance FrmInt Flt where
-    frmInt = i2f
-
 ---------------------------------------------------------------------------------
 -- Tuple
 ---------------------------------------------------------------------------------
-
-type Tpl a b = (a , b)
 
 fst :: (a , b) -> a
 fst = VP.fst
@@ -88,10 +62,10 @@ cmx :: Flt -> Flt -> Cmx
 cmx = VP.cmx
 
 real :: Data (Cmx -> Flt)
-real = [|| realPartHsk ||]
+real = [|| \ e -> realPartHsk e ||]
 
 imag :: Data (Cmx -> Flt)
-imag = [|| imagPartHsk ||]
+imag = [|| \ e -> imagPartHsk e ||]
 
 ---------------------------------------------------------------------------------
 -- Ary
@@ -100,10 +74,10 @@ imag = [|| imagPartHsk ||]
 ary :: FO a => Int -> (Int -> a) -> Ary a
 ary = VP.ary
 
-len :: FO a => Ary a -> Int
+len :: Ary a -> Int
 len = VP.len
 
-ind :: FO a => Ary a -> Int -> a
+ind :: Ary a -> Int -> a
 ind = VP.ind
 
 ---------------------------------------------------------------------------------
@@ -115,9 +89,11 @@ whl = VP.whl
 
 forLoop :: FO s => Data (Int -> s -> (Int -> s -> s) -> s)
 forLoop = [|| \ l -> \ init -> \ step ->
-              snd (whl (\ t -> $$lt (fst t) l)
-                       (\ t -> ( $$add (fst t) 1
-                               , step (fst t) (snd t)))
+              snd (whl (\ t  -> $$lt (fst t) l)
+                       (\ tt -> let t  = tt    in
+                                let ft = fst t in
+                                ( $$add ft 1
+                                , step ft (snd t)))
                    (0 , init))
           ||]
 
@@ -129,7 +105,7 @@ memorize = [|| memHsk ||]
 ---------------------------------------------------------------------------------
 
 not :: Data (Bol -> Bol)
-not = [||  \ x -> if x then False else True ||]
+not = [|| \ x -> if x then False else True ||]
 
 and :: Data (Bol -> Bol -> Bol)
 and = [|| \ x -> \ y -> if x then y else False ||]
@@ -145,13 +121,13 @@ class Equality t where
   eql :: Data (t -> t -> Bol)
 
 instance Equality Bol where
-  eql = [|| eqlBolHsk ||]
+  eql = [|| \ x -> \ y -> eqlBolHsk x y ||]
 
 instance Equality Int where
-  eql = [|| eqlIntHsk ||]
+  eql = [|| \ x -> \ y -> eqlIntHsk x y ||]
 
 instance Equality Flt where
-  eql = [|| eqlFltHsk ||]
+  eql = [|| \ x -> \ y -> eqlFltHsk x y ||]
 
 notEql :: Equality t => Data (t -> t -> Bol)
 notEql= [|| \ x -> \ y -> $$not ($$eql x y) ||]
@@ -173,16 +149,22 @@ instance Ordering Flt where
   lt = [|| \ x -> \ y -> ltdFltHsk x y ||]
 
 gt :: (Equality t , Ordering t) => Data (t -> t -> Bol)
-gt = [|| \ x -> \ y -> $$not ($$or ($$lt x y) ($$eql x y)) ||]
+gt = [|| \ xx -> \ yy -> let x = xx in
+                         let y = yy in
+                         $$not ($$or ($$lt x y) ($$eql x y)) ||]
 
 lte :: (Equality t , Ordering t) => Data (t -> t -> Bol)
-lte = [|| \ x -> \ y -> $$or ($$lt x y) ($$eql x y) ||]
+lte = [|| \ xx -> \ yy -> let x = xx in
+                          let y = yy in
+                          $$or ($$lt x y) ($$eql x y) ||]
 
 gte :: (Equality t , Ordering t) => Data (t -> t -> Bol)
 gte = [|| \ x -> \ y -> $$not ($$lt x y) ||]
 
 min :: Ordering t => Data(t -> t -> t)
-min = [|| \ x -> \ y -> if ($$lt x y) then x else y ||]
+min = [|| \ xx -> \ yy -> let x = xx in
+                          let y = yy in
+                          if ($$lt x y) then x else y ||]
 
 ---------------------------------------------------------------------------------
 -- Numeric
@@ -240,63 +222,64 @@ sqrt = [|| sqrtFltHsk ||]
 -- Bitwise Operators
 ---------------------------------------------------------------------------------
 
-bitAnd      :: Data (Int -> Int -> Int)
-bitAnd         = [|| andIntHsk ||]
+bitXor :: Data (Int -> Int -> Int)
+bitXor = [|| \ el -> \ er -> xorIntHsk el er ||]
 
-bitOr      :: Data (Int -> Int -> Int)
-bitOr         = [|| orIntHsk ||]
+bitAnd :: Data (Int -> Int -> Int)
+bitAnd = [|| \ el -> \ er -> andIntHsk el er ||]
 
-bitXor        :: Data (Int -> Int -> Int)
-bitXor        = [|| xorIntHsk ||]
+bitOr  :: Data (Int -> Int -> Int)
+bitOr  = [|| \ el -> \ er -> orIntHsk el er ||]
 
-shfRgt     :: Data (Int -> Int -> Int)
-shfRgt        = [|| shrIntHsk ||]
+shfRgt :: Data (Int -> Int -> Int)
+shfRgt = [|| \ el -> \ er -> shrIntHsk el er ||]
 
-shfLft     :: Data (Int -> Int -> Int)
-shfLft        = [|| shlIntHsk ||]
+shfLft :: Data (Int -> Int -> Int)
+shfLft = [|| \ el -> \ er -> shlIntHsk el er ||]
 
 complement :: Data (Int -> Int)
-complement    = [|| cmpIntHsk ||]
+complement = [|| \ e -> cmpIntHsk e ||]
 
 testBit    :: Data (Int -> Int -> Bol)
-testBit       = [|| \ i -> \ j -> if $$eql ($$bitAnd i ($$shfLft 1 j)) 0
+testBit    = [|| \ i -> \ j -> if $$eql ($$bitAnd i ($$shfLft 1 j)) 0
                                   then False
                                   else True ||]
 
 oneBits :: Data (Int -> Int)
-oneBits       =  [|| \ n -> $$complement ($$shfLft ($$complement 0) n) ||]
+oneBits    =  [|| \ n -> $$complement ($$shfLft ($$complement 0) n) ||]
 
 lsbs :: Data (Int -> Int -> Int)
-lsbs          = [|| \ k -> \ i -> $$bitAnd i ($$oneBits k) ||]
+lsbs       = [|| \ k -> \ i -> $$bitAnd i ($$oneBits k) ||]
 
 ---------------------------------------------------------------------------------
 -- Conversion Operators
 ---------------------------------------------------------------------------------
 
 i2f :: Data (Int -> Flt)
-i2f = [|| i2fHsk ||]
+i2f = [|| \ e -> i2fHsk e ||]
 
 cis :: Data (Flt -> Cmx)
-cis = [|| cisHsk ||]
+cis = [|| \ e -> cisHsk e ||]
 
 ---------------------------------------------------------------------------------
 -- Array Operators
 ---------------------------------------------------------------------------------
 
-frmTo :: (FrmInt t , Numeric t , FO t) => Data (Int -> Int -> Ary t)
-frmTo = [|| \ m -> \ n -> ary
-                          (if ($$lt n m)
-                           then 0
-                           else ($$add ($$sub n m) 1))
-                          (\ i -> $$add ($$frmInt i) ($$frmInt m)) ||]
+frmTo :: Data (Int -> Int -> Ary Int)
+frmTo = [|| \ mm -> \ nn -> let n = nn in
+                            let m = mm in
+                            ary
+                            (if ($$lt n m)
+                             then 0
+                             else ($$add ($$sub n m) 1))
+                            (\ i -> $$add i m) ||]
 
 permute :: FO t => Data ((Int -> Int -> Int) -> Ary t -> Ary t)
-permute = [|| \ f -> \ v -> ary (len v)
-                                   (\ i -> ind v
-                                           (f (len v) i)) ||]
+permute = [|| \ f -> \ v -> let lv = len v in
+                            ary lv (\ i -> ind v (f lv i)) ||]
 
 reverse :: FO t => Data (Ary t -> Ary t)
-reverse = [|| $$permute (\ l i -> $$sub ($$sub l 1) i) ||]
+reverse = [|| $$permute (\ l -> \ i -> $$sub ($$sub l 1) i) ||]
 
 foldl :: (FO a , FO b) => Data ((a -> b -> a) -> a -> Ary b -> a)
 foldl = [|| \ f -> \ acc -> \ v ->
@@ -309,10 +292,11 @@ zipWith :: (FO a , FO b , FO c) =>
            Data ((a -> b -> c) -> Ary a -> Ary b -> Ary c)
 zipWith = [|| \ f -> \ v1 -> \ v2 ->
                 ary ($$min (len v1) (len v2))
-                    (\ i -> f (ind v1 i) (ind v2 i)) ||]
+                    (\ ii -> let i = ii in
+                             f (ind v1 i) (ind v2 i)) ||]
 
-sum :: (FO t , Numeric t , FrmInt t) => Data (Ary t -> t)
-sum = [|| $$foldl $$add ($$frmInt 0) ||]
+sum :: Data (Ary Int -> Int)
+sum = [|| $$foldl $$add 0 ||]
 
 scalarProd :: Data (Ary Int -> Ary Int -> Int)
 scalarProd  = [|| \ v1 -> \ v2 -> $$sum ($$zipWith $$mul v1 v2) ||]
@@ -321,10 +305,12 @@ replicate :: FO a => Data (Int -> a -> Ary a)
 replicate = [|| \ n -> \ x -> ary n (\ _i -> x) ||]
 
 append :: FO a => Data (Ary a -> Ary a -> Ary a)
-append = [|| \ a1 -> \ a2 -> ary ($$add (len a1) (len a2))
-                                 (\ i -> if $$lt i (len a1)
-                                         then ind a1 i
-                                         else ind a2 i) ||]
+append = [|| \ a1 -> \ a2 -> let la1 = len a1 in
+                             ary ($$add la1 (len a2))
+                                 (\ ii -> let i = ii in
+                                          if $$lt i la1
+                                          then ind a1 i
+                                          else ind a2 i) ||]
 
 fromList :: FO a => [Data a] -> Data a -> Data (Ary a)
 fromList lst k =  let l = MP.fromInteger (MP.toInteger (MP.length lst))

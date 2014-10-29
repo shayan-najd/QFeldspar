@@ -1,6 +1,6 @@
 module QFeldspar.Expression.Feldspar.MiniWellScoped
     (Exp(..),sucAll,prdAll,mapVar,isFresh,absVar,absTmp,eql,eqlF
-    ,cntTmp,hasOneOrZro) where
+    ,cntTmp,hasOneOrZro,pattern TF) where
 
 import QFeldspar.MyPrelude hiding (foldl)
 import GHC.Show
@@ -47,6 +47,22 @@ instance Show (Exp r ta -> Exp r tb) where
                               ++ "))")
 
 deriving instance Show (Env (Exp r) r')
+
+tagFree :: Exp r t -> Exp r t
+tagFree (Tag _ e) = tagFree e
+tagFree e         = e
+
+pattern TF e <- (tagFree -> e)
+
+{-
+tag :: Maybe String -> Exp r t -> Exp r t
+tag = maybe id Tag
+
+-- Assumption: one tag per node in the AST
+unTag :: Exp r t -> (Exp r t , Maybe String)
+unTag (Tag x e) = (e , Just x)
+unTag e         = (e , Nothing)
+-}
 
 eqlE :: Env (Exp r) r' -> Env (Exp r) r' -> Bool
 eqlE Emp        Emp        = True

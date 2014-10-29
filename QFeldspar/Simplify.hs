@@ -34,10 +34,11 @@ instance (HasSin TFG.Typ t) =>
     Snd e                        -> Snd  <$@> e
     Ary el      ef               -> case TFG.getPrfHasSinAry t of
       PrfHasSin                  -> case el of
-        Len (e :: Exp n (Ary te))-> let v = genNewNam "__smpOneAry__"
-                                        {-# NOINLINE v #-}
-                                    in deepseq v $ case ef (Tmp v) of
-          Ind (e' :: Exp n (Ary te')) (Tmp m)
+        TF (Len (e :: Exp n (Ary te)))->
+              let v = genNewNam "__smpOneAry__"
+                  {-# NOINLINE v #-}
+              in deepseq v $ case ef (Tmp v) of
+          TF (Ind (e' :: Exp n (Ary te')) (Tmp m))
             | m == v -> case eqlSin (sin :: TFG.Typ te) (sin :: TFG.Typ te') of
                Rgt Rfl
                    | eql e e'    -> chg e
