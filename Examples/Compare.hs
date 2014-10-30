@@ -19,7 +19,7 @@ import qualified Examples.CRC.CDSL as CRCC
 import qualified Examples.Windowing.QDSL as WQ
 import qualified Examples.Windowing.CDSL as WC
 
-import QFeldspar.Expression.Feldspar.MiniWellScoped
+import QFeldspar.Expression.Feldspar.MiniFeldspar
 import QFeldspar.Nat.TH
 import QFeldspar.Variable.Typed
 import QFeldspar.Environment.Typed

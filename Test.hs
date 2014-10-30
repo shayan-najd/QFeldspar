@@ -8,7 +8,7 @@ import qualified Tests.GADTUntypedDebruijn as FGUD
 import qualified Tests.GADTTyped           as FGTD
 import qualified Tests.GADTFirstOrder      as FGFO
 import qualified Tests.GADTHigherOrder     as FGHO
-import qualified Tests.MiniWellScoped      as FMWS
+import qualified Tests.MiniFeldspar      as FMWS
 import qualified Tests.Conversion          as FCNV
 
 import qualified Examples.CRC.CDSL ()

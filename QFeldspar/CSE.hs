@@ -1,6 +1,6 @@
 module QFeldspar.CSE where
 
-import QFeldspar.Expression.Feldspar.MiniWellScoped
+import QFeldspar.Expression.Feldspar.MiniFeldspar
 
 import QFeldspar.MyPrelude hiding (foldl)
 

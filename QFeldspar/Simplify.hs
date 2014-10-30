@@ -2,7 +2,7 @@ module QFeldspar.Simplify  where
 
 import QFeldspar.MyPrelude hiding (foldl,fmap)
 
-import QFeldspar.Expression.Feldspar.MiniWellScoped
+import QFeldspar.Expression.Feldspar.MiniFeldspar
 
 import QFeldspar.Singleton
 import qualified QFeldspar.Type.Feldspar.GADT as TFG

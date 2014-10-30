@@ -9,7 +9,7 @@ import qualified QFeldspar.Expression.Feldspar.GADTUntypedDebruijn as FGUD
 import qualified QFeldspar.Expression.Feldspar.GADTTyped           as FGTD
 import qualified QFeldspar.Expression.Feldspar.GADTFirstOrder      as FGFO
 import qualified QFeldspar.Expression.Feldspar.GADTHigherOrder     as FGHO
-import qualified QFeldspar.Expression.Feldspar.MiniWellScoped      as FMWS
+import qualified QFeldspar.Expression.Feldspar.MiniFeldspar      as FMWS
 import qualified QFeldspar.Expression.Feldspar.ADTValue            as FAV
 import qualified QFeldspar.Expression.Feldspar.GADTValue           as FGV
 
@@ -20,7 +20,7 @@ import qualified Tests.GADTUntypedDebruijn as FGUD
 import qualified Tests.GADTTyped           as FGTD
 import qualified Tests.GADTFirstOrder      as FGFO
 import qualified Tests.GADTHigherOrder     as FGHO
-import qualified Tests.MiniWellScoped      as FMWS ()
+import qualified Tests.MiniFeldspar      as FMWS ()
 
 import qualified QFeldspar.Type.Feldspar.ADT                       as TFA
 import qualified QFeldspar.Type.Feldspar.GADT                      as TFG
@@ -30,8 +30,8 @@ import qualified QFeldspar.Environment.Plain                       as EP
 import qualified QFeldspar.Environment.Scoped                      as ES
 import qualified QFeldspar.Environment.Typed                       as ET
 
-import QFeldspar.Normalization
-import QFeldspar.Normalization.Feldspar.GADTHigherOrder  ()
+import QFeldspar.Normalisation
+import QFeldspar.Normalisation.Feldspar.GADTHigherOrder  ()
 
 import QFeldspar.Conversion
 import QFeldspar.Variable.Conversion                     ()

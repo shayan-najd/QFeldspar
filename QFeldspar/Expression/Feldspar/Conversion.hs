@@ -9,7 +9,7 @@ import qualified QFeldspar.Expression.Feldspar.GADTUntypedDebruijn as FGUD
 import qualified QFeldspar.Expression.Feldspar.GADTTyped           as FGTD
 import qualified QFeldspar.Expression.Feldspar.GADTFirstOrder      as FGFO
 import qualified QFeldspar.Expression.Feldspar.GADTHigherOrder     as FGHO
-import qualified QFeldspar.Expression.Feldspar.MiniWellScoped      as FMWS
+import qualified QFeldspar.Expression.Feldspar.MiniFeldspar      as FMWS
 
 import qualified QFeldspar.Type.Feldspar.ADT  as TFA
 import qualified QFeldspar.Type.Feldspar.GADT as TFG
@@ -29,10 +29,10 @@ import QFeldspar.Expression.Feldspar.Conversions.ScopeWithnessing ()
 import QFeldspar.Expression.Feldspar.Conversions.TypeInference    ()
 import QFeldspar.Expression.Feldspar.Conversions.TypeWithnessing  ()
 import QFeldspar.Expression.Feldspar.Conversions.Lifting          ()
-import QFeldspar.Expression.Feldspar.Conversions.Normalization    ()
+import QFeldspar.Expression.Feldspar.Conversions.Normalisation    ()
 
-import QFeldspar.Normalization
-import QFeldspar.Normalization.Feldspar.GADTHigherOrder (eta)
+import QFeldspar.Normalisation
+import QFeldspar.Normalisation.Feldspar.GADTHigherOrder (eta)
 
 import QFeldspar.Singleton
 

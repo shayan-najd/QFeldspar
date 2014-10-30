@@ -12,10 +12,10 @@ import QFeldspar.Singleton
 import QFeldspar.MyPrelude (frmRgt,(.),String)
 
 import QFeldspar.Conversion
-import QFeldspar.Expression.Feldspar.Conversions.Evaluation.MiniWellScoped ()
+import QFeldspar.Expression.Feldspar.Conversions.Evaluation.MiniFeldspar ()
 import QFeldspar.Expression.Feldspar.Conversion ()
 
-import qualified QFeldspar.Expression.Feldspar.MiniWellScoped  as FMWS
+import qualified QFeldspar.Expression.Feldspar.MiniFeldspar  as FMWS
 import qualified QFeldspar.Type.Feldspar.GADT                  as TFG
 
 type Qt a = Data a

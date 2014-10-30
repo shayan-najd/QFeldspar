@@ -3,7 +3,7 @@ module QFeldspar.Compiler where
 import QFeldspar.MyPrelude hiding (fst , snd)
 
 import QFeldspar.Expression.Feldspar.C
-import qualified QFeldspar.Expression.Feldspar.MiniWellScoped as FMWS
+import qualified QFeldspar.Expression.Feldspar.MiniFeldspar as FMWS
 
 import qualified QFeldspar.Type.Feldspar.ADT                  as TFA
 import qualified QFeldspar.Type.Feldspar.GADT                 as TFG

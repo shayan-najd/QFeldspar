@@ -130,7 +130,7 @@ eqlOut (Tpl tf ts) (Tpl tf' ts') = do Rfl <- eqlSin tf tf'
                                       Rfl <- eqlSin ts ts'
                                       return EqlOut
 eqlOut Cmx         Cmx           = return EqlOut
-eqlOut _              _          = fail "Normalization Error!"
+eqlOut _              _          = fail "Normalisation Error!"
 
 type family Arg (t :: *) :: [*] where
   Arg (ta -> tb) = ta ': Arg tb
@@ -150,7 +150,7 @@ eqlArg ET.Emp         (Ary _)      = return EqlArg
 eqlArg ET.Emp         (May _)      = return EqlArg
 eqlArg ET.Emp         (Tpl _ _)    = return EqlArg
 eqlArg ET.Emp         Cmx          = return EqlArg
-eqlArg _              _            = fail "Normalization Error!"
+eqlArg _              _            = fail "Normalisation Error!"
 
 mapC :: Typ tt -> (forall t. HasSin Typ t => tfa t -> tfb t) ->
         ET.Env tfa (Arg tt) -> ET.Env tfb (Arg tt)

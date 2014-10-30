@@ -1,23 +1,23 @@
-module QFeldspar.CDSL(module QFeldspar.Prelude.MiniWellScoped
+module QFeldspar.CDSL(module QFeldspar.Prelude.MiniFeldspar
                      ,Dp,evaluate,compile,compileF,normalise,normaliseF
                      ,simplify,simplifyF) where
 
-import QFeldspar.Prelude.MiniWellScoped
+import QFeldspar.Prelude.MiniFeldspar
 import QFeldspar.Prelude.Environment
 import QFeldspar.Singleton
 import QFeldspar.MyPrelude (frmRgt,String,(.))
 import qualified QFeldspar.MyPrelude as MP
 
 import QFeldspar.Conversion
-import QFeldspar.Expression.Feldspar.Conversions.Evaluation.MiniWellScoped ()
+import QFeldspar.Expression.Feldspar.Conversions.Evaluation.MiniFeldspar ()
 import QFeldspar.Expression.Feldspar.Conversion ()
 
-import qualified QFeldspar.Expression.Feldspar.MiniWellScoped  as FMWS
+import qualified QFeldspar.Expression.Feldspar.MiniFeldspar  as FMWS
 import qualified QFeldspar.Type.Feldspar.GADT                  as TFG
 import qualified QFeldspar.Expression.Feldspar.GADTValue       as FGV
 import QFeldspar.Compiler(scompile)
-import QFeldspar.Normalization
-import QFeldspar.Normalization.Feldspar.MiniWellscoped ()
+import QFeldspar.Normalisation
+import QFeldspar.Normalisation.Feldspar.MiniFeldspar ()
 import QFeldspar.CSE
 import QFeldspar.ChangeMonad
 import QFeldspar.Simplify
