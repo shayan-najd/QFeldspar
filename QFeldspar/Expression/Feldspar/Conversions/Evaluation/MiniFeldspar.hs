@@ -37,10 +37,10 @@ instance (HasSin TFG.Typ t, r' ~ r , t' ~ t) =>
     Cmx er ei                -> FGV.cmx  <$@> er <*@> ei
     Tag _  e                 -> cnvImp e
     Tmp _                    -> fail "Not Supported!"
-    Non                      -> pure FGV.non
-    Som e                    -> case TFG.getPrfHasSinMay t of
-     PrfHasSin               -> FGV.som  <$@> e
-    May em en es             -> FGV.may  <$@> em <*@> en <*@> es
+--    Non                      -> pure FGV.non
+--    Som e                    -> case TFG.getPrfHasSinMay t of
+--     PrfHasSin               -> FGV.som  <$@> e
+--    May em en es             -> FGV.may  <$@> em <*@> en <*@> es
 
 
 instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb , ta' ~ ta , tb' ~ tb) =>
@@ -107,10 +107,11 @@ instance (HasSin TFG.Typ t , r ~ r' , t ~ t') =>
     TFG.Cmx                   -> Cmx <$@> FGV.Exp (realPart v)
                                      <*@> FGV.Exp (imagPart v)
     TFG.Arr _ _               -> fail "Type Error!"
-    TFG.May _                 -> case TFG.getPrfHasSinMay t of
-      PrfHasSin               -> case v of
-                                   Nothing -> pure Non
-                                   Just vv -> Som <$@> FGV.Exp vv
+    TFG.May _                 -> fail "Type Error!"
+--    TFG.May _                 -> case TFG.getPrfHasSinMay t of
+--      PrfHasSin               -> case v of
+--                                   Nothing -> pure Non
+--                                   Just vv -> Som <$@> FGV.Exp vv
 
 
 instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb , r ~ r' , ta ~ ta' , tb ~ tb')=>

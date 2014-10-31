@@ -190,6 +190,7 @@ instance (HasSin TFG.Typ t, n ~ Len r) =>
       FMWS.Cmx er ei           -> do (er' , sr) <- cmpImp er
                                      (ei' , si) <- cmpImp ei
                                      return (cmx er' ei' , sr ++ si)
+{-
       FMWS.Non                 -> do let TFA.May ta = t'
                                      return (non ta , [])
       FMWS.Som e               -> case TFG.getPrfHasSinMay t of
@@ -197,7 +198,7 @@ instance (HasSin TFG.Typ t, n ~ Len r) =>
                                      (e' , s) <- cmpImp e
                                      return (som ta e' , s)
 --      FMWS.May em en es        -> ToDo!
-
+-}
 
 instance (n ~ Len r , HasSin TFG.Typ t , Compilable (b , ES.Env n String)) =>
          Compilable (FMWS.Exp r t -> b , ES.Env n String) where

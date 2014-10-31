@@ -43,9 +43,9 @@ remTag ee = case ee of
   Cmx er ei                 -> Cmx (remTag er)  (remTag ei)
   Tmp x                     -> Tmp x
   Tag _ e                   -> remTag e
-  Non                       -> Non
+{-Non                       -> Non
   Som e                     -> Som (remTag e)
-  May em en es              -> May (remTag em) (remTag en) (remTagF es)
+  May em en es              -> May (remTag em) (remTag en) (remTagF es)-}
 
 remTagF :: (Exp r a -> Exp r b) -> (Exp r a -> Exp r b)
 remTagF = (remTag .)
@@ -70,9 +70,9 @@ remTheTag x ee = case ee of
   Tag y e
       | x == y              -> e
       | otherwise           -> Tag y (remTheTag x e)
-  Non                       -> Non
+{-Non                       -> Non
   Som e                     -> Som (remTheTag x e)
-  May em en es              -> May (remTheTag x em) (remTheTag x en) (remTheTag x . es)
+  May em en es              -> May (remTheTag x em) (remTheTag x en) (remTheTag x . es)-}
 
 cmt :: forall t ra rb r.
        (HasSin TFG.Typ t , TFG.Arg t ~ Add ra rb) =>
@@ -167,7 +167,7 @@ cseOne ee = let t = sin :: TFG.Typ t in case ee of
       _ -> Cmx <$> cseOne er <*> cseOne ei
   Tmp x                     -> pure (Tmp x)
   Tag x e                   -> Tag x <$> cseOne e
-  Non                       -> pure Non
+{-Non                       -> pure Non
   Som e                     -> case TFG.getPrfHasSinMay t of
     PrfHasSin               -> Som <$> cseOne e
   May em en es              -> case findTag em of
@@ -182,7 +182,7 @@ cseOne ee = let t = sin :: TFG.Typ t in case ee of
             PrfHasSin -> chg (Let ex (\ xx ->
               May (absTag xx x em) (absTag xx x  en) (absTag xx x . es)))
         | numTag x en == 1 -> chg (remTheTag x ee)
-     _ -> May <$> cseOne em <*> cseOne en <*> cseOneF es
+     _ -> May <$> cseOne em <*> cseOne en <*> cseOneF es-}
 
 cseOneF :: forall r a b. (HasSin TFG.Typ a , HasSin TFG.Typ b) =>
            (Exp r a -> Exp r b) -> Chg (Exp r a -> Exp r b)
@@ -219,10 +219,10 @@ findTag ee = let t = sin :: TFG.Typ t in case ee of
   Cmx er ei                 -> findTag  er <||> findTag  ei
   Tmp _                     -> Nothing
   Tag x e                   -> Just (x , Exs1 e (sinTyp e))
-  Non                       -> Nothing
+{-Non                       -> Nothing
   Som e                     -> case TFG.getPrfHasSinMay t of
     PrfHasSin               -> findTag e
-  May em en es              -> findTag em <||> findTag en <||> findTagF es
+  May em en es              -> findTag em <||> findTag en <||> findTagF es-}
 
 findTagF :: (HasSin TFG.Typ a , HasSin TFG.Typ b) =>
             (Exp r a -> Exp r b) -> Maybe (String , Exs1 (Exp r) TFG.Typ)
@@ -258,11 +258,11 @@ absTag xx s ee = let t = sin :: TFG.Typ t in case ee of
       Rgt Rfl               -> xx
       _                     -> impossible
     | otherwise             -> Tag x (absTag xx s e)
-  Non                       -> Non
+{-Non                       -> Non
   Som e                     -> case TFG.getPrfHasSinMay t of
     PrfHasSin               -> Som (absTag xx s e)
   May ec eb ei              -> May (absTag xx s ec) (absTag xx s eb)
-                                   (absTag xx s . ei)
+                                   (absTag xx s . ei)-}
 
 
 hasTag :: String -> Exp r t -> Bool
@@ -285,9 +285,9 @@ hasTag s ee = case ee of
   Tag x e
     | s == x                -> True
     | otherwise             -> hasTag s e
-  Non                       -> False
+{-Non                       -> False
   Som e                     -> hasTag s e
-  May ec eb ei              -> hasTag s ec || hasTag s eb || hasTagF s ei
+  May ec eb ei              -> hasTag s ec || hasTag s eb || hasTagF s ei-}
 
 hasTagF :: String -> (Exp r ta -> Exp r tb) -> Bool
 hasTagF s f = let v = genNewNam "hasTagF"
@@ -315,9 +315,9 @@ numTag s ee = case ee of
   Tag x e
     | s == x                -> 1
     | otherwise             -> numTag s e
-  Non                       -> 0
+{-Non                       -> 0
   Som e                     -> numTag s e
-  May ec eb ei              -> numTag s ec + numTag s eb + numTagF s ei
+  May ec eb ei              -> numTag s ec + numTag s eb + numTagF s ei -}
 
 numTagF :: String -> (Exp r ta -> Exp r tb) -> Int
 numTagF s f = let v = genNewNam "numTagF"
