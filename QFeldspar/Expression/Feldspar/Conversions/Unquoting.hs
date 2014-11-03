@@ -14,15 +14,15 @@ mkDo :: [TH.Stmt] -> ErrM (FAUN.Exp TH.Name)
 mkDo st = let ?r = () in case st of
   [TH.NoBindS e]                -> cnvImp e
   (TH.BindS (TH.VarP x) e : es) -> FAUN.App <$>
-                                   (FAUN.App (FAUN.Var (TH.mkName "bind"))
-                                            <$> (FAUN.Abs <$> pure x <*@> e ))
-                                   <*> mkDo es
+                                   (FAUN.App (FAUN.Var (TH.mkName "_bnd"))
+                                            <$@> e)
+                                   <*> ((\ y -> FAUN.Abs (x , y)) <$> mkDo es)
   (TH.NoBindS           e : es) -> FAUN.App <$>
-                                   (FAUN.App (FAUN.Var (TH.mkName "bind"))
-                                            <$> (FAUN.Abs
-                                                         (TH.mkName "__dummyb__")
-                                                         <$@> e ))
-                                   <*> mkDo es
+                                   (FAUN.App (FAUN.Var (TH.mkName "_bnd"))
+                                            <$@> e)
+                                   <*> ((\ y -> FAUN.Abs
+                                                (TH.mkName "__dummyb__" , y))
+                                        <$> mkDo es)
   _                             -> fail ("Syntax Error!\n" ++ (show st))
 
 instance Cnv (TH.Exp , ()) (FAUN.Exp TH.Name) where
@@ -38,7 +38,7 @@ instance Cnv (TH.Exp , ()) (FAUN.Exp TH.Name) where
       | n == 'Nothing       -> pure FAUN.Non
       | otherwise           -> pure (FAUN.Var n)
     TH.VarE x               -> pure (FAUN.Var x)
-    TH.LamE [TH.VarP x] eb  -> FAUN.Abs <$> pure x <*@> eb
+    TH.LamE [TH.VarP x] eb  -> FAUN.Abs <$@> (x , eb)
     TH.DoE stmts            -> mkDo stmts
     TH.AppE (TH.ConE n) e
       | n == 'Just          -> FAUN.Som  <$@> e
@@ -53,24 +53,29 @@ instance Cnv (TH.Exp , ()) (FAUN.Exp TH.Name) where
     TH.AppE (TH.AppE
              (TH.VarE n) el)
       (TH.LamE [TH.VarP x] eb)
-      | n == 'ary           -> FAUN.Ary  <$@> el <*> pure x <*@> eb
+      | n == 'ary           -> FAUN.Ary  <$@> el <*@> (x , eb)
     TH.AppE (TH.AppE
         (TH.AppE (TH.VarE n)
         (TH.LamE [TH.VarP xc] ec))
         (TH.LamE [TH.VarP xb] eb))
         ei
-      | n == 'whl           -> FAUN.Whl  <$> pure xc <*@> ec <*> pure xb
-                                         <*@> eb <*@> ei
+      | n == 'whl           -> FAUN.Whl  <$@> (xc , ec)
+                                         <*@> (xb , eb)
+                                         <*@> ei
     TH.AppE ef ea           -> FAUN.App  <$@> ef <*@> ea
     TH.CondE ec et ef       -> FAUN.Cnd  <$@> ec <*@> et <*@> ef
     TH.TupE [ef , es]       -> FAUN.Tpl  <$@> ef <*@> es
     TH.LetE [TH.ValD (TH.VarP x) (TH.NormalB el) []] eb
-                            -> FAUN.Let  <$> pure x <*@> el <*@> eb
+                            -> FAUN.Let  <$@> el <*@> (x , eb)
     TH.CaseE ec [TH.Match (TH.ConP nl []) (TH.NormalB el) []
                 ,TH.Match (TH.ConP nr [TH.VarP xr]) (TH.NormalB er) []]
-        | nl == 'Nothing , nr == 'Just -> FAUN.May <$@> ec
-                                          <*@> el <*> pure xr <*@> er
+        | nl == 'Nothing ,
+          nr == 'Just       -> FAUN.May <$@> ec <*@> el <*@> (xr , er)
     e                       -> fail  ("Syntax Error!\n" ++ (show e))
+
+instance Cnv ((TH.Name , TH.Exp) , ()) (TH.Name , FAUN.Exp TH.Name) where
+    cnv ((x , e) , r) = let ?r = r
+                        in (,) <$> pure x <*@> e
 
 instance Cnv (FAUN.Exp TH.Name , ()) TH.Exp where
   cnv (ee , r) = let ?r = r in case ee of
@@ -79,10 +84,11 @@ instance Cnv (FAUN.Exp TH.Name , ()) TH.Exp where
     FAUN.ConB False         -> pure (TH.ConE 'False)
     FAUN.ConF i             -> pure (TH.LitE (TH.RationalL (toRational i)))
     FAUN.Var n              -> pure (TH.VarE n)
-    FAUN.Abs x  eb          -> TH.LamE [TH.VarP x] <$@> eb
+    FAUN.Abs (x , eb)       -> TH.LamE [TH.VarP x] <$@> eb
     FAUN.App ef ea          -> TH.AppE <$@> ef <*@> ea
     FAUN.Cnd ec et ef       -> TH.CondE <$@> ec <*@> et <*@> ef
-    FAUN.Whl xc ec xb eb ei -> do ec' <- cnvImp ec
+    FAUN.Whl (xc , ec)
+             (xb , eb) ei   -> do ec' <- cnvImp ec
                                   eb' <- cnvImp eb
                                   ei' <- cnvImp ei
                                   pure (TH.AppE (TH.AppE
@@ -95,7 +101,7 @@ instance Cnv (FAUN.Exp TH.Name , ()) TH.Exp where
                                   pure (TH.TupE [ef' , es'])
     FAUN.Fst ea             -> TH.AppE (TH.VarE 'fst) <$@> ea
     FAUN.Snd ea             -> TH.AppE (TH.VarE 'snd) <$@> ea
-    FAUN.Ary el x eb        -> do el' <- cnvImp el
+    FAUN.Ary el (x , eb)    -> do el' <- cnvImp el
                                   eb' <- cnvImp eb
                                   pure (TH.AppE (TH.AppE (TH.VarE 'ary) el')
                                                  (TH.LamE [TH.VarP x] eb'))
@@ -103,7 +109,7 @@ instance Cnv (FAUN.Exp TH.Name , ()) TH.Exp where
     FAUN.Ind el ef          -> do el' <- cnvImp el
                                   ef' <- cnvImp ef
                                   pure (TH.AppE (TH.AppE (TH.VarE 'ind) el') ef')
-    FAUN.Let x el eb        -> do el' <- cnvImp el
+    FAUN.Let el (x , eb)    -> do el' <- cnvImp el
                                   eb' <- cnvImp eb
                                   pure (TH.LetE [TH.ValD (TH.VarP x)
                                          (TH.NormalB el') []] eb')
@@ -112,7 +118,7 @@ instance Cnv (FAUN.Exp TH.Name , ()) TH.Exp where
                                   pure (TH.AppE (TH.AppE (TH.VarE 'cmx) er') ei')
     FAUN.Non                -> pure (TH.ConE 'Nothing)
     FAUN.Som e              -> TH.AppE (TH.ConE 'Just) <$@> e
-    FAUN.May em en x es     -> do em' <- cnvImp em
+    FAUN.May em en (x , es) -> do em' <- cnvImp em
                                   en' <- cnvImp en
                                   es' <- cnvImp es
                                   pure (TH.CaseE em'

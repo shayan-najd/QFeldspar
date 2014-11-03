@@ -13,13 +13,14 @@ module QFeldspar.Prelude.TemplateHaskell
        ,Numeric(add,sub,mul,div,neg),ilog2,pi,sqrt
        ,bitXor,bitAnd,bitOr,shfRgt,shfLft,complement,testBit,lsbs,oneBits
        ,i2f,cis
+       ,return,bind,maybe
        ,frmTo,permute,reverse,foldl,map,zipWith,sum,scalarProd,fromList
        ,replicate,append,hashTable,FO
        ) where
 
 import Prelude (toRational)
 
-import QFeldspar.MyPrelude (Ary,Flt,Bol,Bool(True,False),Int,Cmx)
+import QFeldspar.MyPrelude (Ary,Flt,Bol,Bool(True,False),Int,Cmx,Maybe(..))
 import qualified QFeldspar.MyPrelude as MP
 
 import Language.Haskell.TH.Syntax (Lift(lift),Q,Exp(LitE),TExp
@@ -62,10 +63,10 @@ cmx :: Flt -> Flt -> Cmx
 cmx = VP.cmx
 
 real :: Data (Cmx -> Flt)
-real = [|| \ e -> realPartHsk e ||]
+real = [|| realPartHsk ||]
 
 imag :: Data (Cmx -> Flt)
-imag = [|| \ e -> imagPartHsk e ||]
+imag = [|| imagPartHsk ||]
 
 ---------------------------------------------------------------------------------
 -- Ary
@@ -121,13 +122,13 @@ class Equality t where
   eql :: Data (t -> t -> Bol)
 
 instance Equality Bol where
-  eql = [|| \ x -> \ y -> eqlBolHsk x y ||]
+  eql = [|| eqlBolHsk ||]
 
 instance Equality Int where
-  eql = [|| \ x -> \ y -> eqlIntHsk x y ||]
+  eql = [|| eqlIntHsk ||]
 
 instance Equality Flt where
-  eql = [|| \ x -> \ y -> eqlFltHsk x y ||]
+  eql = [|| eqlFltHsk ||]
 
 notEql :: Equality t => Data (t -> t -> Bol)
 notEql= [|| \ x -> \ y -> $$not ($$eql x y) ||]
@@ -140,13 +141,13 @@ class Ordering t where
   lt :: Data (t -> t -> Bol)
 
 instance Ordering Bol where
-  lt = [|| \ x -> \ y -> ltdBolHsk x y ||]
+  lt = [|| ltdBolHsk ||]
 
 instance Ordering Int where
-  lt = [|| \ x -> \ y -> ltdIntHsk x y ||]
+  lt = [|| ltdIntHsk ||]
 
 instance Ordering Flt where
-  lt = [|| \ x -> \ y -> ltdFltHsk x y ||]
+  lt = [|| ltdFltHsk ||]
 
 gt :: (Equality t , Ordering t) => Data (t -> t -> Bol)
 gt = [|| \ xx -> \ yy -> let x = xx in
@@ -223,22 +224,22 @@ sqrt = [|| sqrtFltHsk ||]
 ---------------------------------------------------------------------------------
 
 bitXor :: Data (Int -> Int -> Int)
-bitXor = [|| \ el -> \ er -> xorIntHsk el er ||]
+bitXor = [|| xorIntHsk ||]
 
 bitAnd :: Data (Int -> Int -> Int)
-bitAnd = [|| \ el -> \ er -> andIntHsk el er ||]
+bitAnd = [|| andIntHsk ||]
 
 bitOr  :: Data (Int -> Int -> Int)
-bitOr  = [|| \ el -> \ er -> orIntHsk el er ||]
+bitOr  = [|| orIntHsk ||]
 
 shfRgt :: Data (Int -> Int -> Int)
-shfRgt = [|| \ el -> \ er -> shrIntHsk el er ||]
+shfRgt = [|| shrIntHsk ||]
 
 shfLft :: Data (Int -> Int -> Int)
-shfLft = [|| \ el -> \ er -> shlIntHsk el er ||]
+shfLft = [|| shlIntHsk ||]
 
 complement :: Data (Int -> Int)
-complement = [|| \ e -> cmpIntHsk e ||]
+complement = [|| cmpIntHsk ||]
 
 testBit    :: Data (Int -> Int -> Bol)
 testBit    = [|| \ i -> \ j -> if $$eql ($$bitAnd i ($$shfLft 1 j)) 0
@@ -256,10 +257,23 @@ lsbs       = [|| \ k -> \ i -> $$bitAnd i ($$oneBits k) ||]
 ---------------------------------------------------------------------------------
 
 i2f :: Data (Int -> Flt)
-i2f = [|| \ e -> i2fHsk e ||]
+i2f = [|| i2fHsk ||]
 
 cis :: Data (Flt -> Cmx)
-cis = [|| \ e -> cisHsk e ||]
+cis = [|| cisHsk ||]
+
+---------------------------------------------------------------------------------
+-- Option Type
+---------------------------------------------------------------------------------
+
+return :: Data (a -> Maybe a)
+return = [|| Just ||]
+
+bind :: Data (Maybe a -> (a -> Maybe b) -> Maybe b)
+bind = [|| \ m -> \ k -> case m of {Nothing -> Nothing ; Just x -> k x} ||]
+
+maybe :: Data (b -> (a -> b) -> Maybe a -> b)
+maybe = [|| \ x -> \ g -> \ m -> case m of {Nothing -> x ; Just y  -> g y} ||]
 
 ---------------------------------------------------------------------------------
 -- Array Operators

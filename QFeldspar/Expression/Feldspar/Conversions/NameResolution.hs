@@ -23,23 +23,22 @@ instance Eq x =>
     FAUN.ConI i              -> pure (FAUD.ConI i)
     FAUN.ConB b              -> pure (FAUD.ConB b)
     FAUN.ConF f              -> pure (FAUD.ConF f)
-    FAUN.Var  x              -> FAUD.Var  <$@> x
-    FAUN.Abs  xb eb          -> FAUD.Abs  <$@> (xb , eb)
-    FAUN.App  ef ea          -> FAUD.App  <$@> ef <*@> ea
-    FAUN.Cnd  ec et ef       -> FAUD.Cnd  <$@> ec <*@> et <*@> ef
-    FAUN.Whl  xc ec xb eb ei -> FAUD.Whl  <$@> (xc , ec)
-                                          <*@> (xb , eb)  <*@> ei
-    FAUN.Tpl  ef es          -> FAUD.Tpl  <$@> ef <*@> es
-    FAUN.Fst  e              -> FAUD.Fst  <$@> e
-    FAUN.Snd  e              -> FAUD.Snd  <$@> e
-    FAUN.Ary  el xf ef       -> FAUD.Ary  <$@> el <*@> (xf , ef)
-    FAUN.Len  e              -> FAUD.Len  <$@> e
-    FAUN.Ind  ea ei          -> FAUD.Ind  <$@> ea <*@> ei
-    FAUN.Let  xl el eb       -> FAUD.Let  <$@> el <*@> (xl , eb)
-    FAUN.Cmx  er ei          -> FAUD.Cmx  <$@> er <*@> ei
+    FAUN.Var  x              -> FAUD.Var <$@> x
+    FAUN.Abs  xeb            -> FAUD.Abs <$@> xeb
+    FAUN.App  ef ea          -> FAUD.App <$@> ef  <*@> ea
+    FAUN.Cnd  ec et ef       -> FAUD.Cnd <$@> ec  <*@> et  <*@> ef
+    FAUN.Whl  xec xeb ei     -> FAUD.Whl <$@> xec <*@> xeb <*@> ei
+    FAUN.Tpl  ef es          -> FAUD.Tpl <$@> ef  <*@> es
+    FAUN.Fst  e              -> FAUD.Fst <$@> e
+    FAUN.Snd  e              -> FAUD.Snd <$@> e
+    FAUN.Ary  el xef         -> FAUD.Ary <$@> el  <*@> xef
+    FAUN.Len  e              -> FAUD.Len <$@> e
+    FAUN.Ind  ea ei          -> FAUD.Ind <$@> ea  <*@> ei
+    FAUN.Let  el xeb         -> FAUD.Let <$@> el  <*@> xeb
+    FAUN.Cmx  er ei          -> FAUD.Cmx <$@> er  <*@> ei
     FAUN.Non                 -> pure FAUD.Non
-    FAUN.Som  e              -> FAUD.Som  <$@> e
-    FAUN.May  em en xs es    -> FAUD.May  <$@> em <*@> en <*@> (xs , es)
+    FAUN.Som  e              -> FAUD.Som <$@> e
+    FAUN.May  em en xes      -> FAUD.May <$@> em <*@> en <*@> xes
 
 instance Eq x =>
          Cnv ((x , FAUN.Exp x) , EM.Env x Var)
@@ -52,33 +51,28 @@ instance (x ~ x') =>
     FAUD.ConI i        -> pure (FAUN.ConI i)
     FAUD.ConB b        -> pure (FAUN.ConB b)
     FAUD.ConF f        -> pure (FAUN.ConF f)
-    FAUD.Var  x        -> let ?r = snd r in FAUN.Var  <$@> x
-    FAUD.Abs  eb       -> do (xb , eb') <- cnvf eb
-                             pure (FAUN.Abs xb eb')
-    FAUD.App  ef ea    -> FAUN.App  <$@> ef <*@> ea
-    FAUD.Cnd  ec et ef -> FAUN.Cnd  <$@> ec <*@> et <*@> ef
-    FAUD.Whl  ec eb ei -> do (xc , ec') <- cnvf ec
-                             (xb , eb') <- cnvf eb
-                             FAUN.Whl xc ec' xb eb' <$@> ei
-    FAUD.Tpl  ef es    -> FAUN.Tpl  <$@> ef <*@> es
-    FAUD.Fst  e        -> FAUN.Fst  <$@> e
-    FAUD.Snd  e        -> FAUN.Snd  <$@> e
-    FAUD.Ary  el ef    -> do (xf , ef') <- cnvf ef
-                             FAUN.Ary  <$@> el <*> pure xf <*> pure ef'
-    FAUD.Len  e        -> FAUN.Len  <$@> e
-    FAUD.Ind  ea ei    -> FAUN.Ind  <$@> ea <*@> ei
-    FAUD.Let  el eb    -> do (xl , eb') <- cnvf eb
-                             FAUN.Let  <$> pure xl <*@> el <*> pure eb'
-    FAUD.Cmx  er ei    -> FAUN.Cmx  <$@> er <*@> ei
+    FAUD.Var  x        -> let ?r = snd r in FAUN.Var <$@> x
+    FAUD.Abs  eb       -> FAUN.Abs <$@> eb
+    FAUD.App  ef ea    -> FAUN.App <$@> ef <*@> ea
+    FAUD.Cnd  ec et ef -> FAUN.Cnd <$@> ec <*@> et <*@> ef
+    FAUD.Whl  ec eb ei -> FAUN.Whl <$@> ec <*@> eb <*@> ei
+    FAUD.Tpl  ef es    -> FAUN.Tpl <$@> ef <*@> es
+    FAUD.Fst  e        -> FAUN.Fst <$@> e
+    FAUD.Snd  e        -> FAUN.Snd <$@> e
+    FAUD.Ary  el ef    -> FAUN.Ary <$@> el <*@> ef
+    FAUD.Len  e        -> FAUN.Len <$@> e
+    FAUD.Ind  ea ei    -> FAUN.Ind <$@> ea <*@> ei
+    FAUD.Let  el eb    -> FAUN.Let <$@> el <*@> eb
+    FAUD.Cmx  er ei    -> FAUN.Cmx <$@> er <*@> ei
     FAUD.Non           -> pure FAUN.Non
-    FAUD.Som  e        -> FAUN.Som  <$@> e
-    FAUD.May  em en es -> do (xs , es') <- cnvf es
-                             FAUN.May <$@> em <*@> en <*> pure xs <*> pure es'
-    where
-      cnvf :: FAUD.Exp -> ErrM (x , FAUN.Exp x)
-      cnvf e = case r of
-        (x : xs , r') -> do e' <- cnv (e ,
-                                      (xs , (Zro , x) :
-                                            fmap (\(v , n) -> (Suc v , n)) r'))
-                            pure (x , e')
-        _            -> fail "Bad Name Pool!"
+    FAUD.Som  e        -> FAUN.Som <$@> e
+    FAUD.May  em en es -> FAUN.May <$@> em <*@> en <*@> es
+
+instance (x ~ x') =>
+         Cnv (FAUD.Exp , (EP.Env x , EM.Env Var x)) (x' , FAUN.Exp x') where
+   cnv (e , r) = case r of
+     (x : xs , r') -> do e' <- cnv (e ,
+                                    (xs , (Zro , x) :
+                                        fmap (\(v , n) -> (Suc v , n)) r'))
+                         pure (x , e')
+     _             -> fail "Bad Name Pool!"
