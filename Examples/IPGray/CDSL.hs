@@ -20,7 +20,7 @@ rgbToGray = \ r -> \ g -> \ b ->
                       (mul g greenCoefficient))
              (mul b blueCoefficient)) 100
 
-ipgrayVec :: Vec Int -> Vec Int
+ipgrayVec :: Vec (Data Int) -> Vec (Data Int)
 ipgrayVec = \ v ->
          vec (div (len v) 3)
                  (\ i -> share (mul i 3) (\ j ->
@@ -30,4 +30,4 @@ ipgrayVec = \ v ->
                          (ind v (add j 2))))
 
 ipgray :: Data (Ary Int) -> Data (Ary Int)
-ipgray a = vec2ary (ipgrayVec (ary2vec a))
+ipgray = toExpF ipgrayVec

@@ -2,7 +2,7 @@ module Examples.Windowing.CDSL where
 
 import QFeldspar.CDSL
 
-windowingVec :: Vec Cmx -> Vec Cmx
+windowingVec :: Vec (Data Cmx) -> Vec (Data Cmx)
 windowingVec = \ s -> let ls = shared (len s) in
                       zipWith mul
                        (append
@@ -11,4 +11,4 @@ windowingVec = \ s -> let ls = shared (len s) in
                        s
 
 windowing :: Data (Ary Cmx) -> Data (Ary Cmx)
-windowing a = vec2ary (windowingVec (ary2vec a))
+windowing = toExpF windowingVec

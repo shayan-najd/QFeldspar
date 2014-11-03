@@ -2,18 +2,18 @@ module Examples.FFT.CDSL where
 
 import QFeldspar.CDSL
 
-fftVec :: Vec Cmx -> Vec Cmx
+fftVec :: Vec (Data Cmx) -> Vec (Data Cmx)
 fftVec = \ v ->
          let steps = shared (sub (ilog2 (len v)) 1) in
          bitRev steps (fftCore steps v)
 
-fftCore :: Data Int -> Vec Cmx -> Vec Cmx
+fftCore :: Data Int -> Vec (Data Cmx) -> Vec (Data Cmx)
 fftCore = \ n -> \ vv ->
-          forLoopVec (add n 1) vv
+          forLoop (add n 1) vv
                 (\ j -> \ v ->
                         vec (len vv) (\ i -> ixf v (sub n j) i))
 
-ixf :: Vec Cmx
+ixf :: Vec (Data Cmx)
     -> Data Int -> Data Int -> Data Cmx
 ixf = \ v -> \ kk -> \ i ->
       share kk (\ k ->
@@ -24,9 +24,9 @@ ixf = \ v -> \ kk -> \ i ->
       share (ind v (bitXor i k2)) (\ b ->
         ifThenElse (testBit i k) (mul twid (sub b a)) (add a b))))))
 
-bitRev :: Data Int -> Vec Cmx -> Vec Cmx
+bitRev :: Data Int -> Vec (Data Cmx) -> Vec (Data Cmx)
 bitRev = \ n -> \ x ->
-         forLoopVec n x (\ i -> permute (\ _j -> rotBit (add i 1)))
+         forLoop n x (\ i -> permute (\ _j -> rotBit (add i 1)))
 
 rotBit :: Data Int -> Data Int -> Data Int
 rotBit = \ kk -> \ i ->
@@ -39,4 +39,4 @@ rotBit = \ kk -> \ i ->
          (lsbs k (shfRgt i 1)))
 
 fft :: Data (Ary Cmx) -> Data (Ary Cmx)
-fft a  = vec2ary (fftVec (ary2vec a))
+fft = toExpF fftVec

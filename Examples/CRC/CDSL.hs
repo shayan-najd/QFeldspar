@@ -2,7 +2,7 @@ module Examples.CRC.CDSL where
 
 import QFeldspar.CDSL
 
-crcVec :: Vec Int -> Data Int
+crcVec :: Vec (Data Int) -> Data Int
 crcVec = foldl updCrc 0
 
 updCrc :: Data Int -> Data Int -> Data Int
@@ -15,8 +15,8 @@ updCrc = \ ccc -> \ ch ->
            (shfRgt (bitXor cc 0xFFFFFFFF) 8))
           0xFFFFFFFF)
 
-tblV :: Vec Int
-tblV = ary2vec hashTable
+tblV :: Vec (Data Int)
+tblV = frmExp hashTable
 
 crc :: Data (Ary Int) -> Data Int
-crc a = crcVec (ary2vec a)
+crc = toExpF crcVec
