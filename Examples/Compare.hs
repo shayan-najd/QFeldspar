@@ -1,6 +1,6 @@
 module Examples.Compare where
 
-import Prelude (Bool(..),(&&))
+import Prelude (Bool(..),(&&),Int)
 import qualified QFeldspar.QDSL as Q
 import qualified QFeldspar.CDSL as C
 
@@ -18,6 +18,10 @@ import qualified Examples.CRC.CDSL as CRCC
 
 import qualified Examples.Windowing.QDSL as WQ
 import qualified Examples.Windowing.CDSL as WC
+
+import qualified Examples.Power.QDSL as PQ
+import qualified Examples.Power.CDSL as PC
+
 
 import QFeldspar.Expression.Feldspar.MiniFeldspar
 import QFeldspar.Nat.TH
@@ -54,13 +58,33 @@ qW = C.simplifyF (C.normaliseF True (Q.translateF WQ.windowing))
 cW :: C.Data (C.Ary C.Cmx) -> C.Data (C.Ary C.Cmx)
 cW = C.simplifyF (C.normaliseF True WC.windowing)
 
+qP :: Int -> C.Data C.Flt -> C.Data C.Flt
+qP n = C.simplifyF (C.normaliseF True (Q.translateF (PQ.power n)))
+
+cP :: Int -> C.Data C.Flt -> C.Data C.Flt
+cP n = C.simplifyF (C.normaliseF True (PC.power n))
+
+qP' :: Int -> C.Data C.Flt -> C.Data C.Flt
+qP' n = C.simplifyF (C.normaliseF True (Q.translateF (PQ.power'' n)))
+
+cP' :: Int -> C.Data C.Flt -> C.Data C.Flt
+cP' n = C.simplifyF (C.normaliseF True (PC.power'' n))
+
 result :: Bool
-result = eqlF qIPBW   cIPBW &&
-         eqlF qIPGray cIPGray &&
---         eqlF qFFT    cFFT &&
-         eqlF qFFT    cfft &&
-         eqlF qCRC    cCRC &&
-         eqlF qW      cW
+result = eqlF qIPBW      cIPBW      &&
+         eqlF qIPGray    cIPGray    &&
+--         eqlF qFFT     cFFT       &&
+--         eqlF qFFT       cfft       &&
+         eqlF qCRC       cCRC       &&
+         eqlF qW         cW         &&
+         eqlF (qP 2)     (cP 2)     &&
+         eqlF (qP (-2))  (cP (-2))  &&
+         eqlF (qP 1)     (cP 1)     &&
+         eqlF (qP (-1))  (cP (-1))  &&
+         eqlF (qP' 2)    (cP' 2)    &&
+         eqlF (qP' (-2)) (cP' (-2)) &&
+         eqlF (qP' 1)    (cP' 1)    &&
+         eqlF (qP' (-1)) (cP' (-1))
 
 qfft :: C.Data (C.Ary C.Cmx) -> C.Data (C.Ary C.Cmx)
 qfft =

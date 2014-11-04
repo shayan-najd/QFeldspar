@@ -2,14 +2,13 @@ module QFeldspar.Expression.Feldspar.Conversion () where
 
 import QFeldspar.MyPrelude
 
-import qualified Language.Haskell.TH.Syntax              as TH
+import qualified Language.Haskell.TH.Syntax                        as TH
 import qualified QFeldspar.Expression.Feldspar.ADTUntypedNamed     as FAUN
 import qualified QFeldspar.Expression.Feldspar.ADTUntypedDebruijn  as FAUD
-import qualified QFeldspar.Expression.Feldspar.GADTUntypedDebruijn as FGUD
 import qualified QFeldspar.Expression.Feldspar.GADTTyped           as FGTD
 import qualified QFeldspar.Expression.Feldspar.GADTFirstOrder      as FGFO
 import qualified QFeldspar.Expression.Feldspar.GADTHigherOrder     as FGHO
-import qualified QFeldspar.Expression.Feldspar.MiniFeldspar      as FMWS
+import qualified QFeldspar.Expression.Feldspar.MiniFeldspar        as FMWS
 
 import qualified QFeldspar.Type.Feldspar.ADT  as TFA
 import qualified QFeldspar.Type.Feldspar.GADT as TFG
@@ -63,13 +62,6 @@ instance (r ~ r' , t ~ t' , n ~ Len r , HasSin TFG.Typ t', t ~ tt) =>
 instance (n ~ Len r , HasSin TFG.Typ tt)  =>
          Cnv (TH.Q (TH.TExp tt) , ET.Env TFG.Typ r , ES.Env n TH.Name)
              (FGTD.Exp n TFA.Typ)
-         where
-  cnv (e , r , v) = do e' :: FGUD.Exp n <- cnv (e , r , v)
-                       cnv (e' , r , v)
-
-instance (n ~ Len r , HasSin TFG.Typ tt) =>
-         Cnv (TH.Q (TH.TExp tt) , ET.Env TFG.Typ r , ES.Env n TH.Name)
-             (FGUD.Exp n)
          where
   cnv (e , r , v) = do e' :: FAUD.Exp <- cnv (e , r , v)
                        cnv (e' , r , v)
@@ -128,13 +120,6 @@ instance (n ~ Len r)  =>
          Cnv (TH.Exp , ET.Env TFG.Typ r , ES.Env n TH.Name)
              (FGTD.Exp n TFA.Typ)
          where
-  cnv (e , r , v) = do e' :: FGUD.Exp n <- cnv (e , r , v)
-                       cnv (e' , r , v)
-
-instance (n ~ Len r) =>
-         Cnv (TH.Exp , ET.Env TFG.Typ r , ES.Env n TH.Name)
-             (FGUD.Exp n)
-         where
   cnv (e , r , v) = do e' :: FAUD.Exp <- cnv (e , r , v)
                        cnv (e' , r , v)
 
@@ -185,13 +170,6 @@ instance (n ~ Len r)  =>
          Cnv (FAUN.Exp TH.Name , ET.Env TFG.Typ r , ES.Env n TH.Name)
              (FGTD.Exp n TFA.Typ)
          where
-  cnv (e , r , v) = do e' :: FGUD.Exp n <- cnv (e , r , v)
-                       cnv (e' , r , v)
-
-instance (n ~ Len r) =>
-         Cnv (FAUN.Exp TH.Name , ET.Env TFG.Typ r , ES.Env n TH.Name)
-             (FGUD.Exp n)
-         where
   cnv (e , r , v) = do e' :: FAUD.Exp <- cnv (e , r , v)
                        cnv (e' , r , v)
 
@@ -236,57 +214,15 @@ instance (n ~ Len r) =>
          Cnv (FAUD.Exp , ET.Env TFG.Typ r , ES.Env n TH.Name)
              (FGTD.Exp n TFA.Typ)
          where
-  cnv (e , r , v) = do e' :: FGUD.Exp n <- cnv (e , r , v)
-                       cnv (e' , r , v)
-
-instance (n ~ Len r) =>
-         Cnv (FAUD.Exp , ET.Env TFG.Typ r , ES.Env n TH.Name)
-             (FGUD.Exp n)
-         where
-  cnv (e , r , _) = cnv (e , ET.len r)
+  cnv (e , r , _) = do e' :: FGTD.Exp n (Maybe TFA.Typ) <- cnv (e , ET.len r)
+                       r' :: ES.Env   n TFA.Typ <- cnv (r , ())
+                       cnv (e' , r')
 
 instance (n ~ Len r) =>
          Cnv (FAUD.Exp , ET.Env TFG.Typ r , ES.Env n TH.Name)
              FAUD.Exp
          where
   cnv (e , _ , _ ) = pure e
-
----------------------------------------------------------------------------------
--- Conversion from FGUD
----------------------------------------------------------------------------------
-instance (r ~ r' , t ~ t' , n ~ Len r , HasSin TFG.Typ t') =>
-         Cnv (FGUD.Exp n , ET.Env TFG.Typ r , ES.Env n TH.Name)
-             (FMWS.Exp r' t')
-         where
-  cnv (e , r , v) = do e' :: FGHO.Exp r t <- cnv (e , r , v)
-                       cnv (e' , r , v)
-
-instance (r ~ r' , t ~ t' , n ~ Len r , HasSin TFG.Typ t') =>
-         Cnv (FGUD.Exp n , ET.Env TFG.Typ r , ES.Env n TH.Name)
-             (FGHO.Exp r' t')
-         where
-  cnv (e , r , v) = do e' :: FGFO.Exp r t <- cnv (e , r , v)
-                       cnv (e' , r , v)
-
-instance (r ~ r' , t ~ t' , n ~ Len r , HasSin TFG.Typ t') =>
-         Cnv (FGUD.Exp n , ET.Env TFG.Typ r , ES.Env n TH.Name)
-             (FGFO.Exp r' t')
-         where
-  cnv (e , r , v) = do e' :: FGTD.Exp n TFA.Typ <- cnv (e , r , v)
-                       cnv (e' , r , v)
-
-instance (n ~ n' , n ~ Len r) =>
-         Cnv (FGUD.Exp n , ET.Env TFG.Typ r , ES.Env n TH.Name)
-             (FGTD.Exp n' TFA.Typ)
-         where
-  cnv (e , r , _) = do r' :: ES.Env n TFA.Typ <- cnv (r , ())
-                       cnv (e , r')
-
-instance (n ~ n' , n ~ Len r) =>
-         Cnv (FGUD.Exp n , ET.Env TFG.Typ r , ES.Env n TH.Name)
-             (FGUD.Exp n')
-         where
-  cnv (e , _ , _) = pure e
 
 ---------------------------------------------------------------------------------
 -- Conversion from FGTD

@@ -1,5 +1,6 @@
+{-# OPTIONS_GHC -fno-warn-unused-binds #-}
 module QFeldspar.QDSL (module QFeldspar.Prelude.TemplateHaskell
-                      ,Qt,translate,translateF,evaluate,compile,compileF)
+                      ,Qt,translate,translateF,evaluate,compile,compileF,wrp)
     where
 
 import QFeldspar.CDSL (Dp)
@@ -16,7 +17,7 @@ import QFeldspar.Expression.Feldspar.Conversions.Evaluation.MiniFeldspar ()
 import QFeldspar.Expression.Feldspar.Conversion ()
 
 import qualified QFeldspar.Expression.Feldspar.MiniFeldspar  as FMWS
-import qualified QFeldspar.Type.Feldspar.GADT                  as TFG
+import qualified QFeldspar.Type.Feldspar.GADT                as TFG
 
 type Qt a = Data a
 type C    = String
@@ -24,31 +25,35 @@ type C    = String
 dummy :: a
 dummy = dummy
 
+wrp :: Data a -> Data a
+wrp f = [|| let _bnd   = $$bind        in
+            $$f ||]
+
 translate :: forall a.
              (HasSin TFG.Typ a , FO a) =>
              Qt a -> Dp a
-translate f = frmRgt (cnv (f , etTFG , esTH))
+translate f = frmRgt (cnv (wrp f , etTFG , esTH))
 
 translateF :: forall a b.
              (HasSin TFG.Typ a , HasSin TFG.Typ b) =>
              Qt (a -> b) -> Dp a -> Dp b
 translateF f x = FMWS.absVar
                           (frmRgt
-                           (cnv ([|| $$f dummy  ||]
+                           (cnv (wrp [|| $$f dummy ||]
                                 , (sin :: TFG.Typ a) <:> etTFG
                                 , 'dummy <+> esTH))) x
 
 evaluate ::  forall a.
              (HasSin TFG.Typ a , FO a) =>
              Qt a -> a
-evaluate = CDSL.evaluate . translate
+evaluate = CDSL.evaluate . translate . wrp
 
 compile :: forall a.
              (HasSin TFG.Typ a, FO a) =>
              Bool -> Qt a -> C
-compile b = CDSL.compile b . translate
+compile b = CDSL.compile b . translate . wrp
 
 compileF :: forall a b.
              (HasSin TFG.Typ a , HasSin TFG.Typ b , FO a) =>
              Bool -> Qt (a -> b) -> C
-compileF b = CDSL.compileF b . translateF
+compileF b = CDSL.compileF b . translateF . wrp

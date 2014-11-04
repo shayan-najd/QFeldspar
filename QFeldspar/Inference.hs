@@ -14,17 +14,15 @@ mxm [] = Zro
 mxm l  = maximum l
 
 ind :: Traversable ef =>
-       ef () -> ef Nat
-ind = flip evalState Zro .
-      traverse (const (do i <- getState
-                          put (Suc i)
-                          return i))
+       ef (Maybe (Typ r)) -> ef (Typ r)
+ind e = (flip evalState  (succ (maxMta (fmap (maybe (Mta Zro) id) e))) .
+              mapM (maybe (do i <- getState
+                              put (Suc i)
+                              return (Mta i)) return)) e
 
 typInf :: (Chk.Chk ef , Traversable ef , r ~ Chk.Cns ef) =>
-       ef () -> (Chk.Env ef) (Typ r) -> ErrM (ef (Typ r))
-typInf e r = let en = ind e
-                 et = fmap Mta en
-             in inf et r
+       ef (Maybe (Typ r)) -> (Chk.Env ef) (Typ r) -> ErrM (ef (Typ r))
+typInf e r = inf (ind e) r
 
 maxMta :: Foldable f => f (Typ r) -> Nat
 maxMta = mxm . concat . fmap mtas . toList

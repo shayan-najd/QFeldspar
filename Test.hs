@@ -4,7 +4,6 @@ import QFeldspar.MyPrelude
 
 import qualified Tests.ADTUntypedNamed     as FAUN
 import qualified Tests.ADTUntypedDebruijn  as FAUD
-import qualified Tests.GADTUntypedDebruijn as FGUD
 import qualified Tests.GADTTyped           as FGTD
 import qualified Tests.GADTFirstOrder      as FGFO
 import qualified Tests.GADTHigherOrder     as FGHO
@@ -25,7 +24,7 @@ import qualified Examples.Windowing.QDSL ()
 import QFeldspar.Expression.Feldspar.Conversions.Evaluation.ADTValue ()
 
 main :: IO ()
-main = print (if FAUN.test  && FAUD.test  && FGUD.test &&
+main = print (if FAUN.test  && FAUD.test  &&
                  FGTD.test  && FGFO.test  && FGHO.test &&
                  FMWS.test  && FCNV.test
               then "Pass!"

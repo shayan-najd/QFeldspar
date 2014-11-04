@@ -5,7 +5,6 @@ import QFeldspar.MyPrelude
 import qualified Language.Haskell.TH.Syntax              as TH
 import qualified QFeldspar.Expression.Feldspar.ADTUntypedNamed     as FAUN
 import qualified QFeldspar.Expression.Feldspar.ADTUntypedDebruijn  as FAUD
-import qualified QFeldspar.Expression.Feldspar.GADTUntypedDebruijn as FGUD
 import qualified QFeldspar.Expression.Feldspar.GADTTyped           as FGTD
 import qualified QFeldspar.Expression.Feldspar.GADTFirstOrder      as FGFO
 import qualified QFeldspar.Expression.Feldspar.GADTHigherOrder     as FGHO
@@ -16,7 +15,6 @@ import qualified QFeldspar.Expression.Feldspar.GADTValue           as FGV
 import qualified Tests.TemplateHaskell     as TH
 import qualified Tests.ADTUntypedNamed     as FAUN
 import qualified Tests.ADTUntypedDebruijn  as FAUD
-import qualified Tests.GADTUntypedDebruijn as FGUD
 import qualified Tests.GADTTyped           as FGTD
 import qualified Tests.GADTFirstOrder      as FGFO
 import qualified Tests.GADTHigherOrder     as FGHO
@@ -101,13 +99,6 @@ cnvFGTD e j = case (do e' :: FGTD.Exp One TFA.Typ <- cnv (e , envAddTypG , vec)
            Rgt (FAV.ConI i) -> i == j
            _                -> False
 
-cnvFGUD :: Cnv (e , ET.Env TFG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
-           (FGUD.Exp One) => e -> Int -> Bool
-cnvFGUD e j = case (do e' :: FGUD.Exp One <- cnv (e , envAddTypG , vec)
-                       curry cnv e' envAddValV) of
-           Rgt (FAV.ConI i) -> i == j
-           _                -> False
-
 cnvFAUD :: Cnv (e , ET.Env TFG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
            FAUD.Exp => e -> Int -> Bool
 cnvFAUD e j = case (do e' :: FAUD.Exp <- cnv (e , envAddTypG , vec)
@@ -127,19 +118,16 @@ test = cnvFAUN TH.four   4 && cnvFAUN FAUN.four 4 &&
 
        cnvFAUD TH.four   4 && cnvFAUD FAUN.four 4 && cnvFAUD FAUD.four 4 &&
 
-       cnvFGUD TH.four   4 && cnvFGUD FAUN.four 4 && cnvFGUD FAUD.four 4 &&
-       cnvFGUD FGUD.four 4 &&
-
        cnvFGTD TH.four   4 && cnvFGTD FAUN.four 4 && cnvFGTD FAUD.four 4 &&
-       cnvFGTD FGUD.four 4 && cnvFGTD FGTD.four 4 &&
+       cnvFGTD FGTD.four 4 &&
 
        cnvFGFO TH.four   4 && cnvFGFO FAUN.four 4 && cnvFGFO FAUD.four 4 &&
-       cnvFGFO FGUD.four 4 && cnvFGFO FGTD.four 4 && cnvFGFO FGFO.four 4 &&
+       cnvFGFO FGTD.four 4 && cnvFGFO FGFO.four 4 &&
 
        cnvFGHO TH.four   4 && cnvFGHO FAUN.four 4 && cnvFGHO FAUD.four 4 &&
-       cnvFGHO FGUD.four 4 && cnvFGHO FGTD.four 4 && cnvFGHO FGFO.four 4 &&
+       cnvFGHO FGTD.four 4 && cnvFGHO FGFO.four 4 &&
        cnvFGHO FGHO.four 4 &&
 
        cnvFMWS TH.four   4 && cnvFMWS FAUN.four 4 && cnvFMWS FAUD.four 4 &&
-       cnvFMWS FGUD.four 4 && cnvFMWS FGTD.four 4 && cnvFMWS FGFO.four 4 &&
+       cnvFMWS FGTD.four 4 && cnvFMWS FGFO.four 4 &&
        cnvFMWS FGHO.four 4 -- && cnvFMWS FWMS.four 4
