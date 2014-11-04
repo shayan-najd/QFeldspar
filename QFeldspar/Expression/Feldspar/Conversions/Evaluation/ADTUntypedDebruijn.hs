@@ -30,7 +30,8 @@ instance Cnv (Exp , Env FAV.Exp) FAV.Exp where
     Cmx er ei    -> FAV.cmx  <$@> er <*@> ei
     Non          -> pure FAV.non
     Som e        -> FAV.som  <$@> e
-    May em en es -> FAV.may  <$@> em <*@> en <*@> es)
+    May em en es -> FAV.may  <$@> em <*@> en <*@> es
+    Typ _  e     -> pure (cnvImp e))
 
 instance Cnv (Exp , Env FAV.Exp)  (FAV.Exp -> FAV.Exp) where
   cnv (e , r) = pure (frmRgt . curry cnv e . (: r))

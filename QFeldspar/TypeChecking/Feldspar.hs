@@ -90,3 +90,6 @@ instance Chk (Exp n) where
                          addC (bn TH.:~: bs)
                          addC (t  TH.:~: a)
                          return bs
+    Typ t e        -> do te <- chk e r
+                         addC (t TH.:~: te)
+                         return te

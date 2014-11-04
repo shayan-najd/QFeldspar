@@ -69,6 +69,7 @@ instance (r ~ r' , n ~ Len r , HasSin TFG.Typ t) =>
                                              FGFO.May
                                                <$> pure (samTyp (TFG.May t') em')
                                                <*@> en <*@> (t' , es)
+    (FGTD.Typ _ e      , _)            -> cnvImp e
     _                                  -> fail "Type Error!"
 
 instance (r ~ r' , n ~ Len (tr ': r) , HasSin TFG.Typ t , tr ~ tr') =>

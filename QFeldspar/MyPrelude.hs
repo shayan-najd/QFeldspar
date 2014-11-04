@@ -1,7 +1,7 @@
 module QFeldspar.MyPrelude
        (Num(..),pi,fromIntegral,toRational
        ,floor,log,sqrt,
-        Word32,Rational,
+        Word32,Rational, stripNameSpace,
         Float,
         Bool(..),(&&),(||),not,
         Complex(..),realPart,imagPart,cis,magnitude,
@@ -54,6 +54,7 @@ import Data.Char(ord)
 import System.Environment
 import Data.Unique
 import System.IO.Unsafe
+import qualified Language.Haskell.TH.Syntax as TH
 
 impossible :: a
 impossible = error "Impossible!"
@@ -85,3 +86,7 @@ type Tpl a b = (a , b)
 {-# NOINLINE genNewNam #-}
 genNewNam :: String -> String
 genNewNam x = unsafePerformIO (fmap (x ++) (fmap (show . hashUnique) newUnique))
+
+
+stripNameSpace :: TH.Name -> TH.Name
+stripNameSpace (TH.Name x _) = TH.Name x TH.NameS

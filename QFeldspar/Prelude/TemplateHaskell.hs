@@ -267,7 +267,7 @@ cis = [|| cisHsk ||]
 ---------------------------------------------------------------------------------
 
 return :: Data (a -> Maybe a)
-return = [|| Just ||]
+return = [|| \ x -> Just x ||]
 
 bind :: Data (Maybe a -> (a -> Maybe b) -> Maybe b)
 bind = [|| \ m -> \ k -> case m of {Nothing -> Nothing ; Just x -> k x} ||]

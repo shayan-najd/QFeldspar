@@ -26,6 +26,7 @@ data Exp :: NA.Nat -> * -> * where
   Non  :: Exp n t
   Som  :: Exp n t -> Exp n t
   May  :: t -> Exp n t -> Exp n t -> Exp (NA.Suc n) t -> Exp n t
+  Typ  :: t -> Exp n t -> Exp n t
 
 deriving instance Eq t   => Eq   (Exp n t)
 deriving instance Show t => Show (Exp n t)
@@ -50,16 +51,17 @@ mapVar f ebb = case ebb of
   Cnd ec et ef -> Cnd (m ec) (m et) (m ef)
   Whl ec eb ei -> Whl (mf ec) (mf eb) (m ei)
   Tpl ef es    -> Tpl (m ef) (m es)
-  Fst t  e     -> Fst t (m e )
-  Snd t  e     -> Snd t (m e )
+  Fst t  e     -> Fst t (m e)
+  Snd t  e     -> Snd t (m e)
   Ary el ef    -> Ary (m el) (mf ef)
-  Len t  e     -> Len t (m e )
+  Len t  e     -> Len t (m e)
   Ind ea ei    -> Ind (m ea) (m ei)
   Let t  el eb -> Let t (m el) (mf eb)
   Cmx er ei    -> Cmx (m er) (m ei)
   Non          -> Non
   Som e        -> Som (m e)
   May t em en es -> May t (m em) (m en) (mf es)
+  Typ t e      -> Typ t (m e)
   where
     m  = mapVar f
     mf = mapVar (inc f)
@@ -87,6 +89,7 @@ sbs ebb v eaa = case ebb of
   Non            -> Non
   Som e          -> Som (s e)
   May t em en es -> May t (s em) (s en) (sf es)
+  Typ t e        -> Typ t (s e)
   where
     s  e = sbs e v eaa
     sf e = sbs e (Suc v) (sucAll eaa)
@@ -117,6 +120,7 @@ fre' v ee = case ee of
   Non          -> []
   Som e        -> f  e
   May _ em en es -> f em ++ f en ++ ff es
+  Typ _ e      -> f  e
   where
     f  e = fre' v e
 

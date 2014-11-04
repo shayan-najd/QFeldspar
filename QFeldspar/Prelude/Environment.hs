@@ -108,9 +108,11 @@ etTFG = TFG.Cmx --> TFG.Flt <:>
 ---------------------------------------------------------------------------------
 -- ESTH
 ---------------------------------------------------------------------------------
-
 esTH :: ES.Env (Len Prelude) TH.Name
-esTH = 'realPartHsk
+esTH = fmap stripNameSpace esTH'
+
+esTH' :: ES.Env (Len Prelude) TH.Name
+esTH' = 'realPartHsk
    <+> 'imagPartHsk
    <+> 'eqlBolHsk
    <+> 'eqlIntHsk

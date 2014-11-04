@@ -10,6 +10,8 @@ import qualified Tests.GADTHigherOrder     as FGHO
 import qualified Tests.MiniFeldspar        as FMWS
 import qualified Tests.Conversion          as FCNV
 
+import qualified Tests.CompareExamples     as TC
+
 import qualified Examples.CRC.CDSL ()
 import qualified Examples.CRC.QDSL ()
 import qualified Examples.FFT.CDSL ()
@@ -26,7 +28,7 @@ import QFeldspar.Expression.Feldspar.Conversions.Evaluation.ADTValue ()
 main :: IO ()
 main = print (if FAUN.test  && FAUD.test  &&
                  FGTD.test  && FGFO.test  && FGHO.test &&
-                 FMWS.test  && FCNV.test
+                 FMWS.test  && FCNV.test  && TC.result
               then "Pass!"
               else "Fail!")
 

@@ -2,6 +2,7 @@ module QFeldspar.Expression.Feldspar.ADTUntypedNamed
     (Exp(..),sbs) where
 
 import QFeldspar.MyPrelude
+import qualified QFeldspar.Type.Feldspar.ADT as TFA
 
 data Exp x = ConI Int
            | ConB Bool
@@ -22,6 +23,7 @@ data Exp x = ConI Int
            | Non
            | Som (Exp x)
            | May (Exp x) (Exp x) (x , Exp x)
+           | Typ TFA.Typ (Exp x)
 
 deriving instance Eq x   => Eq   (Exp x)
 deriving instance Show x => Show (Exp x)
@@ -52,6 +54,7 @@ sbs x e' ee = case ee of
   Non            -> Non
   Som e          -> Som (s e)
   May em en xej  -> May (s em) (s en) (sf xej)
+  Typ t e        -> Typ t (s e)
   where
     s = sbs x e'
     sf (y , e)

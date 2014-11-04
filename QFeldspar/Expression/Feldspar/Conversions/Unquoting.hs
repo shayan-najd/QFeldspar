@@ -1,7 +1,8 @@
 module QFeldspar.Expression.Feldspar.Conversions.Unquoting () where
 
-import QFeldspar.MyPrelude (pure,fail,toRational,toInteger,fromInteger,fromRational
-                 ,show,(++),(==),Maybe(..),(<$>),(<*>),ErrM,otherwise)
+import QFeldspar.MyPrelude (pure,fail,toRational,toInteger,fromInteger
+                           ,fromRational,stripNameSpace
+                           ,show,(++),(==),Maybe(..),(<$>),(<*>),ErrM,otherwise)
 
 import qualified QFeldspar.Expression.Feldspar.ADTUntypedNamed as FAUN
 import qualified Language.Haskell.TH.Syntax          as TH
@@ -37,7 +38,7 @@ instance Cnv (TH.Exp , ()) (FAUN.Exp TH.Name) where
       | n == 'False         -> pure (FAUN.ConB False)
       | n == 'Nothing       -> pure FAUN.Non
       | otherwise           -> pure (FAUN.Var n)
-    TH.VarE x               -> pure (FAUN.Var x)
+    TH.VarE x               -> pure (FAUN.Var (stripNameSpace x))
     TH.LamE [TH.VarP x] eb  -> FAUN.Abs <$@> (x , eb)
     TH.DoE stmts            -> mkDo stmts
     TH.AppE (TH.ConE n) e
@@ -70,12 +71,14 @@ instance Cnv (TH.Exp , ()) (FAUN.Exp TH.Name) where
     TH.CaseE ec [TH.Match (TH.ConP nl []) (TH.NormalB el) []
                 ,TH.Match (TH.ConP nr [TH.VarP xr]) (TH.NormalB er) []]
         | nl == 'Nothing ,
-          nr == 'Just       -> FAUN.May <$@> ec <*@> el <*@> (xr , er)
+          nr == 'Just       -> FAUN.May <$@> ec <*@> el
+                               <*@> (xr , er)
+    TH.SigE e t             -> FAUN.Typ <$@> t  <*@> e
     e                       -> fail  ("Syntax Error!\n" ++ (show e))
 
 instance Cnv ((TH.Name , TH.Exp) , ()) (TH.Name , FAUN.Exp TH.Name) where
     cnv ((x , e) , r) = let ?r = r
-                        in (,) <$> pure x <*@> e
+                        in (,) <$> pure (stripNameSpace x) <*@> e
 
 instance Cnv (FAUN.Exp TH.Name , ()) TH.Exp where
   cnv (ee , r) = let ?r = r in case ee of
@@ -126,3 +129,4 @@ instance Cnv (FAUN.Exp TH.Name , ()) TH.Exp where
                                                  (TH.NormalB en') [],
                                         TH.Match (TH.ConP 'Just [TH.VarP x])
                                                  (TH.NormalB es') []])
+    FAUN.Typ t e            -> TH.SigE <$@> e <*@> t

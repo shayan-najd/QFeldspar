@@ -1,4 +1,4 @@
-module Examples.Compare where
+module Tests.CompareExamples where
 
 import Prelude (Bool(..),(&&),Int)
 import qualified QFeldspar.QDSL as Q
@@ -21,7 +21,6 @@ import qualified Examples.Windowing.CDSL as WC
 
 import qualified Examples.Power.QDSL as PQ
 import qualified Examples.Power.CDSL as PC
-
 
 import QFeldspar.Expression.Feldspar.MiniFeldspar
 import QFeldspar.Nat.TH
@@ -73,48 +72,20 @@ cP' n = C.simplifyF (C.normaliseF True (PC.power'' n))
 result :: Bool
 result = eqlF qIPBW      cIPBW      &&
          eqlF qIPGray    cIPGray    &&
---         eqlF qFFT     cFFT       &&
---         eqlF qFFT       cfft       &&
+--       eqlF qFFT     cFFT         &&
+         eqlF qFFT       cfft       &&
          eqlF qCRC       cCRC       &&
          eqlF qW         cW         &&
          eqlF (qP 2)     (cP 2)     &&
          eqlF (qP (-2))  (cP (-2))  &&
          eqlF (qP 1)     (cP 1)     &&
          eqlF (qP (-1))  (cP (-1))  &&
+         eqlF (qP 0)     (cP 0)     &&
          eqlF (qP' 2)    (cP' 2)    &&
          eqlF (qP' (-2)) (cP' (-2)) &&
          eqlF (qP' 1)    (cP' 1)    &&
-         eqlF (qP' (-1)) (cP' (-1))
-
-qfft :: C.Data (C.Ary C.Cmx) -> C.Data (C.Ary C.Cmx)
-qfft =
- (\ x1 ->
- (Let (AppV $(nat 9 "") (Ext (AppV $(nat 28 "") (Ext (Len (x1)) Emp)) (Ext (ConI 1) Emp)))
- (\ x12805 -> (Snd (Whl
- (\ x12806 -> (AppV $(nat 6 "") (Ext (Fst (x12806)) (Ext (x12805) Emp))))
- (\ x12807 ->
- (Let (Fst (x12807))
- (\ x12808 ->
- (Let (Snd (x12807))
- (\ x12809 -> (Tpl (AppV $(nat 8 "") (Ext (x12808) (Ext (ConI 1) Emp))) (Ary (Len (x12809))
- (\ x12810 ->
- (Let (AppV $(nat 8 "") (Ext (x12808) (Ext (ConI 1) Emp)))
- (\ x12811 -> (Ind (x12809) (AppV $(nat 21 "") (Ext (AppV $(nat 24 "") (Ext (AppV $(nat 21 "") (Ext (AppV $(nat 24 "") (Ext (AppV $(nat 23 "") (Ext (AppV $(nat 23 "") (Ext (x12810) (Ext (ConI 1) Emp))) (Ext (x12811) Emp))) (Ext (ConI 1) Emp))) (Ext (AppV $(nat 20 "") (Ext (x12810) (Ext (ConI 1) Emp))) Emp))) (Ext (x12811) Emp))) (Ext (AppV $(nat 20 "") (Ext (AppV $(nat 23 "") (Ext (x12810) (Ext (ConI 1) Emp))) (Ext (AppV $(nat 25 "") (Ext (AppV $(nat 24 "") (Ext (AppV $(nat 25 "") (Ext (ConI 0) Emp)) (Ext (x12811) Emp))) Emp)) Emp))) Emp)))))))))))))) (Tpl (ConI 0) (Snd (Whl
- (\ x12812 -> (AppV $(nat 6 "") (Ext (Fst (x12812)) (Ext (AppV $(nat 8 "") (Ext (x12805) (Ext (ConI 1) Emp))) Emp))))
- (\ x12813 ->
- (Let (Fst (x12813))
- (\ x12814 ->
- (Let (Snd (x12813))
- (\ x12815 -> (Tpl (AppV $(nat 8 "") (Ext (x12814) (Ext (ConI 1) Emp))) (Ary (Len (x1))
- (\ x12816 ->
- (Let (AppV $(nat 9 "") (Ext (x12805) (Ext (x12814) Emp)))
- (\ x12817 ->
- (Let (AppV $(nat 24 "") (Ext (ConI 1) (Ext (x12817) Emp)))
- (\ x12818 ->
- (Let (Ind (x12815) (x12816))
- (\ x12819 ->
- (Let (Ind (x12815) (AppV $(nat 22 "") (Ext (x12816) (Ext (x12818) Emp))))
- (\ x12820 -> (Cnd (AppV $(nat 3 "") (Ext (AppV $(nat 20 "") (Ext (x12816) (Ext (AppV $(nat 24 "") (Ext (ConI 1) (Ext (x12817) Emp))) Emp))) (Ext (ConI 0) Emp))) (AppV $(nat 16 "") (Ext (x12819) (Ext (x12820) Emp))) (AppV $(nat 18 "") (Ext (AppV $(nat 27 "") (Ext (AppV $(nat 15 "") (Ext (AppV $(nat 14 "") (Ext (ConF (-3.1415927)) (Ext (AppV $(nat 26 "") (Ext (AppV $(nat 20 "") (Ext (x12816) (Ext (AppV $(nat 25 "") (Ext (AppV $(nat 24 "") (Ext (AppV $(nat 25 "") (Ext (ConI 0) Emp)) (Ext (x12817) Emp))) Emp)) Emp))) Emp)) Emp))) (Ext (AppV $(nat 26 "") (Ext (x12818) Emp)) Emp))) Emp)) (Ext (AppV $(nat 17 "") (Ext (x12820) (Ext (x12819) Emp))) Emp)))))))))))))))))))) (Tpl (ConI 0) (x1))))))))))
+         eqlF (qP' (-1)) (cP' (-1)) &&
+         eqlF (qP' 0)    (cP' 0)
 
 cfft :: C.Data (C.Ary C.Cmx) -> C.Data (C.Ary C.Cmx)
 cfft =

@@ -2,8 +2,8 @@ module QFeldspar.Expression.Feldspar.ADTUntypedDebruijn
     (Exp(..),fre) where
 
 import QFeldspar.MyPrelude
-
 import QFeldspar.Variable.Plain
+import qualified QFeldspar.Type.Feldspar.ADT as TFA
 
 data Exp = ConI Int
          | ConB Bool
@@ -24,6 +24,7 @@ data Exp = ConI Int
          | Non
          | Som  Exp
          | May  Exp Exp Exp
+         | Typ  TFA.Typ Exp
 
 deriving instance Eq   Exp
 deriving instance Show Exp
@@ -49,6 +50,7 @@ fre ee = case ee of
   Non           -> []
   Som  e        -> fre  e
   May  em en es -> fre  em ++ fre en ++ freF es
+  Typ  _  e     -> fre e
 
 freF :: Exp -> [Nat]
 freF f = drpZro (fre f)
