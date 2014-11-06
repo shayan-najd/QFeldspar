@@ -10,7 +10,7 @@ power n =
   else if n == 0 then
     [|| \ _x -> 1.0 ||]
   else if even n then
-    [|| \x -> $$sqr ($$(power (div n 2)) x) ||]
+    [|| \x -> $$sqr ($$(power (n `div` 2)) x) ||]
   else
     [|| \x -> x * ($$(power (n-1)) x) ||]
 
