@@ -24,6 +24,9 @@ isVal ee = case ee of
     Ary  el  _    -> isVal el
     Len  _        -> False
     Ind  _  _     -> False
+    AryV el  _    -> isVal el
+    LenV  _       -> False
+    IndV  _  _    -> False
     Let  _  _     -> False
     Cmx  _  _     -> True
     Tmp  _        -> True
@@ -68,6 +71,10 @@ etasub ee = let t = sin :: TFG.Typ t in case ee of
       PrfHasSin               -> Ary (eta el) (etaF ef)
     Len e                     -> Len (eta e)
     Ind ea             ei     -> Ind (eta ea) (eta ei)
+    AryV el ef                 -> case TFG.getPrfHasSinVec t of
+      PrfHasSin               -> AryV (eta el) (etaF ef)
+    LenV e                     -> LenV (eta e)
+    IndV ea             ei     -> IndV (eta ea) (eta ei)
     Let el eb                 -> Let (eta el) (etaF eb)
     Cmx er ei                 -> Cmx (eta er) (eta ei)
     Tmp x                     -> Tmp x
@@ -131,6 +138,19 @@ instance HasSin TFG.Typ t => NrmOne (Exp n t) where
     Ind (V ea)         (NV ei)   -> chg (Let ei (\ x -> Ind ea x ))
     Ind (Ary (V _) ef) (V ei)    -> chg (ef ei)
     Ind ea             ei        -> Ind  <$@> ea <*@> ei
+
+    AryV (NV el) ef              -> chg (Let el (\ x -> AryV x ef))
+    AryV el      ef              -> case TFG.getPrfHasSinVec t of
+      PrfHasSin                  -> AryV  <$@> el <*@> ef
+
+    LenV (NV ea)                  -> chg (Let ea (\ x -> LenV x))
+    LenV (AryV (V el) _)          -> chg  el
+    LenV e                        -> LenV  <$@> e
+
+    IndV (NV ea)        ei        -> chg (Let ea (\ x -> IndV x  ei))
+    IndV (V ea)         (NV ei)   -> chg (Let ei (\ x -> IndV ea x ))
+    IndV (AryV (V _) ef) (V ei)   -> chg (ef ei)
+    IndV ea             ei        -> IndV  <$@> ea <*@> ei
 
     Cmx (NV er) ei               -> chg (Let er (\ x -> Cmx  x  ei))
     Cmx (V er)  (NV ei)          -> chg (Let ei (\ x -> Cmx  er x ))

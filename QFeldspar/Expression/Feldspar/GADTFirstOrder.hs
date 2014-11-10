@@ -25,6 +25,9 @@ data Exp :: [*] -> * -> * where
   Ary  :: Exp r Int -> Exp (Int ': r) t -> Exp r (Ary t)
   Len  :: HasSin TFG.Typ ta => Exp r (Ary ta) -> Exp r Int
   Ind  :: Exp r (Ary ta) -> Exp r Int -> Exp r ta
+  AryV :: Exp r Int -> Exp (Int ': r) t -> Exp r (Vec t)
+  LenV :: HasSin TFG.Typ ta => Exp r (Vec ta) -> Exp r Int
+  IndV :: Exp r (Vec ta) -> Exp r Int -> Exp r ta
   Let  :: HasSin TFG.Typ tl => Exp r tl -> Exp (tl ': r) tb -> Exp r tb
   Cmx  :: Exp r Flt -> Exp r Flt -> Exp r Cmx
   Non  :: Exp r (May tl)
@@ -55,6 +58,9 @@ mapVar f ee = case ee of
   Ary el ef    -> Ary (m el)  (mf ef)
   Len e        -> Len (m e)
   Ind ea ei    -> Ind (m ea)  (m ei)
+  AryV el ef   -> AryV (m el)  (mf ef)
+  LenV e       -> LenV (m e)
+  IndV ea ei   -> IndV (m ea)  (m ei)
   Let el eb    -> Let (m el)  (mf eb)
   Cmx er ei    -> Cmx (m er)  (m ei)
   Non          -> Non

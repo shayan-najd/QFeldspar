@@ -21,6 +21,9 @@ data Exp :: NA.Nat -> * -> * where
   Ary  :: Exp n t -> Exp (NA.Suc n) t -> Exp n t
   Len  :: t -> Exp n t -> Exp n t
   Ind  :: Exp n t -> Exp n t -> Exp n t
+  AryV :: Exp n t -> Exp (NA.Suc n) t -> Exp n t
+  LenV :: t -> Exp n t -> Exp n t
+  IndV :: Exp n t -> Exp n t -> Exp n t
   Let  :: t -> Exp n t -> Exp (NA.Suc n) t -> Exp n t
   Cmx  :: Exp n t -> Exp n t -> Exp n t
   Non  :: Exp n t
@@ -56,6 +59,9 @@ mapVar f ebb = case ebb of
   Ary el ef    -> Ary (m el) (mf ef)
   Len t  e     -> Len t (m e)
   Ind ea ei    -> Ind (m ea) (m ei)
+  AryV el ef   -> AryV (m el) (mf ef)
+  LenV t  e    -> LenV t (m e)
+  IndV ea ei   -> IndV (m ea) (m ei)
   Let t  el eb -> Let t (m el) (mf eb)
   Cmx er ei    -> Cmx (m er) (m ei)
   Non          -> Non
@@ -84,6 +90,9 @@ sbs ebb v eaa = case ebb of
   Ary el ef      -> Ary (s el) (sf ef)
   Len t  e       -> Len t (s e )
   Ind ea ei      -> Ind (s ea) (s ei)
+  AryV el ef      -> AryV (s el) (sf ef)
+  LenV t  e      -> LenV t (s e )
+  IndV ea ei     -> IndV (s ea) (s ei)
   Let t  el eb   -> Let t (s el) (sf eb)
   Cmx er ei      -> Cmx (s er) (s ei)
   Non            -> Non
@@ -115,6 +124,9 @@ fre' v ee = case ee of
   Ary el ef    -> f  el ++ ff ef
   Len _  e     -> f  e
   Ind ea ei    -> f  ea ++ f  ei
+  AryV el ef    -> f  el ++ ff ef
+  LenV _  e     -> f  e
+  IndV ea ei    -> f  ea ++ f  ei
   Let _  el eb -> f  el ++ ff eb
   Cmx er ei    -> f  er ++ f  ei
   Non          -> []

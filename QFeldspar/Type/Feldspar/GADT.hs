@@ -13,6 +13,7 @@ data Typ :: * -> * where
   Arr :: Typ ta -> Typ tb -> Typ (ta -> tb)
   Tpl :: Typ tf -> Typ ts -> Typ ((tf , ts))
   Ary :: Typ t  -> Typ (Ary t)
+  Vct :: Typ t  -> Typ (Vec t)
   May :: Typ t  -> Typ (May t)
   Cmx :: Typ Cmx
 
@@ -34,6 +35,9 @@ instance (HasSin Typ tf , HasSin Typ ts) => HasSin Typ (Tpl tf ts) where
 instance HasSin Typ ta => HasSin Typ (Ary ta) where
   sin = Ary sin
 
+instance HasSin Typ ta => HasSin Typ (Vec ta) where
+  sin = Vct sin
+
 instance HasSin Typ ta => HasSin Typ (May ta) where
   sin = May sin
 
@@ -52,6 +56,8 @@ instance EqlSin Typ where
                                         return Rfl
   eqlSin (Ary t)     (Ary t')      = do Rfl <- eqlSin t t'
                                         return Rfl
+  eqlSin (Vct t)     (Vct t')      = do Rfl <- eqlSin t t'
+                                        return Rfl
   eqlSin (May t)     (May t')      = do Rfl <- eqlSin t t'
                                         return Rfl
   eqlSin Cmx         Cmx           = return Rfl
@@ -67,6 +73,8 @@ instance GetPrfHasSin Typ where
     Tpl tf ts -> case (getPrfHasSin tf , getPrfHasSin ts) of
       (PrfHasSin , PrfHasSin) -> PrfHasSin
     Ary ta    -> case getPrfHasSin ta of
+      PrfHasSin -> PrfHasSin
+    Vct ta    -> case getPrfHasSin ta of
       PrfHasSin -> PrfHasSin
     May ta    -> case getPrfHasSin ta of
       PrfHasSin -> PrfHasSin
@@ -87,6 +95,12 @@ getPrfHasSinAry :: forall ta t. HasSin Typ (Ary ta) =>
 getPrfHasSinAry _ = case sin :: Typ (Ary ta) of
   Ary ta    -> getPrfHasSin ta
 
+getPrfHasSinVec :: forall ta t. HasSin Typ (Vec ta) =>
+                   t (Vec ta) -> PrfHasSin Typ ta
+getPrfHasSinVec _ = case sin :: Typ (Vec ta) of
+  Vct ta    -> getPrfHasSin ta
+
+
 getPrfHasSinMay :: forall ta t. HasSin Typ (May ta) =>
                    t (May ta) -> PrfHasSin Typ ta
 getPrfHasSinMay _ = case sin :: Typ (May ta) of
@@ -103,6 +117,11 @@ getPrfHasSinTplM = return . getPrfHasSinTpl
 getPrfHasSinAryM :: HasSin Typ (Ary ta) =>
                    t (Ary ta) -> ErrM (PrfHasSin Typ ta)
 getPrfHasSinAryM = return  . getPrfHasSinAry
+
+getPrfHasSinVecM :: HasSin Typ (Vec ta) =>
+                   t (Vec ta) -> ErrM (PrfHasSin Typ ta)
+getPrfHasSinVecM = return  . getPrfHasSinVec
+
 
 getPrfHasSinMayM :: HasSin Typ (May ta) =>
                    t (May ta) -> ErrM (PrfHasSin Typ ta)
@@ -123,6 +142,8 @@ eqlOut Flt         Flt           = return EqlOut
 eqlOut t           (Arr _ tb)    = do EqlOut <- eqlOut t tb
                                       return EqlOut
 eqlOut (Ary ta)    (Ary ta')     = do Rfl <- eqlSin ta ta'
+                                      return EqlOut
+eqlOut (Vct ta)    (Vct ta')     = do Rfl <- eqlSin ta ta'
                                       return EqlOut
 eqlOut (May ta)    (May ta')     = do Rfl <- eqlSin ta ta'
                                       return EqlOut
@@ -147,6 +168,7 @@ eqlArg (ET.Ext ta ts) (Arr ta' tb) = do Rfl    <- eqlSin ta ta'
                                         EqlArg <- eqlArg ts tb
                                         return EqlArg
 eqlArg ET.Emp         (Ary _)      = return EqlArg
+eqlArg ET.Emp         (Vct _)      = return EqlArg
 eqlArg ET.Emp         (May _)      = return EqlArg
 eqlArg ET.Emp         (Tpl _ _)    = return EqlArg
 eqlArg ET.Emp         Cmx          = return EqlArg
@@ -191,6 +213,9 @@ getSndTyp (Tpl _  ts) = ts
 getAryTyp :: Typ (Ary ta) -> Typ ta
 getAryTyp (Ary ta) = ta
 
+getVecTyp :: Typ (Vec ta) -> Typ ta
+getVecTyp (Vct ta) = ta
+
 getMayTyp :: Typ (May ta) -> Typ ta
 getMayTyp (May ta) = ta
 
@@ -201,6 +226,7 @@ getPrf Bol                   _          _           = impossible
 getPrf Flt                   _          _           = impossible
 getPrf (Tpl _ _)             _          _           = impossible
 getPrf (Ary _)               _          _           = impossible
+getPrf (Vct _)               _          _           = impossible
 getPrf Cmx                   _          _           = impossible
 getPrf (May _)               _          _           = impossible
 getPrf (Arr t Int)       ET.Emp        (ET.Ext T ET.Emp) = getPrfHasSin t
@@ -213,6 +239,8 @@ getPrf (Arr t (Tpl _ _)) ET.Emp        (ET.Ext T ET.Emp) = getPrfHasSin t
 getPrf (Arr _ (Tpl _ _)) _          _           = impossible
 getPrf (Arr t (Ary _))   ET.Emp        (ET.Ext T ET.Emp) = getPrfHasSin t
 getPrf (Arr _ (Ary _))   _          _           = impossible
+getPrf (Arr t (Vct _))   ET.Emp        (ET.Ext T ET.Emp) = getPrfHasSin t
+getPrf (Arr _ (Vct _))   _          _           = impossible
 getPrf (Arr t Cmx)       ET.Emp        (ET.Ext T ET.Emp) = getPrfHasSin t
 getPrf (Arr _ Cmx)       _          _           = impossible
 getPrf (Arr t (May _))   ET.Emp        (ET.Ext T ET.Emp) = getPrfHasSin t

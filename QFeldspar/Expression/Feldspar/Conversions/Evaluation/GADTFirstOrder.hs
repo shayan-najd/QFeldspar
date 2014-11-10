@@ -40,6 +40,7 @@ instance (HasSin TFG.Typ t , t' ~ t) =>
     Som e                    -> case TFG.getPrfHasSinMay t of
      PrfHasSin               -> FGV.som  <$@> e
     May em en es             -> FGV.may  <$@> em <*@> en <*@> es
+    _                        -> impossibleM
 
 instance (ta' ~ ta , tb' ~ tb , HasSin TFG.Typ ta , HasSin TFG.Typ tb) =>
          Cnv (Exp (ta ': r) tb , Env FGV.Exp r)  (FGV.Exp (Arr ta' tb'))

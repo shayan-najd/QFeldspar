@@ -70,6 +70,8 @@ instance (HasSin TFG.Typ t , t' ~ TFG.Arg t) =>
     (TFG.Tpl _  _  , _)        -> impossibleM
     (TFG.Ary _     , Emp)      -> pure Emp
     (TFG.Ary _     , _)        -> impossibleM
+    (TFG.Vct _     , Emp)      -> pure Emp
+    (TFG.Vct _     , _)        -> impossibleM
     (TFG.Cmx       , Emp)      -> pure Emp
     (TFG.Cmx       , _)        -> impossibleM
     (TFG.May _     , Emp)      -> pure Emp
@@ -87,6 +89,7 @@ appV T vv vss  = let t = sin :: TFG.Typ t in case (t , vss) of
   (TFG.Ary _     , Emp)     -> vv
   (TFG.Cmx       , Emp)     -> vv
   (TFG.May _     , Emp)     -> vv
+  (TFG.Vct _     , Emp)     -> vv
 
 instance (HasSin TFG.Typ t , r ~ r' , t ~ t') =>
          Cnv (FGV.Exp t' , Env FGV.Exp r') (Exp r t)
@@ -108,10 +111,7 @@ instance (HasSin TFG.Typ t , r ~ r' , t ~ t') =>
                                      <*@> FGV.Exp (imagPart v)
     TFG.Arr _ _               -> fail "Type Error!"
     TFG.May _                 -> fail "Type Error!"
---    TFG.May _                 -> case TFG.getPrfHasSinMay t of
---      PrfHasSin               -> case v of
---                                   Nothing -> pure Non
---                                   Just vv -> Som <$@> FGV.Exp vv
+    TFG.Vct _                 -> fail "Type Error!"
 
 
 instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb , r ~ r' , ta ~ ta' , tb ~ tb')=>

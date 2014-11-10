@@ -19,6 +19,9 @@ data Exp = ConI Int
          | Ary  Exp Exp
          | Len  Exp
          | Ind  Exp Exp
+         | AryV Exp Exp
+         | LenV Exp
+         | IndV Exp Exp
          | Let  Exp Exp
          | Cmx  Exp Exp
          | Non
@@ -45,6 +48,9 @@ fre ee = case ee of
   Ary  el ef    -> fre  el ++ freF ef
   Len  e        -> fre  e
   Ind  e  ei    -> fre  e  ++ fre ei
+  AryV el ef    -> fre  el ++ freF ef
+  LenV e        -> fre  e
+  IndV e  ei    -> fre  e  ++ fre ei
   Let  el eb    -> fre  el ++ freF eb
   Cmx  er ei    -> fre  er ++ fre ei
   Non           -> []

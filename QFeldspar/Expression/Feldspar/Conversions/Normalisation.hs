@@ -26,13 +26,14 @@ instance (HasSin TFG.Typ t , t ~ t' , r ~ r') =>
       TFG.Arr _ _             -> fail "Normalisation Error!"
       TFG.Tpl _ _             -> pure (FMWS.AppV v Emp)
       TFG.Ary _               -> pure (FMWS.AppV v Emp)
+      TFG.Vct _               -> pure (FMWS.AppV v Emp)
       TFG.Cmx                 -> pure (FMWS.AppV v Emp)
       TFG.May _               -> pure (FMWS.AppV v Emp)
     FGHO.Abs _                -> fail "Normalisation Error!"
     FGHO.App _ _              -> do Exs1 v tv <- getVar ee
                                     PrfHasSin <- getPrfHasSinM tv
                                     DblExsSin es tys <- getArg ee
-                                                        (DblExsSin Emp Emp)
+                                      (DblExsSin Emp Emp)
                                     TFG.EqlOut <- TFG.eqlOut t tv
                                     TFG.EqlArg <- TFG.eqlArg tys tv
                                     pure (FMWS.AppV v es)
@@ -46,16 +47,15 @@ instance (HasSin TFG.Typ t , t ~ t' , r ~ r') =>
       PrfHasSin               -> FMWS.Ary <$@> el <*@> ef
     FGHO.Len ea               -> FMWS.Len <$@> ea
     FGHO.Ind ea ei            -> FMWS.Ind <$@> ea <*@> ei
+    FGHO.AryV _ _             -> fail "Normalisation Error!"
+    FGHO.LenV _               -> fail "Normalisation Error!"
+    FGHO.IndV _ _             -> fail "Normalisation Error!"
     FGHO.Let el eb            -> FMWS.Let <$@> el <*@> eb
     FGHO.Cmx er ei            -> FMWS.Cmx <$@> er <*@> ei
     FGHO.Tmp x                -> pure (FMWS.Tmp x)
     FGHO.Non                  -> fail "Normalisation Error!"
-                                 -- pure (FMWS.Non)
     FGHO.Som _                -> fail "Normalisation Error!"
-                                 -- case TFG.getPrfHasSinMay t of
-    -- PrfHasSin              -> FMWS.Som <$@> e
     FGHO.May _ _ _            -> fail "Normalisation Error!"
-                                 -- FMWS.May <$@> em <*@> en <*@> es
 
 instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb , r ~ r' , ta ~ ta' ,tb ~ tb') =>
          Cnv (FGHO.Exp r  ta  -> FGHO.Exp r  tb , rr)
@@ -79,6 +79,7 @@ instance (HasSin TFG.Typ t , t' ~ t , r' ~ r) =>
                                     pure e
       (TFG.Tpl _ _ , Emp)     -> FGHO.Var <$> pure v
       (TFG.Ary _   , Emp)     -> FGHO.Var <$> pure v
+      (TFG.Vct _   , Emp)     -> FGHO.Var <$> pure v
       (TFG.Cmx     , Emp)     -> FGHO.Var <$> pure v
       (TFG.May _   , Emp)     -> FGHO.Var <$> pure v
     FMWS.Cnd ec et ef         -> FGHO.Cnd <$@> ec <*@> et <*@> ef
@@ -95,10 +96,6 @@ instance (HasSin TFG.Typ t , t' ~ t , r' ~ r) =>
     FMWS.Cmx er ei            -> FGHO.Cmx <$@> er <*@> ei
     FMWS.Tag _  e             -> cnvImp e
     FMWS.Tmp x                -> pure (FGHO.Tmp x)
---    FMWS.Non                  -> pure FGHO.Non
---    FMWS.Som e                -> case TFG.getPrfHasSinMay t of
---      PrfHasSin               -> FGHO.Som  <$@> e
---    FMWS.May em en es         -> FGHO.May  <$@> em <*@> en <*@> es
 
 instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb, ta ~ ta' , tb ~ tb' , r ~ r') =>
          Cnv (FMWS.Exp r  ta  -> FMWS.Exp r  tb , rr)

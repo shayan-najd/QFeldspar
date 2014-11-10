@@ -31,7 +31,9 @@ module QFeldspar.MyPrelude
         module Data.Functor,
         module Control.Applicative,
         module Control.Monad,
-        module Data.Array,Bol,Ary,May,Cmx,Flt,Int,Arr,Tpl)
+        module Data.Array,
+        Bol,Ary,May,Cmx,Flt,Int,Arr,Tpl,Vec(..),
+        cnd,while,tpl,arr,arrLen,arrIx,cmx,non,som,may)
        where
 import Control.DeepSeq
 import Prelude hiding (Int)
@@ -82,11 +84,41 @@ type May a   = Maybe a
 type Cmx     = Complex Flt
 type Arr a b = a -> b
 type Tpl a b = (a , b)
+data Vec a   = Vec Int (Int -> a)
 
 {-# NOINLINE genNewNam #-}
 genNewNam :: String -> String
 genNewNam x = unsafePerformIO (fmap (x ++) (fmap (show . hashUnique) newUnique))
 
-
 stripNameSpace :: TH.Name -> TH.Name
 stripNameSpace (TH.Name x _) = TH.Name x TH.NameS
+
+cnd :: Bool -> s -> s -> s
+cnd c t f = if c then t else f
+
+while :: (s -> Bool) -> (s -> s) -> s -> s
+while fc fb = head . dropWhile fc . iterate fb
+
+tpl :: a -> b -> (a , b)
+tpl = ((,))
+
+arr :: Int -> (Int -> a) -> Array Int a
+arr l f = listArray (0 , l - 1) (fmap f [0 .. l - 1])
+
+arrLen :: (Array Int a) -> Int
+arrLen = (1 +) . uncurry (flip (-)) . bounds
+
+arrIx :: (Array Int a) -> Int -> a
+arrIx = (!)
+
+cmx :: Float -> Float -> Complex Float
+cmx = (:+)
+
+non :: Maybe a
+non = Nothing
+
+som :: a -> Maybe a
+som = Just
+
+may :: Maybe a -> b -> (a -> b) -> b
+may em en es = maybe en es em

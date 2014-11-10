@@ -26,6 +26,8 @@ instance Cnv (TFA.Typ) (ExsSin TFG.Typ) where
                            return (ExsSin (TFG.Tpl tf' ts'))
   cnv (TFA.Ary t)     = do ExsSin t' <- cnv t
                            return (ExsSin (TFG.Ary t'))
+  cnv (TFA.Vec t)     = do ExsSin t' <- cnv t
+                           return (ExsSin (TFG.Vct t'))
   cnv TFA.Cmx         = return (ExsSin TFG.Cmx)
   cnv (TFA.May t)     = do ExsSin t' <- cnv t
                            return (ExsSin (TFG.May t'))
@@ -38,6 +40,7 @@ instance Cnv (TFA.Typ , r) (HR.Typ (HR.EnvFld '[])) where
     TFA.Arr ta tb -> HR.Arr <$@> ta <*@> tb
     TFA.Tpl tf ts -> HR.Tpl <$@> tf <*@> ts
     TFA.Ary ta    -> HR.Ary <$@> ta
+    TFA.Vec ta    -> HR.Vec <$@> ta
     TFA.May ta    -> HR.May <$@> ta
     TFA.Cmx       -> pure HR.Cmx
 
@@ -53,6 +56,7 @@ instance Cnv (TFA.Typ , r) TH.Type where
                         tb' <- cnvImp ts
                         pure (TH.AppT (TH.AppT (TH.ConT ''Tpl) ta') tb')
     TFA.Ary ta    -> TH.AppT (TH.ConT ''Ary) <$@> ta
+    TFA.Vec ta    -> TH.AppT (TH.ConT ''Vec) <$@> ta
     TFA.May ta    -> TH.AppT (TH.ConT ''May) <$@> ta
     TFA.Cmx       -> pure (TH.ConT ''Cmx)
 
@@ -68,8 +72,10 @@ instance Cnv (TFG.Typ a , r) TFA.Typ where
     TFG.Arr ta tb -> TFA.Arr <$@> ta <*@> tb
     TFG.Tpl tf ts -> TFA.Tpl <$@> tf <*@> ts
     TFG.Ary ta    -> TFA.Ary <$@> ta
+    TFG.Vct ta    -> TFA.Vec <$@> ta
     TFG.May ta    -> TFA.May <$@> ta
     TFG.Cmx       -> pure TFA.Cmx
+
 
 instance Cnv (TFG.Typ a , r) TH.Type where
   cnv (t , r) = do t' :: TFA.Typ <- cnv (t , r)
@@ -87,6 +93,7 @@ instance Cnv (HR.Typ (HR.EnvFld '[]) , r) TFA.Typ where
     HR.Arr ta tb -> TFA.Arr <$@> ta <*@> tb
     HR.Tpl tf ts -> TFA.Tpl <$@> tf <*@> ts
     HR.Ary t     -> TFA.Ary <$@> t
+    HR.Vec t     -> TFA.Vec <$@> t
     HR.May t     -> TFA.May <$@> t
     HR.Cmx       -> pure TFA.Cmx
     _            -> fail ("Type Error:\n" ++ show th)
@@ -123,4 +130,5 @@ instance Cnv (TH.Type , r) TFA.Typ where
        | n == ''Maybe                   -> TFA.May <$@> a
        | n == ''May                     -> TFA.May <$@> a
        | n == ''Ary                     -> TFA.Ary <$@> a
+       | n == ''Vec                     -> TFA.Vec <$@> a
    _            -> fail ("Type Error:\n" ++ show th)

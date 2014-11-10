@@ -34,11 +34,6 @@ data Exp :: [*] -> * -> * where
   Cmx   :: Exp r Flt -> Exp r Flt -> Exp r Cmx
   Tmp   :: String -> Exp r t  -- dummy constructor
   Tag   :: String -> Exp r t -> Exp r t
-{-
-  Non   :: Exp r (May tl)
-  Som   :: Exp r tl -> Exp r (May tl)
-  May   :: HasSin TFG.Typ a =>
-           Exp r (May a) -> Exp r b -> (Exp r a -> Exp r b) -> Exp r b -}
 
 instance Show (Exp r ta -> Exp r tb) where
   show f = let v = genNewNam "x"
@@ -104,13 +99,6 @@ eql (Cmx ei er) (Cmx ei' er') = eql ei ei' && eql er er'
 eql (Tmp x    ) (Tmp x')      = x == x'
 eql (Tag _ e)   e'            = eql e e'
 eql e          (Tag _ e')     = eql e e'
---eql Non         Non           = True
---eql (Som e)     (Som e')      = eql e e'
---eql (May (em  :: Exp r (May tm)) en  es)
---    (May (em' :: Exp r (May tm')) en' es') =
---  case eqlSin (sin :: TFG.Typ tm)(sin :: TFG.Typ tm') of
---    Rgt Rfl -> eql em em' && eql en en' && eqlF es es'
---    _       -> False
 eql _           _             = False
 
 eqlF :: forall r ta tb.  (Exp r ta -> Exp r tb) -> (Exp r ta -> Exp r tb) -> Bool
@@ -144,9 +132,6 @@ mapVar f g (Let el eb)    = Let (mapVar f g el) (mapVarF f g eb)
 mapVar f g (Cmx er ei)    = Cmx (mapVar f g er) (mapVar f g ei)
 mapVar _ _ (Tmp x)        = Tmp x
 mapVar f g (Tag x e)      = Tag x (mapVar f g e)
---mapVar _ _ Non            = Non
---mapVar f g (Som e)        = Som (mapVar f g e)
---mapVar f g (May em en es) = May (mapVar f g em) (mapVar f g en) (mapVarF f g es)
 
 mapVarF :: (forall t'. Var r  t' -> Var r' t') ->
            (forall t'. Var r' t' -> Var r  t') ->
@@ -180,17 +165,10 @@ absTmp xx s ee = let t = sin :: TFG.Typ t in case ee of
       _                     -> ee
     | otherwise             -> ee
   Tag x e                   -> Tag x (absTmp xx s e)
---  Non                       -> Non
---  Som e                     -> case TFG.getPrfHasSinMay t of
---   PrfHasSin                -> Som (absTmp xx s e)
---  May ec en es              -> May (absTmp xx s ec) (absTmp xx s en)
---                                   (absTmp xx s . es)
 
 absVar :: forall r a b. (HasSin TFG.Typ a, HasSin TFG.Typ b) =>
          Exp (a ': r) b -> Exp r a -> Exp r b
-
 absVar ee xx = absVar' xx ee
-
 
 absVar' :: forall r a b. (HasSin TFG.Typ a, HasSin TFG.Typ b) =>
           Exp r a -> Exp (a ': r) b -> Exp r b
@@ -204,6 +182,7 @@ absVar' xx ee = let b = sin :: TFG.Typ b in case ee of
     TFG.Flt                 -> xx
     TFG.Tpl _ _             -> xx
     TFG.Ary _               -> xx
+    TFG.Vct _               -> xx
     TFG.May _               -> xx
     TFG.Cmx                 -> xx
     TFG.Arr _ _             -> impossible
@@ -224,11 +203,6 @@ absVar' xx ee = let b = sin :: TFG.Typ b in case ee of
   Cmx er ei                 -> Cmx (absVar' xx er)   (absVar' xx ei)
   Tmp x                     -> Tmp x
   Tag x e                   -> Tag x (absVar' xx e)
---  Non                       -> Non
---  Som e                     -> case TFG.getPrfHasSinMay b of
---   PrfHasSin                -> Som (absVar' xx e)
---  May ec en es              -> May (absVar' xx ec) (absVar' xx en)
---                                   (absVar'F xx es)
 
 absVar'F :: forall r a b c.
             (HasSin TFG.Typ a, HasSin TFG.Typ b, HasSin TFG.Typ c) =>
@@ -259,9 +233,6 @@ hasTmp s ee = case ee of
     | s == x                -> True
     | otherwise             -> False
   Tag _ e                   -> hasTmp  s e
---  Non                       -> False
---  Som e                     -> hasTmp  s e
---  May em en es              -> hasTmp  s em || hasTmp  s en || hasTmpF  s es
 
 hasTmpF :: String -> (Exp r ta -> Exp r tb) -> Bool
 hasTmpF s f = let v = genNewNam "hasTmpF"
@@ -289,9 +260,6 @@ cntTmp s ee = case ee of
     | s == x                -> 1
     | otherwise             -> 0
   Tag _ e                   -> cntTmp  s e
---  Non                       -> 0
---  Som e                     -> cntTmp  s e
---  May em en es              -> cntTmp  s em + cntTmp  s en + cntTmpF  s es
 
 cntTmpF :: String -> (Exp r ta -> Exp r tb) -> Int
 cntTmpF s f = let v = genNewNam "cntTmpF"
@@ -428,6 +396,7 @@ instance Show
              ((.)
                 (showsPrec 11 b1_aaF3)
                 ((.) showSpace (showsPrec 11 b2_aaF4))))
+
     showsPrec
       a_aaF5
       (Let b1_aaF6 b2_aaF7)
@@ -464,34 +433,3 @@ instance Show
              ((.)
                 (showsPrec 11 b1_aaFe)
                 ((.) showSpace (showsPrec 11 b2_aaFf))))
-{-
-    showsPrec
-      _
-      Non
-      = showString "Non"
-    showsPrec
-      a_aaFg
-      (Som b1_aaFh)
-      = showParen
-          ((a_aaFg >= 11))
-          ((.)
-             (showString "Som ") (showsPrec 11 b1_aaFh))
-    showsPrec
-      a_aaFi
-      (May b1_aaFj
-                                                        b2_aaFk
-                                                        b3_aaFl)
-      = showParen
-          ((a_aaFi >= 11))
-          ((.)
-             (showString "May ")
-             ((.)
-                (showsPrec 11 b1_aaFj)
-                ((.)
-                   showSpace
-                   ((.)
-                      (showsPrec 11 b2_aaFk)
-                      ((.)
-                         showSpace (showsPrec 11 b3_aaFl))))))
-    showList = showList__ (showsPrec 0)
--}

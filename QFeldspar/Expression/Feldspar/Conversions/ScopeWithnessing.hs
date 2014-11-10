@@ -27,6 +27,9 @@ instance n ~ n' => Cnv (FAUD.Exp , Nat n) (FGTD.Exp n' (Maybe TFA.Typ)) where
     FAUD.Ary el ef    -> FGTD.Ary  <$@> el <*> cnvf ef
     FAUD.Len e        -> FGTD.Len  <$> pure Nothing <*@> e
     FAUD.Ind ea ei    -> FGTD.Ind  <$@> ea <*@> ei
+    FAUD.AryV el ef    -> FGTD.AryV  <$@> el <*> cnvf ef
+    FAUD.LenV e        -> FGTD.LenV  <$> pure Nothing <*@> e
+    FAUD.IndV ea ei    -> FGTD.IndV  <$@> ea <*@> ei
     FAUD.Let el eb    -> FGTD.Let  <$> pure Nothing <*@> el <*> cnvf eb
     FAUD.Cmx er ei    -> FGTD.Cmx  <$@> er <*@> ei
     FAUD.Non          -> pure FGTD.Non
@@ -52,6 +55,9 @@ instance Cnv (FGTD.Exp n TFA.Typ , r) (FAUD.Exp) where
     FGTD.Ary el ef    -> FAUD.Ary  <$@> el <*@> ef
     FGTD.Len _ e      -> FAUD.Len  <$@> e
     FGTD.Ind ea ei    -> FAUD.Ind  <$@> ea <*@> ei
+    FGTD.AryV el ef   -> FAUD.AryV  <$@> el <*@> ef
+    FGTD.LenV _ e     -> FAUD.LenV  <$@> e
+    FGTD.IndV ea ei   -> FAUD.IndV  <$@> ea <*@> ei
     FGTD.Let _ el eb  -> FAUD.Let  <$@> el <*@> eb
     FGTD.Cmx er ei    -> FAUD.Cmx  <$@> er <*@> ei
     FGTD.Non          -> pure FAUD.Non

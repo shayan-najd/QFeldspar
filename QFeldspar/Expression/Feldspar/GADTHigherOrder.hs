@@ -25,6 +25,9 @@ data Exp :: [*] -> * -> * where
   Ary  :: Exp r Int -> (Exp r Int -> Exp r ta) -> Exp r (Ary ta)
   Len  :: HasSin TFG.Typ ta => Exp r (Ary ta) -> Exp r Int
   Ind  :: Exp r (Ary ta) -> Exp r Int -> Exp r ta
+  AryV :: Exp r Int -> (Exp r Int -> Exp r ta) -> Exp r (Vec ta)
+  LenV :: HasSin TFG.Typ ta => Exp r (Vec ta) -> Exp r Int
+  IndV :: Exp r (Vec ta) -> Exp r Int -> Exp r ta
   Let  :: HasSin TFG.Typ tl => Exp r tl -> (Exp r tl -> Exp r tb) -> Exp r tb
   Cmx  :: Exp r Flt -> Exp r Flt -> Exp r Cmx
   Tmp  :: String -> Exp r a
@@ -71,6 +74,13 @@ eql (Len (e :: Exp r (Ary ta))) (Len (e' :: Exp r (Ary ta'))) =
     _       -> False
 eql (Ind (e :: Exp r (Ary t)) ei) (Ind (e' :: Exp r (Ary t)) ei') =
     eql e e' && eql ei ei'
+eql (AryV ei ef) (AryV ei' ef') = eql ei ei' && eqlF ef ef'
+eql (LenV (e :: Exp r (Vec ta))) (LenV (e' :: Exp r (Vec ta'))) =
+  case eqlSin (sin :: TFG.Typ ta) (sin :: TFG.Typ ta') of
+    Rgt Rfl -> eql e e'
+    _       -> False
+eql (IndV (e :: Exp r (Vec t)) ei) (IndV (e' :: Exp r (Vec t)) ei') =
+    eql e e' && eql ei ei'
 eql (Let (el :: Exp r ta) eb) (Let (el' :: Exp r ta') eb') =
   case eqlSin (sin :: TFG.Typ ta) (sin :: TFG.Typ ta') of
     Rgt Rfl -> eql el el' && eqlF eb eb'
@@ -115,6 +125,9 @@ mapVar f g (Snd e)        = Snd (mapVar f g e)
 mapVar f g (Ary el ef)    = Ary (mapVar f g el) (mapVarF f g ef)
 mapVar f g (Len e)        = Len (mapVar f g e)
 mapVar f g (Ind ea ei)    = Ind (mapVar f g ea) (mapVar f g ei)
+mapVar f g (AryV el ef)   = AryV (mapVar f g el) (mapVarF f g ef)
+mapVar f g (LenV e)       = LenV (mapVar f g e)
+mapVar f g (IndV ea ei)   = IndV (mapVar f g ea) (mapVar f g ei)
 mapVar f g (Let el eb)    = Let (mapVar f g el) (mapVarF f g eb)
 mapVar f g (Cmx er ei)    = Cmx (mapVar f g er) (mapVar f g ei)
 mapVar _ _ (Tmp x)        = Tmp x
@@ -149,6 +162,10 @@ absTmp xx s ee = let t = sin :: TFG.Typ t in case ee of
     PrfHasSin               -> Ary (absTmp xx s el)   (absTmp xx s . ef)
   Len e                     -> Len (absTmp xx s e)
   Ind ea ei                 -> Ind (absTmp xx s ea)   (absTmp xx s ei)
+  AryV el ef                -> case TFG.getPrfHasSinVec t of
+    PrfHasSin               -> AryV (absTmp xx s el)   (absTmp xx s . ef)
+  LenV e                    -> LenV (absTmp xx s e)
+  IndV ea ei                -> IndV (absTmp xx s ea)   (absTmp xx s ei)
   Let el eb                 -> Let (absTmp xx s el)   (absTmp xx s . eb)
   Cmx er ei                 -> Cmx (absTmp xx s er)   (absTmp xx s ei)
   Tmp x
@@ -179,6 +196,9 @@ hasTmp s ee = case ee of
   Ary el ef                 -> hasTmp s el || hasTmpF s ef
   Len e                     -> hasTmp s e
   Ind ea ei                 -> hasTmp s ea || hasTmp s ei
+  AryV el ef                -> hasTmp s el || hasTmpF s ef
+  LenV e                    -> hasTmp s e
+  IndV ea ei                -> hasTmp s ea || hasTmp s ei
   Let el eb                 -> hasTmp s el || hasTmpF s eb
   Cmx er ei                 -> hasTmp s er || hasTmp s ei
   Tmp x

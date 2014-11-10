@@ -54,6 +54,7 @@ instance Pretty TFA.Typ where
     TFA.Ary a   -> text "Ary" <> pretty a
     TFA.May a   -> text "May" <> pretty a
     TFA.Arr _ _ -> impossible
+    TFA.Vec _   -> impossible
 
 commaCat :: [Doc] -> Doc
 commaCat ds = foldl1 (<>) (Data.List.intersperse (comma<>space) ds)

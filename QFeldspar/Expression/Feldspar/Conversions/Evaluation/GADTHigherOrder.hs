@@ -41,6 +41,7 @@ instance (HasSin TFG.Typ t , t' ~ t) =>
     Som e                    -> case TFG.getPrfHasSinMay t of
      PrfHasSin               -> FGV.som  <$@> e
     May em en es             -> FGV.may  <$@> em <*@> en <*@> es
+    _                        -> impossibleM
 
 
 instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb , ta' ~ ta , tb' ~ tb) =>
@@ -76,6 +77,7 @@ instance (HasSin TFG.Typ t , r ~ r' , t ~ t') =>
       PrfHasSin               -> case v of
                                    Nothing -> pure Non
                                    Just vv -> Som <$@> FGV.Exp vv
+    TFG.Vct _                 -> impossible
 
 instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb , r ~ r' , ta ~ ta' , tb ~ tb')=>
          Cnv (FGV.Exp (Arr ta' tb') , Env FGV.Exp r') (Exp r ta -> Exp r tb)

@@ -55,6 +55,14 @@ instance (r ~ r' , n ~ Len r , HasSin TFG.Typ t) =>
                                              FGFO.Len <$> pure
                                                       (samTyp (TFG.Ary ta') e')
     (FGTD.Ind e  ei    , _)            -> FGFO.Ind <$@> e  <*@> ei
+    (FGTD.AryV el ef    , TFG.Vct _)   -> case TFG.getPrfHasSinVec t of
+      PrfHasSin                        -> FGFO.AryV <$@> el <*@> (TFG.Int , ef)
+    (FGTD.LenV ta e     , TFG.Int )    -> do ExsSin ta' :: ExsTyp <- cnv ta
+                                             PrfHasSin <- getPrfHasSinM ta'
+                                             e' <- cnvImp e
+                                             FGFO.LenV <$> pure
+                                                      (samTyp (TFG.Vct ta') e')
+    (FGTD.IndV e  ei    , _)           -> FGFO.IndV <$@> e  <*@> ei
     (FGTD.Cmx er ei    , TFG.Cmx)      -> FGFO.Cmx <$@> er <*@> ei
     (FGTD.Let tl el eb , _)            -> do ExsSin tl' :: ExsTyp <- cnv tl
                                              PrfHasSin <- getPrfHasSinM tl'
@@ -98,6 +106,10 @@ instance (n ~ Len r , HasSin TFG.Typ t) =>
       PrfHasSin               -> FGTD.Ary <$@> el <*@> ef
     FGFO.Len e                -> FGTD.Len <$@> TFG.getAryTyp(sinTyp e) <*@> e
     FGFO.Ind e  ei            -> FGTD.Ind <$@> e <*@> ei
+    FGFO.AryV el ef           -> case TFG.getPrfHasSinVec t of
+      PrfHasSin               -> FGTD.AryV <$@> el <*@> ef
+    FGFO.LenV e               -> FGTD.LenV <$@> TFG.getVecTyp(sinTyp e) <*@> e
+    FGFO.IndV e  ei           -> FGTD.IndV <$@> e <*@> ei
     FGFO.Let el eb            -> FGTD.Let <$@> sinTypOf el t
                                           <*@> el <*@> eb
     FGFO.Cmx er  ei           -> FGTD.Cmx <$@> er <*@> ei

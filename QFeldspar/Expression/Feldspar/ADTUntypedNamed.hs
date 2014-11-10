@@ -18,6 +18,9 @@ data Exp x = ConI Int
            | Ary (Exp x) (x , Exp x)
            | Len (Exp x)
            | Ind (Exp x) (Exp x)
+           | AryV (Exp x) (x , Exp x)
+           | LenV (Exp x)
+           | IndV (Exp x) (Exp x)
            | Let (Exp x) (x , Exp x)
            | Cmx (Exp x) (Exp x)
            | Non
@@ -49,6 +52,9 @@ sbs x e' ee = case ee of
   Ary el xei     -> Ary (s el) (sf xei)
   Len e          -> Len (s e)
   Ind e ei       -> Ind (s e)  (s ei)
+  AryV el xei    -> AryV (s el) (sf xei)
+  LenV e         -> LenV (s e)
+  IndV e ei      -> IndV (s e)  (s ei)
   Let ei xeb     -> Let (s ei) (sf xeb)
   Cmx er ei      -> Cmx (s er) (s ei)
   Non            -> Non

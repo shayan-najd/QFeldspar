@@ -9,6 +9,7 @@ data Typ =
   | Arr Typ Typ
   | Tpl Typ Typ
   | Ary Typ
+  | Vec Typ
   | May Typ
   | Cmx
 

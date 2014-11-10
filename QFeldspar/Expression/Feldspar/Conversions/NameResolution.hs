@@ -19,7 +19,7 @@ instance Eq x =>
 
 instance Eq x =>
          Cnv (FAUN.Exp x , EM.Env x Var) FAUD.Exp where
-  cnv (eaup , r) = let ?r = r in case eaup of
+  cnv (ee , r) = let ?r = r in case ee of
     FAUN.ConI i              -> pure (FAUD.ConI i)
     FAUN.ConB b              -> pure (FAUD.ConB b)
     FAUN.ConF f              -> pure (FAUD.ConF f)
@@ -31,9 +31,12 @@ instance Eq x =>
     FAUN.Tpl  ef es          -> FAUD.Tpl <$@> ef  <*@> es
     FAUN.Fst  e              -> FAUD.Fst <$@> e
     FAUN.Snd  e              -> FAUD.Snd <$@> e
-    FAUN.Ary  el xef         -> FAUD.Ary <$@> el  <*@> xef
+    FAUN.Ary  el xef         -> FAUD.Ary <$@> el <*@> xef
     FAUN.Len  e              -> FAUD.Len <$@> e
-    FAUN.Ind  ea ei          -> FAUD.Ind <$@> ea  <*@> ei
+    FAUN.Ind  ea ei          -> FAUD.Ind <$@> ea <*@> ei
+    FAUN.AryV  el xef        -> FAUD.AryV <$@> el <*@> xef
+    FAUN.LenV  e             -> FAUD.LenV <$@> e
+    FAUN.IndV  ea ei         -> FAUD.IndV <$@> ea  <*@> ei
     FAUN.Let  el xeb         -> FAUD.Let <$@> el  <*@> xeb
     FAUN.Cmx  er ei          -> FAUD.Cmx <$@> er  <*@> ei
     FAUN.Non                 -> pure FAUD.Non
@@ -63,6 +66,9 @@ instance (x ~ x') =>
     FAUD.Ary  el ef    -> FAUN.Ary <$@> el <*@> ef
     FAUD.Len  e        -> FAUN.Len <$@> e
     FAUD.Ind  ea ei    -> FAUN.Ind <$@> ea <*@> ei
+    FAUD.AryV  el ef   -> FAUN.AryV <$@> el <*@> ef
+    FAUD.LenV  e       -> FAUN.LenV <$@> e
+    FAUD.IndV  ea ei   -> FAUN.IndV <$@> ea <*@> ei
     FAUD.Let  el eb    -> FAUN.Let <$@> el <*@> eb
     FAUD.Cmx  er ei    -> FAUN.Cmx <$@> er <*@> ei
     FAUD.Non           -> pure FAUN.Non

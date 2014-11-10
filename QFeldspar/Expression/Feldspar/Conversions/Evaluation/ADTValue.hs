@@ -55,3 +55,4 @@ instance HasSin TFG.Typ t => Cnv (FGV.Exp t , ()) FAV.Exp where
        PrfHasSin              -> case ee of
          Nothing -> pure FAV.Non
          Just e  -> FAV.Som <$@> (samTyp ta (FGV.Exp e))
+    TFG.Vct _                 -> impossibleM

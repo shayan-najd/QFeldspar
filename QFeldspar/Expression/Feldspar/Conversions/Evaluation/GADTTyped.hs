@@ -33,7 +33,8 @@ instance Cnv (Exp n t , Env n FAV.Exp) FAV.Exp where
     Non          -> pure FAV.non
     Som e        -> FAV.som  <$@> e
     May _ em en es -> FAV.may  <$@> em <*@> en <*@> es
-    Typ _ e      -> pure (cnvImp e))
+    Typ _ e      -> pure (cnvImp e)
+    _            -> impossibleM)
 
 
 instance Cnv (Exp (Suc n) t , Env n FAV.Exp) (FAV.Exp -> FAV.Exp) where

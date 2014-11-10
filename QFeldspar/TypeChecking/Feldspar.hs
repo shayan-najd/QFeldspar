@@ -69,6 +69,22 @@ instance Chk (Exp n) where
                          ti  <- chk ei r
                          addC (ti TH.:~: TH.Int)
                          return taa
+    AryV el ef     -> do tl  <- chk el r
+                         addC (tl TH.:~: TH.Int)
+                         tf  <- chk ef (Ext TH.Int r)
+                         return (TH.Vec tf)
+    LenV t e        -> do te  <- chk e r
+                          ta  <- newMT
+                          addC (te TH.:~: TH.Vec ta)
+                          addC (t  TH.:~: ta)
+                          return TH.Int
+    IndV ea ei      -> do ta  <- chk ea r
+                          taa <- newMT
+                          addC (ta TH.:~: TH.Vec taa)
+                          ti  <- chk ei r
+                          addC (ti TH.:~: TH.Int)
+                          return taa
+
     Let t  el eb   -> do tl  <- chk el r
                          tb  <- chk eb (Ext tl r)
                          addC (t TH.:~: tl)

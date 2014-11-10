@@ -38,6 +38,9 @@ instance (t ~ t' , r ~ r') =>
       FGFO.Ary el ef    -> FGHO.Ary  <$@> el <*@> ef
       FGFO.Len e        -> FGHO.Len  <$@> e
       FGFO.Ind ea ei    -> FGHO.Ind  <$@> ea <*@> ei
+      FGFO.AryV el ef   -> FGHO.AryV  <$@> el <*@> ef
+      FGFO.LenV e       -> FGHO.LenV <$@> e
+      FGFO.IndV ea ei   -> FGHO.IndV <$@> ea <*@> ei
       FGFO.Let el eb    -> FGHO.Let  <$@> el <*@> eb
       FGFO.Cmx er ei    -> FGHO.Cmx  <$@> er <*@> ei
       FGFO.Non          -> pure FGHO.Non

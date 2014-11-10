@@ -5,8 +5,8 @@ module QFeldspar.Prelude.TemplateHaskell
        ,Bol,Bool(True,False)
        ,fst,snd
        ,Cmx,cmx,real,imag
-       ,Ary,ary,len,ind
-       ,{-ifThenElse,-}whl,forLoop,memorize
+       ,Ary,arr,arrLen,arrIx
+       ,{-ifThenElse,-}while,forLoop,memorize
        ,not,and,or
        ,Equality(eql),notEql
        ,Ordering(lt),gt,lte,gte,min
@@ -16,18 +16,19 @@ module QFeldspar.Prelude.TemplateHaskell
        ,return,bind,maybe
        ,frmTo,permute,reverse,foldl,map,zipWith,sum,scalarProd,fromList
        ,replicate,append,hashTable,FO
+       ,module QFeldspar.Prelude.Environment,Vec(..)
        ) where
 
 import Prelude (toRational)
 
-import QFeldspar.MyPrelude (Ary,Flt,Bol,Bool(True,False),Int,Cmx,Maybe(..))
+import QFeldspar.MyPrelude (Ary,Flt,Bol,Bool(True,False),Int,Cmx,Maybe(..)
+                           ,fst,snd,Vec(..))
 import qualified QFeldspar.MyPrelude as MP
 
 import Language.Haskell.TH.Syntax (Lift(lift),Q,Exp(LitE),TExp
                                   ,Lit(IntegerL,RationalL))
 
 import QFeldspar.Prelude.Environment
-import qualified QFeldspar.VanillaPrelude as VP
 
 type Data t = Q (TExp t)
 
@@ -46,21 +47,11 @@ instance Lift Flt where
   lift f = MP.return (LitE (RationalL (toRational f)))
 
 ---------------------------------------------------------------------------------
--- Tuple
----------------------------------------------------------------------------------
-
-fst :: (a , b) -> a
-fst = VP.fst
-
-snd :: (a , b) -> b
-snd = VP.snd
-
----------------------------------------------------------------------------------
 -- Complex
 ---------------------------------------------------------------------------------
 
 cmx :: Flt -> Flt -> Cmx
-cmx = VP.cmx
+cmx = MP.cmx
 
 real :: Data (Cmx -> Flt)
 real = [|| realPartHsk ||]
@@ -72,30 +63,30 @@ imag = [|| imagPartHsk ||]
 -- Ary
 ---------------------------------------------------------------------------------
 
-ary :: FO a => Int -> (Int -> a) -> Ary a
-ary = VP.ary
+arr :: Int -> (Int -> a) -> Ary a
+arr = MP.arr
 
-len :: Ary a -> Int
-len = VP.len
+arrLen :: Ary a -> Int
+arrLen = MP.arrLen
 
-ind :: Ary a -> Int -> a
-ind = VP.ind
+arrIx :: Ary a -> Int -> a
+arrIx = MP.arrIx
 
 ---------------------------------------------------------------------------------
 -- Control Flow
 ---------------------------------------------------------------------------------
 
-whl :: FO s => (s -> Bol) -> (s -> s) -> s -> s
-whl = VP.whl
+while :: FO s => (s -> Bol) -> (s -> s) -> s -> s
+while = MP.while
 
 forLoop :: FO s => Data (Int -> s -> (Int -> s -> s) -> s)
 forLoop = [|| \ l -> \ init -> \ step ->
-              snd (whl (\ t  -> $$lt (fst t) l)
-                       (\ tt -> let t  = tt    in
-                                let ft = fst t in
-                                ( $$add ft 1
-                                , step ft (snd t)))
-                   (0 , init))
+              snd (while (\ t  -> $$lt (fst t) l)
+                         (\ tt -> let t  = tt    in
+                                  let ft = fst t in
+                                  ( $$add ft 1
+                                  , step ft (snd t)))
+                         (0 , init))
           ||]
 
 memorize :: Data (Ary Flt -> Ary Flt)
@@ -282,32 +273,32 @@ maybe = [|| \ x -> \ g -> \ m -> case m of {Nothing -> x ; Just y  -> g y} ||]
 frmTo :: Data (Int -> Int -> Ary Int)
 frmTo = [|| \ mm -> \ nn -> let n = nn in
                             let m = mm in
-                            ary
+                            arr
                             (if ($$lt n m)
                              then 0
                              else ($$add ($$sub n m) 1))
                             (\ i -> $$add i m) ||]
 
 permute :: FO t => Data ((Int -> Int -> Int) -> Ary t -> Ary t)
-permute = [|| \ f -> \ v -> let lv = len v in
-                            ary lv (\ i -> ind v (f lv i)) ||]
+permute = [|| \ f -> \ v -> let lv = arrLen v in
+                            arr lv (\ i -> arrIx v (f lv i)) ||]
 
 reverse :: FO t => Data (Ary t -> Ary t)
 reverse = [|| $$permute (\ l -> \ i -> $$sub ($$sub l 1) i) ||]
 
 foldl :: (FO a , FO b) => Data ((a -> b -> a) -> a -> Ary b -> a)
 foldl = [|| \ f -> \ acc -> \ v ->
-            $$forLoop (len v) acc (\ i -> \ a -> f a (ind v i)) ||]
+            $$forLoop (arrLen v) acc (\ i -> \ a -> f a (arrIx v i)) ||]
 
 map :: (FO a , FO b) => Data ((a -> b) -> Ary a -> Ary b)
-map = [|| \ f -> \ v -> ary (len v) (\ i -> f (ind v i)) ||]
+map = [|| \ f -> \ v -> arr (arrLen v) (\ i -> f (arrIx v i)) ||]
 
 zipWith :: (FO a , FO b , FO c) =>
            Data ((a -> b -> c) -> Ary a -> Ary b -> Ary c)
 zipWith = [|| \ f -> \ v1 -> \ v2 ->
-                ary ($$min (len v1) (len v2))
+                arr ($$min (arrLen v1) (arrLen v2))
                     (\ ii -> let i = ii in
-                             f (ind v1 i) (ind v2 i)) ||]
+                             f (arrIx v1 i) (arrIx v2 i)) ||]
 
 sum :: Data (Ary Int -> Int)
 sum = [|| $$foldl $$add 0 ||]
@@ -316,19 +307,19 @@ scalarProd :: Data (Ary Int -> Ary Int -> Int)
 scalarProd  = [|| \ v1 -> \ v2 -> $$sum ($$zipWith $$mul v1 v2) ||]
 
 replicate :: FO a => Data (Int -> a -> Ary a)
-replicate = [|| \ n -> \ x -> ary n (\ _i -> x) ||]
+replicate = [|| \ n -> \ x -> arr n (\ _i -> x) ||]
 
 append :: FO a => Data (Ary a -> Ary a -> Ary a)
-append = [|| \ a1 -> \ a2 -> let la1 = len a1 in
-                             ary ($$add la1 (len a2))
+append = [|| \ a1 -> \ a2 -> let la1 = arrLen a1 in
+                             arr ($$add la1 (arrLen a2))
                                  (\ ii -> let i = ii in
                                           if $$lt i la1
-                                          then ind a1 i
-                                          else ind a2 i) ||]
+                                          then arrIx a1 i
+                                          else arrIx a2 i) ||]
 
 fromList :: FO a => [Data a] -> Data a -> Data (Ary a)
 fromList lst k =  let l = MP.fromInteger (MP.toInteger (MP.length lst))
-                  in  [|| ary l
+                  in  [|| arr l
                           (\ i -> $$(MP.foldr
                                      (\ j acc ->
                                        let l' = (MP.fromInteger (MP.toInteger j))
@@ -342,4 +333,3 @@ fromList lst k =  let l = MP.fromInteger (MP.toInteger (MP.length lst))
 
 hashTable :: Data (Ary Int)
 hashTable = [|| hshTblHsk ||]
-

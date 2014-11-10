@@ -4,7 +4,7 @@ module QFeldspar.Expression.Feldspar.ADTValue
     ,cmx,non,som,may
     ,Lft(..),CoLft(..),addV,add) where
 
-import QFeldspar.MyPrelude hiding (abs,fst,snd)
+import QFeldspar.MyPrelude hiding (abs,fst,snd,may,som,non,cmx,tpl,cnd)
 
 data Exp = ConI Int
          | ConB Bol
