@@ -1,5 +1,5 @@
 module Examples.IPGray.QDSL where
-
+import Prelude hiding (Int,pi,div,foldl,map)
 import QFeldspar.QDSL
 
 redCoefficient :: Data Int
@@ -20,12 +20,15 @@ rgbToGray = [|| \ r -> \ g -> \ b ->
                 ($$mul b $$blueCoefficient )) 100
             ||]
 
+ipgrayVec :: Data (Vec Int -> Vec Int)
+ipgrayVec = [|| \ (Vec l f) ->
+                Vec ($$div l 3)
+                    (\ i -> let j = $$mul i 3 in
+                            $$rgbToGray
+                            (f j)
+                            (f ($$add j 1))
+                            (f ($$add j 2)))
+            ||]
+
 ipgray :: Data (Ary Int -> Ary Int)
-ipgray = [|| \ v ->
-              arr ($$div (arrLen v) 3)
-                      (\ i -> let j = $$mul i 3 in
-                              $$rgbToGray
-                              (arrIx v j)
-                              (arrIx v ($$add j 1))
-                              (arrIx v ($$add j 2)))
-         ||]
+ipgray = [|| \ a -> $$toArr ($$ipgrayVec ($$fromArr a)) ||]

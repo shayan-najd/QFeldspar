@@ -26,9 +26,9 @@ import qualified Examples.Windowing.QDSL ()
 import QFeldspar.Expression.Feldspar.Conversions.Evaluation.ADTValue ()
 
 main :: IO ()
-main = print (if FAUN.test  && FAUD.test  &&
-                 FGTD.test  && FGFO.test  && FGHO.test &&
-                 FMWS.test  && FCNV.test  && TC.result
+main = print (if FAUN.test  && FAUD.test && FGTD.test  &&
+                 FGFO.test  && FGHO.test && FMWS.test  &&
+                 FCNV.test  && TC.result
               then "Pass!"
               else "Fail!")
 

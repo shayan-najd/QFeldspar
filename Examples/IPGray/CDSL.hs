@@ -1,5 +1,5 @@
 module Examples.IPGray.CDSL where
-
+import Prelude hiding (Int,pi,div,foldl,map)
 import QFeldspar.CDSL
 
 redCoefficient :: Data Int
@@ -21,13 +21,13 @@ rgbToGray = \ r -> \ g -> \ b ->
              (mul b blueCoefficient)) 100
 
 ipgrayVec :: Vec (Data Int) -> Vec (Data Int)
-ipgrayVec = \ v ->
-         vec (div (len v) 3)
+ipgrayVec = \ (Vec l f) ->
+            Vec (div l 3)
                  (\ i -> share (mul i 3) (\ j ->
                          rgbToGray
-                         (ind v j)
-                         (ind v (add j 1))
-                         (ind v (add j 2))))
+                         (f j)
+                         (f (add j 1))
+                         (f (add j 2))))
 
 ipgray :: Data (Ary Int) -> Data (Ary Int)
 ipgray = toExpF ipgrayVec

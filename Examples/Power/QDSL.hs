@@ -1,7 +1,6 @@
 module Examples.Power.QDSL where
-
 import Prelude
-import QFeldspar.QDSL hiding (div,Int,return,maybe)
+import QFeldspar.QDSL hiding (div,Int)
 
 power :: Int -> Qt (Float -> Float)
 power n =
@@ -30,4 +29,4 @@ power' n =
     [|| \x -> do y <- $$(power' (n-1)) x; return (x * y) ||]
 
 power''      ::  Int -> Qt (Float -> Float)
-power'' n = [|| \ x -> maybe 0.0 (\z -> z) ($$(power' n) x)||]
+power'' n = [|| \ x -> maybe 0.0 (\y -> y) ($$(power' n) x)||]

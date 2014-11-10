@@ -3,14 +3,14 @@ module QFeldspar.QDSL (module TH,dbg,dbgF
                       ,Qt,translate,translateF,evaluate,compile,compileF,wrp
                       ,ghoF,nghoF,gho,ngho)
     where
-
+import Prelude(Float,Bool(..),Maybe,String,(.))
 import QFeldspar.CDSL (Dp)
 import qualified QFeldspar.CDSL as CDSL
 
 import QFeldspar.Prelude.TemplateHaskell as TH
 
 import QFeldspar.Singleton
-import QFeldspar.MyPrelude (frmRgt,(.),String,Maybe)
+import QFeldspar.MyPrelude (frmRgt)
 import qualified QFeldspar.MyPrelude as MP
 
 import QFeldspar.Conversion
@@ -26,6 +26,7 @@ import QFeldspar.Type.Feldspar.Conversion ()
 
 import qualified Language.Haskell.TH.Syntax as TH
 import QFeldspar.Normalisation
+import QFeldspar.Prelude.Environment
 
 type Qt a = Data a
 type C    = String
@@ -44,11 +45,11 @@ wrp f = wrpTyp [|| let (**)   = (\ x -> \ y -> mulIntHsk x y)       in
                    let (==)   = (\ x -> \ y -> eqlFltHsk x y)       in
                    let (/)    = (\ x -> \ y -> divFltHsk x y)       in
                    let (*)    = (\ x -> \ y -> mulFltHsk x y)       in
-                   let return = $$(TH.return) :: (Flt -> Maybe Flt) in
-                   let _bnd   = ($$bind)
-                          :: (Maybe Flt -> (Flt -> Maybe Flt) -> Maybe Flt) in
-                   let maybe  = $$(TH.maybe)
-                          :: (Flt -> (Flt -> Flt) -> Maybe Flt -> Flt) in
+                   let return = $$(ret) :: (Float -> Maybe Float) in
+                   let _bnd   = ($$bnd)
+                          :: (Maybe Float -> (Float -> Maybe Float) -> Maybe Float) in
+                   let maybe  = $$(may)
+                          :: (Float -> (Float -> Float) -> Maybe Float -> Float) in
                    $$f ||]
 
 wrpTyp :: forall a. Type a => Data a -> Data a

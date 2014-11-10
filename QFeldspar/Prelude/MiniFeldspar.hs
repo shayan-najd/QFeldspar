@@ -1,33 +1,34 @@
 module QFeldspar.Prelude.MiniFeldspar
-       (Data,Type
-       ,Syn(..),toExpF,frmExpF
+       (Data,Type,Syn(..),toExpF,frmExpF
        ,Int
-       ,Flt
-       ,Bol,Fractional(..),true,false
-       ,fst,snd
+       ,true,false
        ,Cmx,cmx,real,imag
-       ,Vec,vec,len,ind,Ary
-       ,frmTo,permute,reverse,foldl,map,zipWith,sum,scalarProd,replicate,append
-       ,(?),ifThenElse,whl,forLoop,share,shared --memorize
+       ,Vec(..)
+       ,frmTo,permute,reverse,foldl,zipWith,sum,scalarProd
+       ,replicate,append
+       ,Ary,arr,arrLen,arrIx
+--     ,frmToA,permuteA,reverseA,foldlA,mapA,zipWithA,sumA,scalarProdA
+--     ,replicateA,appendA
+       ,(?),while,for,share,shared --memorize
        ,not,and,or
        ,Equality(eql),notEql
        ,Ordering(lt),gt,lte,gte,min
-       ,add,sub,mul,div{-,neg-},ilog2,pi --sqrt
-       ,bitXor,bitAnd,bitOr,shfRgt,shfLft,complement,testBit,lsbs,oneBits
-       ,hashTable
+       ,add,sub,mul,div,ilog2,pi
+       ,bitXor,bitAnd,bitOr,shfRgt,shfLft,complement,testBit,lsbs
+       ,oneBits,hashTable
        ,i2f,cis
        ,Undef(..)
        ,Opt,none,some,option
---     ,Ary, ary,lenA,indA
---     ,frmToA,permuteA,reverseA,foldlA,mapA,zipWithA,sumA,scalarProdA
---     ,replicateA,appendA
+       ,trmEql,trmEqlF
        ) where
 
-import QFeldspar.MyPrelude (Int,Flt,Cmx,Ary,Bol,Num(..),Functor(..),Monad(..)
-       ,fst,snd,Fractional(..),impossible,genNewNam,deepseq,($),(.))
+import QFeldspar.MyPrelude (Int,Flt,Cmx,Ary,Bol,Num(..)
+  ,Functor(..),Monad(..),fst,snd,Fractional(..),impossible,genNewNam
+  ,deepseq,($),(.))
 import qualified QFeldspar.MyPrelude as MP
 
-import QFeldspar.Expression.Feldspar.MiniFeldspar hiding (eql)
+import QFeldspar.Expression.Feldspar.MiniFeldspar hiding (eql,eqlF)
+import qualified QFeldspar.Expression.Feldspar.MiniFeldspar as FMWS
 import qualified QFeldspar.Type.Feldspar.GADT    as TFG
 
 import QFeldspar.Singleton
@@ -35,9 +36,9 @@ import QFeldspar.Environment.Typed (Env(Emp,Ext))
 import QFeldspar.Prelude.Environment
 import qualified QFeldspar.Variable.Typed as VT
 
-type Type t = HasSin TFG.Typ t
-
 type Data t = Exp Prelude t
+
+type Type t = HasSin TFG.Typ t
 
 prm0 :: (Type t, TFG.Arg t ~ '[]) =>
         VT.Var Prelude t -> Data (TFG.Out t)
@@ -51,9 +52,14 @@ prm2 :: (Type t, TFG.Arg t ~ '[t1, t2]) =>
         VT.Var Prelude t -> Data t1 -> Data t2 -> Data (TFG.Out t)
 prm2 v e1 e2 = AppV v (Ext e1 (Ext e2 Emp))
 
----------------------------------------------------------------------------------
+trmEql :: Data t -> Data t -> MP.Bool
+trmEql  = FMWS.eql
+
+trmEqlF :: (Data a -> Data b) -> (Data a -> Data b) -> MP.Bool
+trmEqlF = FMWS.eqlF
+-----------------------------------------------------------------------
 -- Syntactic Typeclass
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 
 class Type (InT a) => Syn a where
   type InT a :: *
@@ -71,9 +77,9 @@ toExpF f = toExp . f . frmExp
 frmExpF :: (Syn a , Syn b) => (Data (InT a) -> Data (InT b)) -> a -> b
 frmExpF f = frmExp . f . toExp
 
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Bool
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 
 true :: Data Bol
 true = ConB MP.True
@@ -81,19 +87,19 @@ true = ConB MP.True
 false :: Data Bol
 false = ConB MP.False
 
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Tuple
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 
 instance (Syn a , Syn b) => Syn (a , b) where
     type InT (a , b) = (InT a , InT b)
-    toExp (x , y) = Tpl (toExp x) (toExp y)
-    frmExp ee     = let e = shared ee in
-                    (frmExp (Fst e) , frmExp (Snd e))
+    toExp (x , y)    = Tpl (toExp x) (toExp y)
+    frmExp ee        = let e = shared ee in
+                       (frmExp (Fst e) , frmExp (Snd e))
 
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Complex
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 
 cmx :: Data Flt -> Data Flt -> Data Cmx
 cmx = Cmx
@@ -104,65 +110,53 @@ real = prm1 realPartVar
 imag :: Data Cmx -> Data Flt
 imag = prm1 imagPartVar
 
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Vec
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 
 data Vec t = Vec (Data Int) (Data Int -> t)
 
 instance Syn a => Syn (Vec a) where
-  type InT (Vec a) = Ary (InT a)
-  toExp  v  = Ary (len v) (toExp . ind v)
-  frmExp aa = let a = shared aa in
-              vec (Len a) (\ i -> frmExp (Ind a i))
+  type InT (Vec a)  = Ary (InT a)
+  toExp  (Vec l f)  = Ary l (\ i -> toExp (f i))
+  frmExp aa         = let a = shared aa in
+                      Vec (Len a) (\ i -> frmExp (Ind a i))
 
 instance Functor Vec where
     fmap f (Vec n g) = Vec n (f . g)
 
-vec :: Data Int -> (Data Int -> t) -> Vec t
-vec = Vec
-
-len :: Vec t -> Data Int
-len (Vec l _) = l
-
-ind :: Vec t -> Data Int -> t
-ind (Vec _ f) = f
-
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Vector Operators
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 
 frmTo :: Data Int -> Data Int -> Vec (Data Int)
 frmTo = \ mm -> \ nn -> let n = shared nn in
                         let m = shared mm in
-                        vec
-                        (ifThenElse (lt n m)
-                         0
-                         (add (sub n m) 1))
+                        Vec
+                        ((lt n m) ?
+                         (0 ,
+                         add (sub n m) 1))
                         (\ i -> add i m)
 
 permute :: (Data Int -> Data Int -> Data Int)
            -> Vec t -> Vec t
-permute = \ f -> \ v -> let lv = shared (len v) in
-                        vec lv (\ i -> ind v (f lv i))
+permute = \ f -> \ (Vec l g) -> let lv = shared l in
+                                Vec lv (\ i -> g (f lv i))
 
 reverse :: Vec t -> Vec t
 reverse = permute (\ l -> \ i -> sub (sub l 1) i)
 
 foldl :: (Type (InT a) , Syn a , Syn b) =>
          (a -> b -> a) -> a -> Vec b -> a
-foldl = \ f -> \ acc -> \ v ->
-        forLoop (len v) acc (\ i -> \ a -> f a (ind v i))
-
-map :: (a -> b) -> Vec a -> Vec b
-map = fmap
+foldl = \ f -> \ acc -> \ (Vec l g) ->
+        for l acc (\ i -> \ a -> f a (g i))
 
 zipWith :: (Syn a , Syn b , Syn c) =>
            (a -> b -> c) -> Vec a -> Vec b -> Vec c
-zipWith = \ f -> \ v1 -> \ v2 ->
-          vec (min (len v1) (len v2))
+zipWith = \ f -> \ (Vec l1 g1) -> \ (Vec l2 g2) ->
+          Vec (min l1 l2)
               (\ ii -> share ii (\ i ->
-                       f (ind v1 i) (ind v2 i)))
+                       f (g1 i) (g2 i)))
 
 sum :: (Syn a , Num a , Type (InT a)) => Vec a -> a
 sum = foldl add 0
@@ -171,19 +165,20 @@ scalarProd :: Vec (Data Int) -> Vec (Data Int) -> Data Int
 scalarProd = \ v1 -> \ v2 -> sum (zipWith mul v1 v2)
 
 replicate :: Data Int -> a -> Vec a
-replicate = \ n -> \ x -> vec n (\ _i -> x)
+replicate = \ n -> \ x -> Vec n (\ _i -> x)
 
 append :: Syn a => Vec a -> Vec a -> Vec a
-append  = \ v1 -> \ v2 -> let lv1 = shared (len v1) in
-                          vec (add lv1 (len v2))
-                              (\ ii -> share ii (\ i ->
-                                       (lt i lv1) ?
-                                       (ind v1 i ,
-                                        ind v2 i)))
+append  = \ (Vec l1 f1) -> \ (Vec l2 f2) ->
+          let lv1 = shared l1 in
+          Vec (add lv1 l2)
+              (\ ii -> share ii (\ i ->
+                       (lt i lv1) ?
+                         (f1 i ,
+                          f2 i)))
 
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Control Flow
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 
 share :: (Type (InT tl) , Syn tl , Syn tb) =>
          tl -> (tl -> tb) -> tb
@@ -198,36 +193,33 @@ shared e = let v = genNewNam "shared"
 (?) :: Syn a => Data Bol -> (a , a) -> a
 c ? (t , e) = frmExp (Cnd c (toExp t) (toExp e))
 
-ifThenElse :: Syn a => Data Bol -> a -> a -> a
-ifThenElse c t e = c ? (t , e)
+while :: Syn a => (a -> Data Bol) -> (a -> a) -> a -> a
+while c b i = frmExp (Whl (toExpF c) (toExpF b) (toExp i))
 
-whl :: Syn a => (a -> Data Bol) -> (a -> a) -> a -> a
-whl c b i = frmExp (Whl (c . frmExp) (toExp . b . frmExp) (toExp i))
-
-forLoop :: (Type (InT a) , Syn a) =>
+for :: (Type (InT a) , Syn a) =>
            Data Int -> a -> (Data Int -> a -> a) -> a
-forLoop l init step = snd (whl (\ t -> lt (fst t) l)
-                               (\ tt -> share tt (\ t ->
-                                        share (fst t) (\ ft ->
-                                        (add  ft 1 , step ft (snd t)))))
+for l init step = snd (while (\ t -> lt (fst t) l)
+                             (\ tt -> share tt (\ t ->
+                                      share (fst t) (\ ft ->
+                                      (add  ft 1 , step ft (snd t)))))
                                (0 , init))
 
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Boolean Operators
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 
 not :: Data Bol -> Data Bol
-not = \ x -> ifThenElse x false true
+not = \ x -> x ? (false , true)
 
 and :: Data Bol -> Data Bol -> Data Bol
-and = \ x -> \ y -> ifThenElse x y false
+and = \ x -> \ y -> x ? (y , false)
 
 or :: Data Bol -> Data Bol -> Data Bol
-or = \ x -> \ y -> ifThenElse x true y
+or = \ x -> \ y -> x ? (true , y)
 
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Equality
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 
 class Equality t where
   eql :: Data t -> Data t -> Data Bol
@@ -244,9 +236,9 @@ instance Equality Flt where
 notEql :: Equality t => Data t -> Data t -> Data Bol
 notEql = \ x -> \ y -> not (eql x y)
 
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Ordering
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 
 class Ordering t where
   lt :: Data t -> Data t -> Data Bol
@@ -260,12 +252,14 @@ instance Ordering Int where
 instance Ordering Flt where
   lt = prm2 ltdFltVar
 
-gt :: (Equality t , Ordering t , Type t) => Data t -> Data t -> Data Bol
+gt :: (Equality t , Ordering t , Type t) =>
+      Data t -> Data t -> Data Bol
 gt =  \ xx -> \ yy -> share xx (\ x ->
                       share yy (\ y ->
                       not (or (lt x y) (eql x y))))
 
-lte :: (Equality t , Ordering t , Type t) => Data t -> Data t -> Data Bol
+lte :: (Equality t , Ordering t , Type t) =>
+       Data t -> Data t -> Data Bol
 lte = \ xx -> \ yy -> share xx (\ x ->
                       share yy (\ y ->
                       or (lt x y) (eql x y)))
@@ -276,11 +270,11 @@ gte = \ x -> \ y -> not (lt x y)
 min :: (Ordering t , Type t) => Data t -> Data t -> Data t
 min xx yy = share xx (\ x ->
             share yy (\ y ->
-            ifThenElse (lt x y) x y))
+            (lt x y) ? (x , y)))
 
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Numeric
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 instance Num (Data Flt) where
   (+) = prm2 addFltVar
   (-) = prm2 subFltVar
@@ -327,9 +321,9 @@ ilog2 = prm1 ilog2Var
 pi :: Data Flt
 pi = ConF (MP.negate MP.pi)
 
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Bitwise Operators
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 
 bitXor :: Data Int -> Data Int -> Data Int
 bitXor = prm2 xorIntVar
@@ -353,9 +347,9 @@ hashTable :: Data (Ary Int)
 hashTable = prm0 hshTblVar
 
 testBit    :: Data Int -> Data Int -> Data Bol
-testBit    = \ i -> \ j -> ifThenElse (eql (bitAnd i (shfLft 1 j)) 0)
-                           false
-                           true
+testBit    = \ i -> \ j -> (eql (bitAnd i (shfLft 1 j)) 0) ?
+                           (false
+                           ,true)
 
 oneBits :: Data Int -> Data Int
 oneBits    = \ n -> complement (shfLft (complement 0) n)
@@ -363,9 +357,9 @@ oneBits    = \ n -> complement (shfLft (complement 0) n)
 lsbs :: Data Int -> Data Int -> Data Int
 lsbs       = \ k -> \ i -> bitAnd i (oneBits k)
 
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Conversion Operators
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 
 i2f :: Data Int -> Data Flt
 i2f = prm1 i2fVar
@@ -373,9 +367,9 @@ i2f = prm1 i2fVar
 cis :: Data Flt -> Data Cmx
 cis = prm1 cisVar
 
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Undefined
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 
 class Syn a => Undef a where
   undef :: a
@@ -392,9 +386,9 @@ instance Undef (Data Flt) where
 instance (Undef a, Undef b) => Undef (a,b) where
   undef = (undef, undef)
 
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Option Type
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 
 data Opt_R a = Opt_R { def :: Data Bol, val :: a }
 
@@ -440,76 +434,15 @@ none          =   lift none_R
 option        ::  (Undef a, Undef b) => b -> (a -> b) -> Opt a -> b
 option d f o  =   option_R d f (lower o)
 
-{-
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 -- Ary
----------------------------------------------------------------------------------
+-----------------------------------------------------------------------
 
-ary :: Data Int -> (Data Int -> Data t) -> Data (Ary t)
-ary = Ary
+arr :: Data Int -> (Data Int -> Data t) -> Data (Ary t)
+arr = Ary
 
-lenA  :: Type t => Data (Ary t) -> Data Int
-lenA = Len
+arrLen  :: Type t => Data (Ary t) -> Data Int
+arrLen = Len
 
-indA :: Data (Ary t) -> Data Int -> Data t
-indA = Ind
-
----------------------------------------------------------------------------------
--- Ary Operators
----------------------------------------------------------------------------------
-
-frmToA :: Data Int -> Data Int -> Data (Ary Int)
-frmToA = \ mm -> \ nn -> let n = shared nn in
-                         let m = shared mm in
-                         ary
-                         (ifThenElse (lt n m)
-                                         0
-                                         (add (sub n m) 1))
-                         (\ i -> add i m)
-
-permuteA :: Type t =>
-            (Data Int -> Data Int -> Data Int)
-           -> Data (Ary t) -> Data (Ary t)
-permuteA = \ f -> \ v -> let lv = shared (lenA v) in
-                         ary lv (\ i -> indA v (f lv i))
-
-
-reverseA :: Type t => Data (Ary t) -> Data (Ary t)
-reverseA = permuteA (\ l -> \ i -> sub (sub l 1) i)
-
-foldlA :: (Type a , Type b) =>
-         (Data a -> Data b -> Data a) -> Data a -> Data (Ary b) -> Data a
-foldlA  = \ f -> \ acc -> \ v ->
-           forLoop (lenA v) acc (\ i a -> f a (indA v i))
-
-mapA :: Type a =>
-        (Data a -> Data b) -> Data (Ary a) -> Data (Ary b)
-mapA = \ f -> \ v -> ary (lenA v) (\ i -> f (indA v i))
-
-zipWithA :: (Type a , Type b , Type c) =>
-            (Data a -> Data b -> Data c) -> Data (Ary a) -> Data (Ary b) ->
-           Data (Ary c)
-zipWithA = \ f -> \ v1 -> \ v2 ->
-           ary (min (lenA v1) (lenA v2))
-                   (\ ii -> share ii (\ i ->
-                            f (indA v1 i) (indA v2 i)))
-
-sumA :: Data (Ary Int) -> Data Int
-sumA = foldlA add 0
-
-scalarProdA :: Data (Ary Int) -> Data (Ary Int) -> Data Int
-scalarProdA  = \ v1 -> \ v2 -> sumA (zipWithA mul v1 v2)
-
-replicateA :: Data Int -> Data a -> Data (Ary a)
-replicateA n x = ary n (\ _i -> x)
-
-appendA ::Type a => Data (Ary a) -> Data (Ary a) -> Data (Ary a)
-appendA  = \ a1 -> \ a2 -> let lv1 = shared (lenA a1) in
-           ary (add lv1 (lenA a2))
-               (\ ii -> share ii (\i ->
-                        ifThenElse (lt i lv1)
-                                   (indA a1 i)
-                                   (indA a2 i)))
-
-
--}
+arrIx :: Data (Ary t) -> Data Int -> Data t
+arrIx = Ind

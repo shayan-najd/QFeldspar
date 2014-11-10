@@ -3,9 +3,9 @@ import Prelude
 power :: Int -> Float -> Float
 power n x =
   if n < 0 then
-    if x == 0 then 0 else 1 / power (-n) x
+    if x == 0 then 0.0 else 1.0 / power (-n) x
   else if n == 0 then
-    1
+    1.0
   else if even n then
     sqr (power (n `div` 2) x)
   else
@@ -29,13 +29,13 @@ sqr x  =   x * x
 power' ::  Int -> Float -> Maybe Float
 power' n x =
   if n < 0 then
-    if x == 0 then Nothing else do y <- power' (-n) x; return (1 / y)
+    if x == 0 then Nothing else do y <- power' (-n) x; return (1.0 / y)
   else if n == 0 then
-    return 1
+    return 1.0
   else if even n then
     do y <- power' (n `div` 2) x; return (sqr y)
   else
     do y <- power' (n-1) x; return (x * y)
 
 power''      ::  Int -> Float -> Float
-power'' n x  =   maybe 0 (\y -> y) (power' n x)
+power'' n x  =   maybe 0.0 (\y -> y) (power' n x)
