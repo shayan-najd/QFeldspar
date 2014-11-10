@@ -22,10 +22,10 @@ rgbToGray = [|| \ r -> \ g -> \ b ->
 
 ipgray :: Data (Ary Int -> Ary Int)
 ipgray = [|| \ v ->
-              ary ($$div (len v) 3)
+              arr ($$div (arrLen v) 3)
                       (\ i -> let j = $$mul i 3 in
                               $$rgbToGray
-                              (ind v j)
-                              (ind v ($$add j 1))
-                              (ind v ($$add j 2)))
+                              (arrIx v j)
+                              (arrIx v ($$add j 1))
+                              (arrIx v ($$add j 2)))
          ||]

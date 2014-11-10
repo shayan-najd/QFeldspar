@@ -9,7 +9,7 @@ updCrc :: Data (Int -> Int -> Int)
 updCrc = [|| \ cc -> \ ch ->
              $$bitXor
              ($$bitXor
-              (ind $$tbl
+              (arrIx $$tbl
                ($$bitAnd ($$bitXor ($$bitXor cc 0xFFFFFFFF) ch) 0xff))
               ($$shfRgt ($$bitXor cc 0xFFFFFFFF) 8))
              0xFFFFFFFF ||]

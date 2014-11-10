@@ -1,5 +1,5 @@
 module Examples.Power.Haskell where
-
+import Prelude
 power :: Int -> Float -> Float
 power n x =
   if n < 0 then
@@ -38,4 +38,4 @@ power' n x =
     do y <- power' (n-1) x; return (x * y)
 
 power''      ::  Int -> Float -> Float
-power'' n x  =   maybe 0 (\x -> x) (power' n x)
+power'' n x  =   maybe 0 (\y -> y) (power' n x)

@@ -42,9 +42,9 @@ library
   exposed-modules:
      QFeldspar.InferenceMonad,
      QFeldspar.ChangeMonad,
+     QFeldspar.Simplify,
      QFeldspar.Inference,
      QFeldspar.QDSL,
-     QFeldspar.VanillaPrelude,
      QFeldspar.Singleton,
      QFeldspar.Normalisation,
      QFeldspar.TypeChecking,
@@ -69,7 +69,6 @@ library
      QFeldspar.Expression.Feldspar.ADTUntypedNamed,
      QFeldspar.Expression.Feldspar.MiniFeldspar,
      QFeldspar.Expression.Feldspar.ADTUntypedDebruijn,
-     QFeldspar.Expression.Feldspar.GADTUntypedDebruijn,
      QFeldspar.Expression.Feldspar.Conversion,
      QFeldspar.Expression.Feldspar.GADTTyped,
      QFeldspar.Expression.Feldspar.Conversions.Unquoting,
@@ -86,7 +85,6 @@ library
      QFeldspar.Expression.Feldspar.Conversions.Evaluation.ADTUntypedNamed,
      QFeldspar.Expression.Feldspar.Conversions.Evaluation.MiniFeldspar,
      QFeldspar.Expression.Feldspar.Conversions.Evaluation.ADTUntypedDebruijn,
-     QFeldspar.Expression.Feldspar.Conversions.Evaluation.GADTUntypedDebruijn,
      QFeldspar.Expression.Feldspar.Conversions.Evaluation.GADTTyped,
      QFeldspar.Expression.TemplateHaskell.Conversion,
      QFeldspar.Nat.TH,
@@ -118,6 +116,9 @@ library
      Examples.IPBW.CDSL,
      Examples.CRC.QDSL,
      Examples.CRC.CDSL,
+     Examples.Power.QDSL,
+     Examples.Power.Haskell,
+     Examples.Power.CDSL,
      Examples.FFT.QDSL,
      Examples.FFT.CDSL,
      Examples.Windowing.QDSL,
@@ -127,11 +128,11 @@ library
      Tests.ADTUntypedNamed,
      Tests.MiniFeldspar,
      Tests.ADTUntypedDebruijn,
-     Tests.GADTUntypedDebruijn,
      Tests.Conversion,
      Tests.GADTTyped,
      Tests.TemplateHaskell,
      Tests.Examples,
+     Tests.CompareExamples,
      Test
   build-depends:
      base             >=4.7 && <4.8,
@@ -141,5 +142,5 @@ library
      pretty           >=1.1 && <1.2,
      constraints      >=0.4 && <0.5,
      directory        >=1.2 && <1.3,
-     deepseq
+     deepseq          >=1.3 && <1.4
   default-language:    Haskell2010
