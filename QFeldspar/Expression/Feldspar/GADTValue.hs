@@ -1,7 +1,7 @@
 module QFeldspar.Expression.Feldspar.GADTValue
     (Exp(..)
     ,conI,conB,conF,var,abs,app,cnd,whl,fst,snd,tpl,ary,len,ind,leT
-    ,cmx,non,som,may
+    ,cmx,non,som,may,mul
     ,getTrm,mapTrm) where
 
 import QFeldspar.MyPrelude hiding (abs,fst,snd,may,som,non,cmx,tpl,cnd)
@@ -16,13 +16,6 @@ deriving instance Functor Exp
 mapTrm :: (a -> b) -> Exp a -> Exp b
 mapTrm = fmap
 
-{-
-(===) :: (Eq t', Trm t ~ t') =>
-         Exp t -> Exp t -> Bool
-(Exp x) === (Exp y) = x == y
--}
-
---getTrm :: Exp t -> Trm t
 getTrm :: Exp t -> t
 getTrm (Exp x) = x
 
@@ -38,7 +31,6 @@ conB = Exp
 conF :: Float -> Exp Flt
 conF = Exp
 
--- abs :: (Trm ta -> Trm tb) -> Exp (Arr ta tb)
 abs :: (ta -> tb) -> Exp (Arr ta tb)
 abs = Exp
 
@@ -83,3 +75,6 @@ som (Exp e) = Exp (MP.som e)
 
 may :: Exp (May a) -> Exp b -> Exp (Arr a b) -> Exp b
 may (Exp em) (Exp en) (Exp es) = Exp (MP.may em en es)
+
+mul :: Num a => Exp a -> Exp a -> Exp a
+mul (Exp i) (Exp i') = Exp (i + i')

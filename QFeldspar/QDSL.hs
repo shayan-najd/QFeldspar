@@ -39,17 +39,17 @@ dummy :: Data a
 dummy = MP.return (TH.TExp (TH.VarE dn))
 
 wrp :: Type a => Data a -> Data a
-wrp f = wrpTyp [|| let (**)   = (\ x -> \ y -> mulIntHsk x y)       in
-                   let (<)    = (\ x -> \ y -> ltdIntHsk x y)       in
+wrp f = wrpTyp [|| let (<)    = (\ x -> \ y -> ltdIntHsk x y)       in
                    let (+)    = (\ x -> \ y -> addIntHsk x y)       in
                    let (==)   = (\ x -> \ y -> eqlFltHsk x y)       in
                    let (/)    = (\ x -> \ y -> divFltHsk x y)       in
-                   let (*)    = (\ x -> \ y -> mulFltHsk x y)       in
-                   let return = $$(ret) :: (Float -> Maybe Float) in
+                   let return = $$(ret) :: (Float -> Maybe Float)   in
                    let _bnd   = ($$bnd)
-                          :: (Maybe Float -> (Float -> Maybe Float) -> Maybe Float) in
+                          :: (Maybe Float -> (Float -> Maybe Float) ->
+                              Maybe Float) in
                    let maybe  = $$(may)
-                          :: (Float -> (Float -> Float) -> Maybe Float -> Float) in
+                          :: (Float -> (Float -> Float) ->
+                              Maybe Float -> Float) in
                    $$f ||]
 
 wrpTyp :: forall a. Type a => Data a -> Data a

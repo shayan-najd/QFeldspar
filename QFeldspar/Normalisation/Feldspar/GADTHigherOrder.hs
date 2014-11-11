@@ -33,6 +33,7 @@ isVal ee = case ee of
     Non           -> True
     Som  e        -> isVal e
     May  _ _  _   -> False
+    Mul _ _       -> False
 
 val :: Exp n t -> (Bool,Exp n t)
 val ee = (isVal ee , ee)
@@ -82,6 +83,7 @@ etasub ee = let t = sin :: TFG.Typ t in case ee of
     Som e                     -> case TFG.getPrfHasSinMay t of
       PrfHasSin               -> Som (eta e)
     May em en es              -> May (eta em) (eta en) (etaF es)
+    Mul er ei                 -> Mul (eta er) (eta ei)
 
 etaF :: forall n ta tb. (HasSin TFG.Typ ta , HasSin TFG.Typ tb) =>
            (Exp n ta -> Exp n tb) -> (Exp n ta -> Exp n tb)
@@ -176,6 +178,11 @@ instance HasSin TFG.Typ t => NrmOne (Exp n t) where
     May Non     en      _        -> chg en
     May (Som e) _       es       -> chg (es e)
     May em      en      es       -> May  <$@> em <*@> en <*@> es
+
+    Mul er  (NV ei)              -> chg (Let ei (\ x -> Mul  er x ))
+    Mul (NV er) (V ei)           -> chg (Let er (\ x -> Mul  x  ei))
+    Mul er ei                    -> Mul  <$@> er <*@> ei
+
 
 instance (HasSin TFG.Typ tb, HasSin TFG.Typ ta) =>
          NrmOne (Exp n ta -> Exp n tb) where

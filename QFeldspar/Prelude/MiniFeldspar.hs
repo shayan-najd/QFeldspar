@@ -278,7 +278,7 @@ min xx yy = share xx (\ x ->
 instance Num (Data Flt) where
   (+) = prm2 addFltVar
   (-) = prm2 subFltVar
-  (*) = prm2 mulFltVar
+  (*) = Mul
   fromInteger x = ConF (MP.fromInteger x)
   abs    = impossible
   signum = impossible
@@ -286,7 +286,7 @@ instance Num (Data Flt) where
 instance Num (Data Int) where
   (+) = prm2 addIntVar
   (-) = prm2 subIntVar
-  (*) = prm2 mulIntVar
+  (*) = Mul
   fromInteger x = ConI (MP.fromInteger x)
   abs    = impossible
   signum = impossible

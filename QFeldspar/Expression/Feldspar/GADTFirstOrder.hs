@@ -34,6 +34,7 @@ data Exp :: [*] -> * -> * where
   Som  :: Exp r tl -> Exp r (May tl)
   May  :: HasSin TFG.Typ a =>
           Exp r (May a) -> Exp r b -> Exp (a ': r) b -> Exp r b
+  Mul  :: Exp r a  -> Exp r a -> Exp r a
 
 sucAll :: Exp r t' -> Exp (t ': r) t'
 sucAll = mapVar Suc
@@ -66,6 +67,7 @@ mapVar f ee = case ee of
   Non          -> Non
   Som e        -> Som (m e)
   May ec en es -> May (m ec)  (m en) (mf es)
+  Mul el er    -> Mul (m el)  (m er)
   where
     m :: Exp r tt -> Exp r' tt
     m  = mapVar f

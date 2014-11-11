@@ -54,10 +54,7 @@ instance (HasSin TFG.Typ t) =>
     Let el             eb        -> Let  <$@> el <*@> eb
     Tmp x                        -> pure (Tmp x)
     Tag x e                      -> Tag x <$@> e
-  {-Non                          -> pure Non
-    Som e                        -> case TFG.getPrfHasSinMay t of
-      PrfHasSin                  -> Som  <$@> e
-    May em      en      es       -> May  <$@> em <*@> en <*@> es-}
+    Mul er ei                    -> Mul   <$@> er <*@> ei
 
 instance (HasSin TFG.Typ tb, HasSin TFG.Typ ta) =>
          SmpOne (Exp n ta -> Exp n tb) where

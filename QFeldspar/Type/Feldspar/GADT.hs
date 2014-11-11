@@ -17,6 +17,8 @@ data Typ :: * -> * where
   May :: Typ t  -> Typ (May t)
   Cmx :: Typ Cmx
 
+deriving instance Show (Typ t)
+
 instance HasSin Typ Int where
   sin = Int
 

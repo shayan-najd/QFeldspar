@@ -56,6 +56,7 @@ instance (HasSin TFG.Typ t , t ~ t' , r ~ r') =>
     FGHO.Non                  -> fail "Normalisation Error!"
     FGHO.Som _                -> fail "Normalisation Error!"
     FGHO.May _ _ _            -> fail "Normalisation Error!"
+    FGHO.Mul er ei            -> FMWS.Mul <$@> er <*@> ei
 
 instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb , r ~ r' , ta ~ ta' ,tb ~ tb') =>
          Cnv (FGHO.Exp r  ta  -> FGHO.Exp r  tb , rr)
@@ -96,6 +97,7 @@ instance (HasSin TFG.Typ t , t' ~ t , r' ~ r) =>
     FMWS.Cmx er ei            -> FGHO.Cmx <$@> er <*@> ei
     FMWS.Tag _  e             -> cnvImp e
     FMWS.Tmp x                -> pure (FGHO.Tmp x)
+    FMWS.Mul er ei            -> FGHO.Mul <$@> er <*@> ei
 
 instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb, ta ~ ta' , tb ~ tb' , r ~ r') =>
          Cnv (FMWS.Exp r  ta  -> FMWS.Exp r  tb , rr)

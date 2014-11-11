@@ -19,7 +19,7 @@ fftCore = [|| \ n -> \ (Vec l f) ->
 ixf :: Data (Vec Cmx -> Int -> Int -> Cmx)
 ixf = [|| \ (Vec _l f) -> \ k -> \ i ->
           let k2   = $$shfLft 1 k in
-          let twid = $$cis ($$div ($$mul $$pi
+          let twid = $$cis ($$div ($$pi *
                                    ($$i2f ($$lsbs k i)))($$i2f k2)) in
           let a    = f i in
           let b    = f ($$bitXor i k2) in

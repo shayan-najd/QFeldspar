@@ -76,6 +76,7 @@ instance Cnv (TH.Exp , ()) (FAUN.Exp TH.Name) where
         (TH.VarE n) el) er
       | n === 'arrIx         -> FAUN.Ind  <$@> el <*@> er
       | n === 'cmx           -> FAUN.Cmx  <$@> el <*@> er
+      | n === '(*)           -> FAUN.Mul  <$@> el <*@> er
     TH.AppE (TH.AppE
              (TH.VarE n) el)
             l
@@ -210,6 +211,9 @@ instance Cnv (FAUN.Exp TH.Name , ()) TH.Exp where
     FAUN.Cmx er ei          -> do er' <- cnvImp er
                                   ei' <- cnvImp ei
                                   pure (TH.AppE (TH.AppE (TH.VarE 'cmx) er') ei')
+    FAUN.Mul er ei          -> do er' <- cnvImp er
+                                  ei' <- cnvImp ei
+                                  pure (TH.AppE (TH.AppE (TH.VarE '(*)) er') ei')
     FAUN.Non                -> pure (TH.ConE 'Nothing)
     FAUN.Som e              -> TH.AppE (TH.ConE 'Just) <$@> e
     FAUN.May em en (x , es) -> do em' <- cnvImp em

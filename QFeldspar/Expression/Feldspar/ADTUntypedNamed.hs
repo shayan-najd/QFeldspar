@@ -27,6 +27,7 @@ data Exp x = ConI Int
            | Som (Exp x)
            | May (Exp x) (Exp x) (x , Exp x)
            | Typ TFA.Typ (Exp x)
+           | Mul (Exp x) (Exp x)
 
 deriving instance Eq x   => Eq   (Exp x)
 deriving instance Show x => Show (Exp x)
@@ -61,6 +62,7 @@ sbs x e' ee = case ee of
   Som e          -> Som (s e)
   May em en xej  -> May (s em) (s en) (sf xej)
   Typ t e        -> Typ t (s e)
+  Mul el er      -> Mul (s el) (s er)
   where
     s = sbs x e'
     sf (y , e)

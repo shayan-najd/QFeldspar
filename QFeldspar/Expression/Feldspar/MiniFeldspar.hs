@@ -34,6 +34,7 @@ data Exp :: [*] -> * -> * where
   Cmx   :: Exp r Flt -> Exp r Flt -> Exp r Cmx
   Tmp   :: String -> Exp r t  -- dummy constructor
   Tag   :: String -> Exp r t -> Exp r t
+  Mul   :: Exp r t -> Exp r t -> Exp r t
 
 instance Show (Exp r ta -> Exp r tb) where
   show f = let v = genNewNam "x"
@@ -99,6 +100,7 @@ eql (Cmx ei er) (Cmx ei' er') = eql ei ei' && eql er er'
 eql (Tmp x    ) (Tmp x')      = x == x'
 eql (Tag _ e)   e'            = eql e e'
 eql e          (Tag _ e')     = eql e e'
+eql (Mul ei er) (Mul ei' er') = eql ei ei' && eql er er'
 eql _           _             = False
 
 eqlF :: forall r ta tb.  (Exp r ta -> Exp r tb) -> (Exp r ta -> Exp r tb) -> Bool
@@ -132,6 +134,7 @@ mapVar f g (Let el eb)    = Let (mapVar f g el) (mapVarF f g eb)
 mapVar f g (Cmx er ei)    = Cmx (mapVar f g er) (mapVar f g ei)
 mapVar _ _ (Tmp x)        = Tmp x
 mapVar f g (Tag x e)      = Tag x (mapVar f g e)
+mapVar f g (Mul er ei)    = Mul (mapVar f g er) (mapVar f g ei)
 
 mapVarF :: (forall t'. Var r  t' -> Var r' t') ->
            (forall t'. Var r' t' -> Var r  t') ->
@@ -165,6 +168,7 @@ absTmp xx s ee = let t = sin :: TFG.Typ t in case ee of
       _                     -> ee
     | otherwise             -> ee
   Tag x e                   -> Tag x (absTmp xx s e)
+  Mul er ei                 -> Mul (absTmp xx s er) (absTmp xx s ei)
 
 absVar :: forall r a b. (HasSin TFG.Typ a, HasSin TFG.Typ b) =>
          Exp (a ': r) b -> Exp r a -> Exp r b
@@ -203,6 +207,7 @@ absVar' xx ee = let b = sin :: TFG.Typ b in case ee of
   Cmx er ei                 -> Cmx (absVar' xx er)   (absVar' xx ei)
   Tmp x                     -> Tmp x
   Tag x e                   -> Tag x (absVar' xx e)
+  Mul er ei                 -> Mul (absVar' xx er)   (absVar' xx ei)
 
 absVar'F :: forall r a b c.
             (HasSin TFG.Typ a, HasSin TFG.Typ b, HasSin TFG.Typ c) =>
@@ -233,6 +238,7 @@ hasTmp s ee = case ee of
     | s == x                -> True
     | otherwise             -> False
   Tag _ e                   -> hasTmp  s e
+  Mul er ei                 -> hasTmp  s er || hasTmp  s ei
 
 hasTmpF :: String -> (Exp r ta -> Exp r tb) -> Bool
 hasTmpF s f = let v = genNewNam "hasTmpF"
@@ -260,6 +266,7 @@ cntTmp s ee = case ee of
     | s == x                -> 1
     | otherwise             -> 0
   Tag _ e                   -> cntTmp  s e
+  Mul er ei                 -> cntTmp  s er + cntTmp  s ei
 
 cntTmpF :: String -> (Exp r ta -> Exp r tb) -> Int
 cntTmpF s f = let v = genNewNam "cntTmpF"
@@ -433,3 +440,13 @@ instance Show
              ((.)
                 (showsPrec 11 b1_aaFe)
                 ((.) showSpace (showsPrec 11 b2_aaFf))))
+    showsPrec
+      a_aaF8
+      (Mul b1_aaF9 b2_aaFa)
+      = showParen
+          ((a_aaF8 >= 11))
+          ((.)
+             (showString "Mul ")
+             ((.)
+                (showsPrec 11 b1_aaF9)
+                ((.) showSpace (showsPrec 11 b2_aaFa))))

@@ -30,6 +30,7 @@ data Exp :: NA.Nat -> * -> * where
   Som  :: Exp n t -> Exp n t
   May  :: t -> Exp n t -> Exp n t -> Exp (NA.Suc n) t -> Exp n t
   Typ  :: t -> Exp n t -> Exp n t
+  Mul  :: Exp n t -> Exp n t -> Exp n t
 
 deriving instance Eq t   => Eq   (Exp n t)
 deriving instance Show t => Show (Exp n t)
@@ -68,6 +69,7 @@ mapVar f ebb = case ebb of
   Som e        -> Som (m e)
   May t em en es -> May t (m em) (m en) (mf es)
   Typ t e      -> Typ t (m e)
+  Mul el er    -> Mul (m el) (m er)
   where
     m  = mapVar f
     mf = mapVar (inc f)
@@ -90,7 +92,7 @@ sbs ebb v eaa = case ebb of
   Ary el ef      -> Ary (s el) (sf ef)
   Len t  e       -> Len t (s e )
   Ind ea ei      -> Ind (s ea) (s ei)
-  AryV el ef      -> AryV (s el) (sf ef)
+  AryV el ef     -> AryV (s el) (sf ef)
   LenV t  e      -> LenV t (s e )
   IndV ea ei     -> IndV (s ea) (s ei)
   Let t  el eb   -> Let t (s el) (sf eb)
@@ -99,6 +101,7 @@ sbs ebb v eaa = case ebb of
   Som e          -> Som (s e)
   May t em en es -> May t (s em) (s en) (sf es)
   Typ t e        -> Typ t (s e)
+  Mul el er      -> Mul (s el) (s er)
   where
     s  e = sbs e v eaa
     sf e = sbs e (Suc v) (sucAll eaa)
@@ -133,6 +136,7 @@ fre' v ee = case ee of
   Som e        -> f  e
   May _ em en es -> f em ++ f en ++ ff es
   Typ _ e      -> f  e
+  Mul el er    -> f el ++ f er
   where
     f  e = fre' v e
 

@@ -37,11 +37,10 @@ instance (HasSin TFG.Typ t, r' ~ r , t' ~ t) =>
     Cmx er ei                -> FGV.cmx  <$@> er <*@> ei
     Tag _  e                 -> cnvImp e
     Tmp _                    -> fail "Not Supported!"
---    Non                      -> pure FGV.non
---    Som e                    -> case TFG.getPrfHasSinMay t of
---     PrfHasSin               -> FGV.som  <$@> e
---    May em en es             -> FGV.may  <$@> em <*@> en <*@> es
-
+    Mul er ei                -> case t of
+                     TFG.Int -> FGV.mul  <$@> er <*@> ei
+                     TFG.Flt -> FGV.mul  <$@> er <*@> ei
+                     _       -> fail "Type Error in Mul"
 
 instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb , ta' ~ ta , tb' ~ tb) =>
          Cnv (Exp r ta -> Exp r tb , Env FGV.Exp r) (FGV.Exp (Arr ta' tb'))

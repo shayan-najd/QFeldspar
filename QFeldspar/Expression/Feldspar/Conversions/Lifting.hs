@@ -46,6 +46,7 @@ instance (t ~ t' , r ~ r') =>
       FGFO.Non          -> pure FGHO.Non
       FGFO.Som e        -> FGHO.Som  <$@> e
       FGFO.May em en es -> FGHO.May  <$@> em <*@> en <*@> es
+      FGFO.Mul er ei    -> FGHO.Mul  <$@> er <*@> ei
 
 instance (ta ~ ta' , tb ~ tb' , r ~ r') =>
          Cnv (FGFO.Exp (ta ': r) tb , Env (FGHO.Exp r) r)

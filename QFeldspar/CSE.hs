@@ -43,6 +43,7 @@ remTag ee = case ee of
   Cmx er ei                 -> Cmx (remTag er)  (remTag ei)
   Tmp x                     -> Tmp x
   Tag _ e                   -> remTag e
+  Mul er ei                 -> Mul (remTag er)  (remTag ei)
 
 remTagF :: (Exp r a -> Exp r b) -> (Exp r a -> Exp r b)
 remTagF = (remTag .)
@@ -67,6 +68,7 @@ remTheTag x ee = case ee of
   Tag y e
       | x == y              -> e
       | otherwise           -> Tag y (remTheTag x e)
+  Mul er ei                 -> Mul (remTheTag x er)   (remTheTag x ei)
 
 cmt :: forall t ra rb r.
        (HasSin TFG.Typ t , TFG.Arg t ~ Add ra rb) =>
@@ -160,6 +162,13 @@ cseOne ee = let t = sin :: TFG.Typ t in case ee of
       _ -> Cmx <$> cseOne er <*> cseOne ei
   Tmp x                     -> pure (Tmp x)
   Tag x e                   -> Tag x <$> cseOne e
+  Mul er ei                 -> case findTag er of
+      Just(~x , Exs1 ex tx)
+        | hasTag x ei -> case getPrfHasSin tx of
+            PrfHasSin -> chg (Let ex (\ xx ->
+              Mul (absTag xx x er) (absTag xx x ei)))
+        | numTag x er == 1 -> chg (remTheTag x ee)
+      _ -> Mul <$> cseOne er <*> cseOne ei
 
 cseOneF :: forall r a b. (HasSin TFG.Typ a , HasSin TFG.Typ b) =>
            (Exp r a -> Exp r b) -> Chg (Exp r a -> Exp r b)
@@ -196,6 +205,7 @@ findTag ee = let t = sin :: TFG.Typ t in case ee of
   Cmx er ei                 -> findTag  er <||> findTag  ei
   Tmp _                     -> Nothing
   Tag x e                   -> Just (x , Exs1 e (sinTyp e))
+  Mul er ei                 -> findTag  er <||> findTag  ei
 
 findTagF :: (HasSin TFG.Typ a , HasSin TFG.Typ b) =>
             (Exp r a -> Exp r b) -> Maybe (String , Exs1 (Exp r) TFG.Typ)
@@ -231,6 +241,7 @@ absTag xx s ee = let t = sin :: TFG.Typ t in case ee of
       Rgt Rfl               -> xx
       _                     -> impossible
     | otherwise             -> Tag x (absTag xx s e)
+  Mul er ei                 -> Mul (absTag xx s er)   (absTag xx s ei)
 
 hasTag :: String -> Exp r t -> Bool
 hasTag s ee = case ee of
@@ -252,6 +263,7 @@ hasTag s ee = case ee of
   Tag x e
     | s == x                -> True
     | otherwise             -> hasTag s e
+  Mul el er                 -> hasTag s el || hasTag s er
 
 hasTagF :: String -> (Exp r ta -> Exp r tb) -> Bool
 hasTagF s f = let v = genNewNam "hasTagF"
@@ -278,6 +290,7 @@ numTag s ee = case ee of
   Tag x e
     | s == x                -> 1
     | otherwise             -> numTag s e
+  Mul el er                 -> numTag s el + numTag s er
 
 numTagF :: String -> (Exp r ta -> Exp r tb) -> Int
 numTagF s f = let v = genNewNam "numTagF"

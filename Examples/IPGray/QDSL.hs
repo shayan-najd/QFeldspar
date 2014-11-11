@@ -15,15 +15,15 @@ rgbToGray :: Data (Int -> Int -> Int -> Int)
 rgbToGray = [|| \ r -> \ g -> \ b ->
                $$div
                ($$add
-                ($$add ($$mul r $$redCoefficient )
-                         ($$mul g $$greenCoefficient))
-                ($$mul b $$blueCoefficient )) 100
+                ($$add (r * $$redCoefficient )
+                       (g * $$greenCoefficient))
+                (b * $$blueCoefficient )) 100
             ||]
 
 ipgrayVec :: Data (Vec Int -> Vec Int)
 ipgrayVec = [|| \ (Vec l f) ->
                 Vec ($$div l 3)
-                    (\ i -> let j = $$mul i 3 in
+                    (\ i -> let j = i * 3 in
                             $$rgbToGray
                             (f j)
                             (f ($$add j 1))

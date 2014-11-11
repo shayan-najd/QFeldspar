@@ -43,6 +43,7 @@ instance Eq x =>
     FAUN.Som  e              -> FAUD.Som <$@> e
     FAUN.May  em en xes      -> FAUD.May <$@> em <*@> en <*@> xes
     FAUN.Typ  t  e           -> FAUD.Typ <$> pure t <*@> e
+    FAUN.Mul  er ei          -> FAUD.Mul <$@> er  <*@> ei
 
 instance Eq x =>
          Cnv ((x , FAUN.Exp x) , EM.Env x Var)
@@ -75,6 +76,7 @@ instance (x ~ x') =>
     FAUD.Som  e        -> FAUN.Som <$@> e
     FAUD.May  em en es -> FAUN.May <$@> em <*@> en <*@> es
     FAUD.Typ  t  e     -> FAUN.Typ <$> pure t <*@> e
+    FAUD.Mul  er ei    -> FAUN.Mul <$@> er <*@> ei
 
 instance (x ~ x') =>
          Cnv (FAUD.Exp , (EP.Env x , EM.Env Var x)) (x' , FAUN.Exp x') where

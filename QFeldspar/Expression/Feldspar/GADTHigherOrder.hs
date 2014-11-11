@@ -35,6 +35,7 @@ data Exp :: [*] -> * -> * where
   Som  :: Exp r tl -> Exp r (May tl)
   May  :: HasSin TFG.Typ a =>
           Exp r (May a) -> Exp r b -> (Exp r a -> Exp r b) -> Exp r b
+  Mul   :: Exp r a -> Exp r a -> Exp r a
 
 deriving instance Show (Exp r t)
 
@@ -94,6 +95,7 @@ eql (May (em  :: Exp r (May tm)) en  es)
   case eqlSin (sin :: TFG.Typ tm)(sin :: TFG.Typ tm') of
     Rgt Rfl -> eql em em' && eql en en' && eqlF es es'
     _       -> False
+eql (Mul ei er) (Mul ei' er') = eql ei ei' && eql er er'
 eql _           _             = False
 
 eqlF :: forall r ta tb.  (Exp r ta -> Exp r tb) -> (Exp r ta -> Exp r tb) -> Bool
@@ -134,6 +136,7 @@ mapVar _ _ (Tmp x)        = Tmp x
 mapVar _ _ Non            = Non
 mapVar f g (Som e)        = Som (mapVar f g e)
 mapVar f g (May em en es) = May (mapVar f g em) (mapVar f g en) (mapVarF f g es)
+mapVar f g (Mul er ei)    = Mul (mapVar f g er) (mapVar f g ei)
 
 mapVarF :: (forall t'. Var r  t' -> Var r' t') ->
            (forall t'. Var r' t' -> Var r  t') ->
@@ -148,26 +151,26 @@ absTmp xx s ee = let t = sin :: TFG.Typ t in case ee of
   ConF i                    -> ConF i
   Var v                     -> Var v
   Abs eb                    -> case TFG.getPrfHasSinArr t of
-    (PrfHasSin , PrfHasSin) -> Abs (absTmp xx s . eb)
-  App ef ea                 -> App (absTmp xx s ef)   (absTmp xx s ea)
-  Cnd ec et ef              -> Cnd (absTmp xx s ec)   (absTmp xx s et)
-                                    (absTmp xx s ef)
-  Whl ec eb ei              -> Whl (absTmp xx s . ec) (absTmp xx s . eb)
-                                   (absTmp xx s ei)
+    (PrfHasSin , PrfHasSin) -> Abs (aF eb)
+  App ef ea                 -> App (a ef)   (a ea)
+  Cnd ec et ef              -> Cnd (a ec)   (a et)
+                                    (a ef)
+  Whl ec eb ei              -> Whl (aF ec) (aF eb)
+                                   (a ei)
   Tpl ef es                 -> case TFG.getPrfHasSinTpl t of
-    (PrfHasSin , PrfHasSin) -> Tpl (absTmp xx s ef)   (absTmp xx s es)
-  Fst e                     -> Fst (absTmp xx s e)
-  Snd e                     -> Snd (absTmp xx s e)
+    (PrfHasSin , PrfHasSin) -> Tpl (a ef)   (a es)
+  Fst e                     -> Fst (a e)
+  Snd e                     -> Snd (a e)
   Ary el ef                 -> case TFG.getPrfHasSinAry t of
-    PrfHasSin               -> Ary (absTmp xx s el)   (absTmp xx s . ef)
-  Len e                     -> Len (absTmp xx s e)
-  Ind ea ei                 -> Ind (absTmp xx s ea)   (absTmp xx s ei)
+    PrfHasSin               -> Ary (a el)   (aF ef)
+  Len e                     -> Len (a e)
+  Ind ea ei                 -> Ind (a ea)   (a ei)
   AryV el ef                -> case TFG.getPrfHasSinVec t of
-    PrfHasSin               -> AryV (absTmp xx s el)   (absTmp xx s . ef)
-  LenV e                    -> LenV (absTmp xx s e)
-  IndV ea ei                -> IndV (absTmp xx s ea)   (absTmp xx s ei)
-  Let el eb                 -> Let (absTmp xx s el)   (absTmp xx s . eb)
-  Cmx er ei                 -> Cmx (absTmp xx s er)   (absTmp xx s ei)
+    PrfHasSin               -> AryV (a el)   (aF ef)
+  LenV e                    -> LenV (a e)
+  IndV ea ei                -> IndV (a ea)   (a ei)
+  Let el eb                 -> Let (a el)   (aF eb)
+  Cmx er ei                 -> Cmx (a er)   (a ei)
   Tmp x
     | s == x                -> case eqlSin (sinTyp xx) t of
       Rgt Rfl               -> xx
@@ -175,9 +178,17 @@ absTmp xx s ee = let t = sin :: TFG.Typ t in case ee of
     | otherwise             -> ee
   Non                       -> Non
   Som e                     -> case TFG.getPrfHasSinMay t of
-   PrfHasSin                -> Som (absTmp xx s e)
-  May ec en es              -> May (absTmp xx s ec) (absTmp xx s en)
-                                   (absTmp xx s . es)
+   PrfHasSin                -> Som (a e)
+  May ec en es              -> May (a ec) (a en)
+                                   (aF es)
+  Mul el er                 -> Mul (a el) (a er)
+  where
+      a :: (HasSin TFG.Typ a) =>
+           Exp r a -> Exp r a
+      a  = absTmp xx s
+      aF :: (HasSin TFG.Typ a , HasSin TFG.Typ b) =>
+            (Exp r a -> Exp r b) -> (Exp r a -> Exp r b)
+      aF = (absTmp xx s .)
 
 -- when input string is not "__dummy__"
 hasTmp :: String -> Exp r t -> Bool
@@ -207,6 +218,7 @@ hasTmp s ee = case ee of
   Non                       -> False
   Som e                     -> hasTmp s e
   May em en es              -> hasTmp s em || hasTmp s en || hasTmpF s es
+  Mul el er                 -> hasTmp s el || hasTmp s er
 
 hasTmpF :: String -> (Exp r ta -> Exp r tb) -> Bool
 hasTmpF s f = hasTmp s (f (Tmp "__dummy__"))

@@ -36,6 +36,7 @@ instance n ~ n' => Cnv (FAUD.Exp , Nat n) (FGTD.Exp n' (Maybe TFA.Typ)) where
     FAUD.Som e        -> FGTD.Som  <$@> e
     FAUD.May em en es -> FGTD.May  <$> pure Nothing <*@> em <*@> en <*> cnvf es
     FAUD.Typ t  e     -> FGTD.Typ  <$> pure (Just t) <*@> e
+    FAUD.Mul er ei    -> FGTD.Mul  <$@> er <*@> ei
     where
       cnvf e = cnv (e , Suc n)
 
@@ -64,3 +65,4 @@ instance Cnv (FGTD.Exp n TFA.Typ , r) (FAUD.Exp) where
     FGTD.Som e        -> FAUD.Som  <$@> e
     FGTD.May _ em en es -> FAUD.May  <$@> em <*@> en <*@> es
     FGTD.Typ t e      -> FAUD.Typ  <$> pure t <*@> e
+    FGTD.Mul er ei    -> FAUD.Mul  <$@> er <*@> ei

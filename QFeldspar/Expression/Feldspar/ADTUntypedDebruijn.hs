@@ -28,6 +28,7 @@ data Exp = ConI Int
          | Som  Exp
          | May  Exp Exp Exp
          | Typ  TFA.Typ Exp
+         | Mul  Exp Exp
 
 deriving instance Eq   Exp
 deriving instance Show Exp
@@ -57,6 +58,7 @@ fre ee = case ee of
   Som  e        -> fre  e
   May  em en es -> fre  em ++ fre en ++ freF es
   Typ  _  e     -> fre e
+  Mul  er ei    -> fre  er ++ fre ei
 
 freF :: Exp -> [Nat]
 freF f = drpZro (fre f)

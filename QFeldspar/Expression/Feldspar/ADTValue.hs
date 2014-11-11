@@ -2,7 +2,7 @@ module QFeldspar.Expression.Feldspar.ADTValue
     (Exp(..)
     ,conI,conB,conF,var,abs,app,cnd,whl,fst,snd,tpl,ary,len,ind
     ,cmx,non,som,may
-    ,Lft(..),CoLft(..),addV,add) where
+    ,Lft(..),CoLft(..),addV,add,mul) where
 
 import QFeldspar.MyPrelude hiding (abs,fst,snd,may,som,non,cmx,tpl,cnd)
 
@@ -155,3 +155,8 @@ may :: Exp -> Exp -> (Exp -> Exp) -> ErrM Exp
 may Non     en _ = return en
 may (Som e) _  f = return (f e)
 may _       _  _ = badTypValM
+
+mul :: Exp -> Exp -> ErrM Exp
+mul (ConI i) (ConI i') = return (ConI (i + i'))
+mul (ConF f) (ConF f') = return (ConF (f + f'))
+mul _        _         = badTypValM

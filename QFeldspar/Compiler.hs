@@ -190,6 +190,12 @@ instance (HasSin TFG.Typ t, n ~ Len r) =>
       FMWS.Cmx er ei           -> do (er' , sr) <- cmpImp er
                                      (ei' , si) <- cmpImp ei
                                      return (cmx er' ei' , sr ++ si)
+      FMWS.Mul er ei           -> do (er' , sr) <- cmpImp er
+                                     (ei' , si) <- cmpImp ei
+                                     case t of
+                                       TFG.Int -> return (App "mulInt" [er' , ei'] , sr ++ si)
+                                       TFG.Flt -> return (App "mulFlt" [er' , ei'] , sr ++ si)
+                                       _       -> fail "Type Error in Mul"
 
 instance (n ~ Len r , HasSin TFG.Typ t , Compilable (b , ES.Env n String)) =>
          Compilable (FMWS.Exp r t -> b , ES.Env n String) where

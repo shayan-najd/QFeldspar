@@ -3,6 +3,7 @@ module QFeldspar.TypeChecking.Feldspar () where
 import QFeldspar.MyPrelude
 
 import QFeldspar.Expression.Feldspar.GADTTyped
+import QFeldspar.Type.Herbrand (HerCon((:~:)),pattern Arr,pattern Bol,pattern Int,pattern Flt)
 import qualified QFeldspar.Type.Herbrand as TH
 
 import QFeldspar.Environment.Scoped  as ES
@@ -14,85 +15,85 @@ instance Chk (Exp n) where
   type Cns (Exp n) = TH.EnvFld '[]
   type Env (Exp n) = ES.Env n
   chk ee r = case ee of
-    ConI _         -> return TH.Int
-    ConB _         -> return TH.Bol
-    ConF _         -> return TH.Flt
+    ConI _         -> return Int
+    ConB _         -> return Bol
+    ConF _         -> return Flt
     Var x          -> return (get x r)
     Abs eb         -> do ta <- newMT
                          tb <- chk eb (Ext ta r)
-                         return (TH.Arr ta tb)
+                         return (Arr ta tb)
     App t  ef ea   -> do ta <- chk ea r
                          tf <- chk ef r
                          tb <- newMT
-                         addC (tf TH.:~: TH.Arr ta tb)
-                         addC (t  TH.:~: ta)
+                         addC (tf :~: Arr ta tb)
+                         addC (t  :~: ta)
                          return tb
     Cnd ec et ef   -> do tc <- chk ec r
-                         addC (tc TH.:~: TH.Bol)
+                         addC (tc :~: Bol)
                          tt <- chk et r
                          tf <- chk ef r
-                         addC (tt TH.:~: tf)
+                         addC (tt :~: tf)
                          return tt
     Whl ec eb ei   -> do t  <- newMT
                          tc <- chk ec (Ext t r)
-                         addC (tc TH.:~: TH.Bol)
+                         addC (tc :~: Bol)
                          tb <- chk eb (Ext t r)
-                         addC (tb TH.:~: t)
+                         addC (tb :~: t)
                          ti <- chk ei r
-                         addC (ti TH.:~: t)
+                         addC (ti :~: t)
                          return t
     Tpl ef es      -> TH.Tpl <$> chk ef r <*> chk es r
     Fst t e        -> do te  <- chk e r
                          tf  <- newMT
                          ts  <- newMT
-                         addC (te TH.:~: TH.Tpl tf ts)
-                         addC (t  TH.:~: ts)
+                         addC (te :~: TH.Tpl tf ts)
+                         addC (t  :~: ts)
                          return tf
     Snd t  e       -> do te  <- chk e r
                          tf  <- newMT
                          ts  <- newMT
-                         addC (te TH.:~: TH.Tpl tf ts)
-                         addC (t  TH.:~: tf)
+                         addC (te :~: TH.Tpl tf ts)
+                         addC (t  :~: tf)
                          return ts
     Ary el ef      -> do tl  <- chk el r
-                         addC (tl TH.:~: TH.Int)
-                         tf  <- chk ef (Ext TH.Int r)
+                         addC (tl :~: Int)
+                         tf  <- chk ef (Ext Int r)
                          return (TH.Ary tf)
     Len t e        -> do te  <- chk e r
                          ta  <- newMT
-                         addC (te TH.:~: TH.Ary ta)
-                         addC (t  TH.:~: ta)
-                         return TH.Int
+                         addC (te :~: TH.Ary ta)
+                         addC (t  :~: ta)
+                         return Int
     Ind ea ei      -> do ta  <- chk ea r
                          taa <- newMT
-                         addC (ta TH.:~: TH.Ary taa)
+                         addC (ta :~: TH.Ary taa)
                          ti  <- chk ei r
-                         addC (ti TH.:~: TH.Int)
+                         addC (ti :~: Int)
                          return taa
     AryV el ef     -> do tl  <- chk el r
-                         addC (tl TH.:~: TH.Int)
-                         tf  <- chk ef (Ext TH.Int r)
+                         addC (tl :~: Int)
+                         tf  <- chk ef (Ext Int r)
                          return (TH.Vec tf)
     LenV t e        -> do te  <- chk e r
                           ta  <- newMT
-                          addC (te TH.:~: TH.Vec ta)
-                          addC (t  TH.:~: ta)
-                          return TH.Int
+                          addC (te :~: TH.Vec ta)
+                          addC (t  :~: ta)
+                          return Int
     IndV ea ei      -> do ta  <- chk ea r
                           taa <- newMT
-                          addC (ta TH.:~: TH.Vec taa)
+                          addC (ta :~: TH.Vec taa)
                           ti  <- chk ei r
-                          addC (ti TH.:~: TH.Int)
+                          addC (ti :~: Int)
                           return taa
 
     Let t  el eb   -> do tl  <- chk el r
                          tb  <- chk eb (Ext tl r)
-                         addC (t TH.:~: tl)
+                         addC (t :~: tl)
                          return tb
     Cmx er ei      -> do tr  <- chk er r
-                         addC (tr TH.:~: TH.Flt)
+                         addC (tr :~: Flt)
                          ti  <- chk ei r
-                         addC (ti TH.:~: TH.Flt)
+                         addC (ti :~: Flt)
                          return TH.Cmx
     Non            -> do t <- newMT
                          return (TH.May t)
@@ -100,12 +101,16 @@ instance Chk (Exp n) where
                          return (TH.May t)
     May t em en es -> do mm  <- chk em r
                          a   <- newMT
-                         addC (mm TH.:~: TH.May a)
+                         addC (mm :~: TH.May a)
                          bn  <- chk en r
                          bs  <- chk es (Ext a r)
-                         addC (bn TH.:~: bs)
-                         addC (t  TH.:~: a)
+                         addC (bn :~: bs)
+                         addC (t  :~: a)
                          return bs
     Typ t e        -> do te <- chk e r
-                         addC (t TH.:~: te)
+                         addC (t :~: te)
                          return te
+    Mul el er      -> do tl <- chk el r
+                         tr <- chk er r
+                         addC (tl :~: tr)
+                         return tl

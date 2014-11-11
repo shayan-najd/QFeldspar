@@ -32,9 +32,7 @@ isVal ee = case ee of
   Cmx  _  _    -> True
   Tmp  _       -> True
   Tag  _  e    -> isVal e
-{-Non          -> True
-  Som  e       -> isVal e
-  May  _ _  _  -> False-}
+  Mul  _  _    -> False
 
 val :: Exp n t -> (Bool,Exp n t)
 val ee = (isVal ee , ee)
@@ -134,19 +132,10 @@ instance HasSin TFG.Typ t => NrmOne (Exp n t) where
     Tmp x                          -> pure (Tmp x)
 
     Tag x e                        -> Tag x <$@> e
-{-
-    Non                            -> pure Non
 
-    Som (NV e)                     -> case TFG.getPrfHasSinMay t of
-      PrfHasSin                    -> chg (Let e  (\ x -> Som x))
-    Som e                          -> case TFG.getPrfHasSinMay t of
-      PrfHasSin                    -> Som  <$@> e
-
-    May (NV em) en      es         -> chg (Let em (\ x -> May x  en es))
-    May (V  em) (NV en) es         -> chg (Let en (\ x -> May em x  es))
-    May (TF Non) en   _            -> chg en
-    May (TF (Som e))  _  es        -> chg (es e)
-    May em      en      es         -> May  <$@> em <*@> en <*@> es -}
+    Mul er      (NV ei)            -> chg (Let ei (\ x -> Mul  er x ))
+    Mul (NV er) (V ei)             -> chg (Let er (\ x -> Mul  x  ei))
+    Mul er ei                      -> Mul  <$@> er <*@> ei
 
 instance (HasSin TFG.Typ tb, HasSin TFG.Typ ta) =>
          NrmOne (Exp n ta -> Exp n tb) where

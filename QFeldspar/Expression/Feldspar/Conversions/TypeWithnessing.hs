@@ -64,6 +64,8 @@ instance (r ~ r' , n ~ Len r , HasSin TFG.Typ t) =>
                                                       (samTyp (TFG.Vct ta') e')
     (FGTD.IndV e  ei    , _)           -> FGFO.IndV <$@> e  <*@> ei
     (FGTD.Cmx er ei    , TFG.Cmx)      -> FGFO.Cmx <$@> er <*@> ei
+    (FGTD.Mul er ei    , TFG.Int)      -> FGFO.Mul <$@> er <*@> ei
+    (FGTD.Mul er ei    , TFG.Flt)      -> FGFO.Mul <$@> er <*@> ei
     (FGTD.Let tl el eb , _)            -> do ExsSin tl' :: ExsTyp <- cnv tl
                                              PrfHasSin <- getPrfHasSinM tl'
                                              FGFO.Let <$@> el <*@> (tl' , eb)
@@ -78,7 +80,7 @@ instance (r ~ r' , n ~ Len r , HasSin TFG.Typ t) =>
                                                <$> pure (samTyp (TFG.May t') em')
                                                <*@> en <*@> (t' , es)
     (FGTD.Typ _ e      , _)            -> cnvImp e
-    _                                  -> fail "Type Error!"
+    _                                  -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
 
 instance (r ~ r' , n ~ Len (tr ': r) , HasSin TFG.Typ t , tr ~ tr') =>
          Cnv ((TFG.Typ tr , FGTD.Exp n TFA.Typ) , Env TFG.Typ r)
@@ -118,6 +120,7 @@ instance (n ~ Len r , HasSin TFG.Typ t) =>
       PrfHasSin               -> FGTD.Som <$@> e
     FGFO.May em en es         -> FGTD.May <$@> TFG.getMayTyp(sinTyp em)
                                  <*@> em <*@> en <*@> es
+    FGFO.Mul er  ei           -> FGTD.Mul <$@> er <*@> ei
 
 instance (n ~ Len (ta ': r) , HasSin TFG.Typ t, HasSin TFG.Typ ta) =>
          Cnv (FGFO.Exp (ta ': r) t , Env TFG.Typ r)
