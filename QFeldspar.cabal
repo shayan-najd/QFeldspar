@@ -49,6 +49,7 @@ library
      QFeldspar.Normalisation,
      QFeldspar.MyPrelude,
      QFeldspar.CSE,
+     QFeldspar.Eta,
      QFeldspar.Existential,
      QFeldspar.Solver,
      QFeldspar.Conversion,

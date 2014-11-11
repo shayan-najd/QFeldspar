@@ -31,7 +31,9 @@ import QFeldspar.Expression.Feldspar.Conversions.Lifting          ()
 import QFeldspar.Expression.Feldspar.Conversions.Normalisation    ()
 
 import QFeldspar.Normalisation
-import QFeldspar.Normalisation.Feldspar.GADTHigherOrder (eta)
+import QFeldspar.Normalisation.Feldspar.GADTHigherOrder ()
+
+import QFeldspar.Eta
 
 import QFeldspar.Singleton
 
