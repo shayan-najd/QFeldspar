@@ -60,7 +60,9 @@ instance HasSin TFG.Typ t => NrmOne (Exp n t) where
     Cnd (ConB False) _  ef       -> chg ef
     Cnd ec           et ef       -> Cnd  <$@> ec <*@> et <*@> ef
 
-    Whl ec eb (NV ei)            -> chg (Let ei (\ x -> Whl ec eb x))
+    Whl (NV ec) eb      ei       -> chg (Let ec (\ x -> Whl x  eb ei))
+    Whl (V  ec) (NV eb) ei       -> chg (Let eb (\ x -> Whl ec x  ei))
+    Whl (V  ec) (V  eb) (NV ei)  -> chg (Let ei (\ x -> Whl ec eb x))
     Whl ec eb ei                 -> Whl  <$@> ec <*@> eb <*@> ei
 
     Tpl (NV ef) es               -> case TFG.getPrfHasSinTpl t of
@@ -79,6 +81,8 @@ instance HasSin TFG.Typ t => NrmOne (Exp n t) where
     Snd e                        -> Snd  <$@> e
 
     Ary (NV el) ef               -> chg (Let el (\ x -> Ary x ef))
+    Ary (V  el) (NV ef)          -> case TFG.getPrfHasSinAry t of
+      PrfHasSin                  -> chg (Let ef (\ x -> Ary el x))
     Ary el      ef               -> case TFG.getPrfHasSinAry t of
       PrfHasSin                  -> Ary  <$@> el <*@> ef
 
@@ -88,10 +92,12 @@ instance HasSin TFG.Typ t => NrmOne (Exp n t) where
 
     Ind (NV ea)        ei        -> chg (Let ea (\ x -> Ind x  ei))
     Ind (V ea)         (NV ei)   -> chg (Let ei (\ x -> Ind ea x ))
-    Ind (Ary (V _) ef) (V ei)    -> chg (ef ei)
+    Ind (Ary (V _) ef) (V ei)    -> chg (App ef ei)
     Ind ea             ei        -> Ind  <$@> ea <*@> ei
 
     AryV (NV el) ef              -> chg (Let el (\ x -> AryV x ef))
+    AryV (V  el) (NV ef)         -> case TFG.getPrfHasSinVec t of
+      PrfHasSin                  -> chg (Let ef (\ x -> AryV el x))
     AryV el      ef              -> case TFG.getPrfHasSinVec t of
       PrfHasSin                  -> AryV  <$@> el <*@> ef
 
@@ -101,7 +107,7 @@ instance HasSin TFG.Typ t => NrmOne (Exp n t) where
 
     IndV (NV ea)        ei        -> chg (Let ea (\ x -> IndV x  ei))
     IndV (V ea)         (NV ei)   -> chg (Let ei (\ x -> IndV ea x ))
-    IndV (AryV (V _) ef) (V ei)   -> chg (ef ei)
+    IndV (AryV (V _) ef) (V ei)   -> chg (App ef ei)
     IndV ea             ei        -> IndV  <$@> ea <*@> ei
 
     Cmx (NV er) ei               -> chg (Let er (\ x -> Cmx  x  ei))
@@ -125,8 +131,9 @@ instance HasSin TFG.Typ t => NrmOne (Exp n t) where
 
     May (NV em) en      es       -> chg (Let em (\ x -> May x  en es))
     May (V  em) (NV en) es       -> chg (Let en (\ x -> May em x  es))
+    May (V  em) (V  en) (NV es)  -> chg (Let es (\ x -> May em en x ))
     May Non     en      _        -> chg en
-    May (Som e) _       es       -> chg (es e)
+    May (Som e) _       es       -> chg (App es e)
     May em      en      es       -> May  <$@> em <*@> en <*@> es
 
     Mul er  (NV ei)              -> chg (Let ei (\ x -> Mul  er x ))

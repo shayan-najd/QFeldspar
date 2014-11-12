@@ -8,7 +8,7 @@ import qualified QFeldspar.Expression.Feldspar.MiniFeldspar  as FMWS
 import qualified QFeldspar.Type.Feldspar.GADT                  as TFG
 
 import QFeldspar.Variable.Typed
-import QFeldspar.Environment.Typed
+import QFeldspar.Environment.Typed hiding (fmap)
 
 import QFeldspar.Conversion
 import QFeldspar.Singleton
@@ -58,6 +58,12 @@ instance (HasSin TFG.Typ t , t ~ t' , r ~ r') =>
     FGHO.May _ _ _            -> fail "Normalisation Error!"
     FGHO.Mul er ei            -> FMWS.Mul <$@> er <*@> ei
 
+instance (HasSin TFG.Typ a , HasSin TFG.Typ b, a ~ a' , b ~ b' , r ~ r') =>
+    Cnv (FGHO.Exp r' (Arr a' b') , rr) (FMWS.Exp r a -> FMWS.Exp r b)  where
+    cnv (ee , r) = case ee of
+      FGHO.Abs e -> cnv (e , r)
+      _          -> fail "Normalisation Error!"
+
 instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb , r ~ r' , ta ~ ta' ,tb ~ tb') =>
          Cnv (FGHO.Exp r  ta  -> FGHO.Exp r  tb , rr)
              (FMWS.Exp r' ta' -> FMWS.Exp r' tb')
@@ -98,6 +104,10 @@ instance (HasSin TFG.Typ t , t' ~ t , r' ~ r) =>
     FMWS.Tag _  e             -> cnvImp e
     FMWS.Tmp x                -> pure (FGHO.Tmp x)
     FMWS.Mul er ei            -> FGHO.Mul <$@> er <*@> ei
+
+instance (HasSin TFG.Typ a , HasSin TFG.Typ b, a ~ a' , b ~ b' , r ~ r') =>
+    Cnv (FMWS.Exp r a -> FMWS.Exp r b , rr) (FGHO.Exp r' (Arr a' b')) where
+    cnv (ee , r) = fmap FGHO.Abs (cnv (ee , r))
 
 instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb, ta ~ ta' , tb ~ tb' , r ~ r') =>
          Cnv (FMWS.Exp r  ta  -> FMWS.Exp r  tb , rr)

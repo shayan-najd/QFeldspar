@@ -26,19 +26,6 @@ mkDo st = let ?r = () in case st of
                                         <$> mkDo es)
   _                             -> fail ("Syntax Error!\n" ++ (show st))
 
-mkLam :: TH.Exp -> ErrM (TH.Name , TH.Exp)
-mkLam e = case e of
-  TH.LamE [TH.VarP x] eb -> pure (x , eb)
-  TH.LamE [p]         eb -> let v1 = genNewNam "__mkLam__"
-                                {-# NOINLINE v1 #-}
-                            in deepseq v1 $
-                            let vv1 = stripNameSpace (TH.mkName v1) in
-                             pure (vv1 , TH.CaseE (TH.VarE vv1)
-                                           [TH.Match p (TH.NormalB eb) []])
-  TH.LamE (x:xs)      eb -> mkLam (TH.LamE [x] (TH.LamE xs eb))
-  _                      -> fail "Syntax Error!"
-
-
 instance Cnv (TH.Exp , ()) (FAUN.Exp TH.Name) where
   cnv (ee , r) = let ?r = r in case ee of
     TH.ParensE e            -> cnvImp e
@@ -65,7 +52,7 @@ instance Cnv (TH.Exp , ()) (FAUN.Exp TH.Name) where
 
     TH.DoE stmts            -> mkDo stmts
     TH.AppE (TH.AppE (TH.ConE n) el) l
-      | n === 'Vec           -> FAUN.AryV <$@> el  <*> (cnvImp =<< mkLam l)
+      | n === 'Vec           -> FAUN.AryV <$@> el <*@> l
     TH.AppE (TH.ConE n) e
       | n === 'Just          -> FAUN.Som  <$@> e
     TH.AppE (TH.VarE n) ea
@@ -80,15 +67,14 @@ instance Cnv (TH.Exp , ()) (FAUN.Exp TH.Name) where
     TH.AppE (TH.AppE
              (TH.VarE n) el)
             l
-      | n === 'arr           -> FAUN.Ary  <$@> el  <*> (cnvImp =<< mkLam l)
+      | n === 'arr           -> FAUN.Ary  <$@> el  <*@> l
 
     TH.AppE (TH.AppE
         (TH.AppE (TH.VarE n)
         l1)
         l2)
         ei
-      | n === 'while        -> FAUN.Whl  <$> (cnvImp =<< mkLam l1)
-                                         <*> (cnvImp =<< mkLam l2)
+      | n === 'while        -> FAUN.Whl  <$@> l1 <*@> l2
                                          <*@> ei
     TH.AppE ef ea           -> FAUN.App  <$@> ef <*@> ea
     TH.CondE ec et ef       -> FAUN.Cnd  <$@> ec <*@> et <*@> ef
@@ -121,8 +107,7 @@ instance Cnv (TH.Exp , ()) (FAUN.Exp TH.Name) where
     TH.CaseE ec [TH.Match (TH.ConP nl []) (TH.NormalB el) []
                 ,TH.Match (TH.ConP nr [TH.VarP xr]) (TH.NormalB er) []]
         | nl === 'Nothing ,
-          nr === 'Just      -> FAUN.May <$@> ec <*@> el
-                               <*@> (xr , er)
+          nr === 'Just      -> FAUN.May <$@> ec <*@> el <*@> (TH.LamE [TH.VarP xr] er)
     TH.SigE e t             -> FAUN.Typ <$@> t  <*@> e
     e                       -> fail  ("Syntax Error!\n" ++ (show e))
 
@@ -140,33 +125,30 @@ instance Cnv (FAUN.Exp TH.Name , ()) TH.Exp where
     FAUN.Abs (x , eb)       -> TH.LamE [TH.VarP x] <$@> eb
     FAUN.App ef ea          -> TH.AppE <$@> ef <*@> ea
     FAUN.Cnd ec et ef       -> TH.CondE <$@> ec <*@> et <*@> ef
-    FAUN.Whl (xc , ec)
-             (xb , eb) ei   -> do ec' <- cnvImp ec
+    FAUN.Whl ec eb ei       -> do ec' <- cnvImp ec
                                   eb' <- cnvImp eb
                                   ei' <- cnvImp ei
                                   pure (TH.AppE (TH.AppE
-                                                 (TH.AppE (TH.VarE 'while)
-                                                  (TH.LamE [TH.VarP xc] ec'))
-                                                 (TH.LamE [TH.VarP xb] eb'))
+                                         (TH.AppE (TH.VarE 'while)
+                                           ec')
+                                           eb')
                                         ei')
     FAUN.Tpl ef es          -> do ef' <- cnvImp ef
                                   es' <- cnvImp es
                                   pure (TH.TupE [ef' , es'])
     FAUN.Fst ea             -> TH.AppE (TH.VarE 'fst) <$@> ea
     FAUN.Snd ea             -> TH.AppE (TH.VarE 'snd) <$@> ea
-    FAUN.Ary el (x , eb)    -> do el' <- cnvImp el
+    FAUN.Ary el eb          -> do el' <- cnvImp el
                                   eb' <- cnvImp eb
-                                  pure (TH.AppE (TH.AppE (TH.VarE 'arr) el')
-                                                 (TH.LamE [TH.VarP x] eb'))
+                                  pure (TH.AppE (TH.AppE (TH.VarE 'arr) el') eb')
     FAUN.Len ea             -> TH.AppE (TH.VarE 'arrLen) <$@> ea
     FAUN.Ind el ef          -> do el' <- cnvImp el
                                   ef' <- cnvImp ef
                                   pure (TH.AppE (TH.AppE (TH.VarE 'arrIx) el')
                                           ef')
-    FAUN.AryV el (x , eb)   -> do el' <- cnvImp el
+    FAUN.AryV el eb         -> do el' <- cnvImp el
                                   eb' <- cnvImp eb
-                                  pure (TH.AppE (TH.AppE (TH.ConE 'Vec) el')
-                                                 (TH.LamE [TH.VarP x] eb'))
+                                  pure (TH.AppE (TH.AppE (TH.ConE 'Vec) el') eb')
     FAUN.LenV ea            -> let v1 = genNewNam "__LenVQuoting1__"
                                    {-# NOINLINE v1 #-}
                                in deepseq v1 $
@@ -216,12 +198,16 @@ instance Cnv (FAUN.Exp TH.Name , ()) TH.Exp where
                                   pure (TH.AppE (TH.AppE (TH.VarE '(*)) er') ei')
     FAUN.Non                -> pure (TH.ConE 'Nothing)
     FAUN.Som e              -> TH.AppE (TH.ConE 'Just) <$@> e
-    FAUN.May em en (x , es) -> do em' <- cnvImp em
+    FAUN.May em en es       -> let v1 = genNewNam "__MayQuoting1__"
+                                   {-# NOINLINE v1 #-}
+                               in deepseq v1 $
+                               let x = stripNameSpace (TH.mkName v1) in
+                               do em' <- cnvImp em
                                   en' <- cnvImp en
                                   es' <- cnvImp es
                                   pure (TH.CaseE em'
                                        [TH.Match (TH.ConP 'Nothing [])
                                                  (TH.NormalB en') [],
                                         TH.Match (TH.ConP 'Just [TH.VarP x])
-                                                 (TH.NormalB es') []])
+                                                 (TH.NormalB (TH.AppE es' (TH.VarE x))) []])
     FAUN.Typ t e            -> TH.SigE <$@> e <*@> t

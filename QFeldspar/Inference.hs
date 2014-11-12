@@ -79,14 +79,14 @@ collect ee r = case ee of
                          tf <- collect ef r
                          addC (tt :~: tf)
                          return tt
-    Whl ec eb ei   -> do t  <- newMT
-                         tc <- collect ec (Ext t r)
-                         addC (tc :~: Bol)
-                         tb <- collect eb (Ext t r)
-                         addC (tb :~: t)
+    Whl ec eb ei   -> do tc <- collect ec r
+                         tb <- collect eb r
                          ti <- collect ei r
-                         addC (ti :~: t)
-                         return t
+                         ts <- newMT
+                         addC (tc :~: Arr ts Bol)
+                         addC (tb :~: Arr ts ts)
+                         addC (ti :~: ts)
+                         return ts
     Tpl ef es      -> TH.Tpl <$> collect ef r <*> collect es r
     Fst t e        -> do te  <- collect e r
                          tf  <- newMT
@@ -101,9 +101,11 @@ collect ee r = case ee of
                          addC (t  :~: tf)
                          return ts
     Ary el ef      -> do tl  <- collect el r
+                         tf  <- collect ef r
                          addC (tl :~: Int)
-                         tf  <- collect ef (Ext Int r)
-                         return (TH.Ary tf)
+                         ta  <- newMT
+                         addC (tf :~: Arr Int ta)
+                         return (TH.Ary ta)
     Len t e        -> do te  <- collect e r
                          ta  <- newMT
                          addC (te :~: TH.Ary ta)
@@ -116,9 +118,11 @@ collect ee r = case ee of
                          addC (ti :~: Int)
                          return taa
     AryV el ef     -> do tl  <- collect el r
+                         tf  <- collect ef r
                          addC (tl :~: Int)
-                         tf  <- collect ef (Ext Int r)
-                         return (TH.Vec tf)
+                         ta  <- newMT
+                         addC (tf :~: Arr Int ta)
+                         return (TH.Vec ta)
     LenV t e       -> do te  <- collect e r
                          ta  <- newMT
                          addC (te :~: TH.Vec ta)
@@ -143,14 +147,14 @@ collect ee r = case ee of
                          return (TH.May t)
     Som e          -> do t   <- collect e r
                          return (TH.May t)
-    May t em en es -> do mm  <- collect em r
-                         a   <- newMT
-                         addC (mm :~: TH.May a)
-                         bn  <- collect en r
-                         bs  <- collect es (Ext a r)
-                         addC (bn :~: bs)
-                         addC (t  :~: a)
-                         return bs
+    May t em en es -> do tm  <- collect em r
+                         tn  <- collect en r
+                         ts  <- collect es r
+                         ta  <- newMT
+                         addC (tm :~: TH.May ta)
+                         addC (ts :~: Arr ta tn)
+                         addC (t  :~: ta)
+                         return tn
     Typ t e        -> do te <- collect e r
                          addC (t :~: te)
                          return te

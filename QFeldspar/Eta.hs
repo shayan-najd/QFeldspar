@@ -28,17 +28,17 @@ etasub ee = let t = sin :: TFG.Typ t in case ee of
       (PrfHasSin , PrfHasSin) -> Abs (etaF eb)
     App ef             ea     -> App (etasub ef) (eta ea)
     Cnd ec et ef              -> Cnd (eta ec) (eta et) (eta ef)
-    Whl ec eb ei              -> Whl (etaF ec) (etaF eb) (eta ei)
+    Whl ec eb ei              -> Whl (eta ec) (eta eb) (eta ei)
     Tpl ef es                 -> case TFG.getPrfHasSinTpl t of
       (PrfHasSin , PrfHasSin) -> Tpl (eta ef) (eta es)
     Fst e                     -> Fst (eta e)
     Snd e                     -> Snd (eta e)
     Ary el ef                 -> case TFG.getPrfHasSinAry t of
-      PrfHasSin               -> Ary (eta el) (etaF ef)
+      PrfHasSin               -> Ary (eta el) (eta ef)
     Len e                     -> Len (eta e)
     Ind ea             ei     -> Ind (eta ea) (eta ei)
     AryV el ef                 -> case TFG.getPrfHasSinVec t of
-      PrfHasSin               -> AryV (eta el) (etaF ef)
+      PrfHasSin               -> AryV (eta el) (eta ef)
     LenV e                     -> LenV (eta e)
     IndV ea             ei     -> IndV (eta ea) (eta ei)
     Let el eb                 -> Let (eta el) (etaF eb)
@@ -47,7 +47,7 @@ etasub ee = let t = sin :: TFG.Typ t in case ee of
     Non                       -> Non
     Som e                     -> case TFG.getPrfHasSinMay t of
       PrfHasSin               -> Som (eta e)
-    May em en es              -> May (eta em) (eta en) (etaF es)
+    May em en es              -> May (eta em) (eta en) (eta es)
     Mul er ei                 -> Mul (eta er) (eta ei)
 
 etaF :: forall n ta tb. (HasSin TFG.Typ ta , HasSin TFG.Typ tb) =>

@@ -1,7 +1,7 @@
 module QFeldspar.Expression.Feldspar.ADTValue
     (Exp(..)
     ,conI,conB,conF,var,abs,app,cnd,whl,fst,snd,tpl,ary,len,ind
-    ,cmx,non,som,may
+    ,cmx
     ,Lft(..),CoLft(..),addV,add,mul) where
 
 import QFeldspar.MyPrelude hiding (abs,fst,snd,may,som,non,cmx,tpl,cnd)
@@ -13,8 +13,6 @@ data Exp = ConI Int
          | Tpl (Exp , Exp)
          | Ary (Ary Exp)
          | Cmx Cmx
-         | Non
-         | Som Exp
 
 class Lft t where
   lft :: t -> Exp
@@ -39,9 +37,6 @@ instance Lft a => Lft (Array Int a) where
 
 instance Lft (Complex Float) where
   lft = Cmx
-
-instance Lft a => Lft (Maybe a) where
-  lft = maybe Non lft
 
 class CoLft t where
   colft :: Exp -> t
@@ -74,11 +69,6 @@ instance CoLft (Complex Float) where
   colft (Cmx c) = c
   colft _       = badTypVal
 
-instance CoLft a => CoLft (Maybe a) where
-  colft Non     = Nothing
-  colft (Som x) = colft x
-  colft _       = badTypVal
-
 var :: a -> ErrM a
 var = return
 
@@ -109,12 +99,13 @@ cnd :: Exp -> Exp -> Exp -> ErrM Exp
 cnd (ConB vc) v1 v2 = return (if vc then v1 else v2)
 cnd _         _  _  = badTypValM
 
-whl :: (Exp -> Exp) -> (Exp -> Exp) -> Exp -> ErrM Exp
-whl fc fb v = return (head (dropWhile
+whl :: Exp -> Exp -> Exp -> ErrM Exp
+whl (Abs fc) (Abs fb) v = return (head (dropWhile
                             (\ x -> case fc x of
                                 ConB b -> b
                                 _      -> badTypVal)
                             (iterate fb v)))
+whl _        _        _ = badTypValM
 
 fst :: Exp -> ErrM Exp
 fst (Tpl (vf , _ )) = return vf
@@ -127,11 +118,11 @@ snd _               = badTypValM
 tpl :: Exp -> Exp -> ErrM Exp
 tpl vf vs = return (Tpl (vf , vs))
 
-ary :: Exp -> (Exp -> Exp) -> ErrM Exp
-ary (ConI l) vf = return (Ary (listArray (0 , (l - 1))
+ary :: Exp -> Exp -> ErrM Exp
+ary (ConI l) (Abs vf) = return (Ary (listArray (0 , (l - 1))
                                [vf (ConI i)
                                | i <- [0 .. (l - 1)]]))
-ary _        _  = badTypValM
+ary _        _        = badTypValM
 
 len :: Exp -> ErrM Exp
 len (Ary a) = (return . ConI . (1 +) . uncurry (flip (-)) . bounds) a
@@ -144,17 +135,6 @@ ind _       _        = badTypValM
 cmx :: Exp -> Exp -> ErrM Exp
 cmx (ConF fr) (ConF fi) = return (Cmx (fr :+ fi))
 cmx _         _         = badTypValM
-
-non :: ErrM Exp
-non = return Non
-
-som :: Exp -> ErrM Exp
-som = return . Som
-
-may :: Exp -> Exp -> (Exp -> Exp) -> ErrM Exp
-may Non     en _ = return en
-may (Som e) _  f = return (f e)
-may _       _  _ = badTypValM
 
 mul :: Exp -> Exp -> ErrM Exp
 mul (ConI i) (ConI i') = return (ConI (i + i'))

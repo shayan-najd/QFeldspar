@@ -17,25 +17,25 @@ data Exp :: [*] -> * -> * where
   App  :: HasSin TFG.Typ ta =>
           Exp r (Arr ta tb) -> Exp r ta -> Exp r tb
   Cnd  :: Exp r Bol -> Exp r t -> Exp r t -> Exp r t
-  Whl  :: (Exp r t -> Exp r Bol)-> (Exp r t -> Exp r t)
-          -> Exp r t -> Exp r t
+  Whl  :: Exp r (Arr t Bol) -> Exp r (Arr t t) -> Exp r t -> Exp r t
   Tpl  :: Exp r tf -> Exp r ts -> Exp r (Tpl tf ts)
   Fst  :: HasSin TFG.Typ ts => Exp r (Tpl tf ts) -> Exp r tf
   Snd  :: HasSin TFG.Typ tf => Exp r (Tpl tf ts) -> Exp r ts
-  Ary  :: Exp r Int -> (Exp r Int -> Exp r ta) -> Exp r (Ary ta)
+  Ary  :: Exp r Int -> Exp r (Arr Int t) -> Exp r (Ary t)
   Len  :: HasSin TFG.Typ ta => Exp r (Ary ta) -> Exp r Int
   Ind  :: Exp r (Ary ta) -> Exp r Int -> Exp r ta
-  AryV :: Exp r Int -> (Exp r Int -> Exp r ta) -> Exp r (Vec ta)
+  AryV :: Exp r Int -> Exp r (Arr Int t) -> Exp r (Vec t)
   LenV :: HasSin TFG.Typ ta => Exp r (Vec ta) -> Exp r Int
   IndV :: Exp r (Vec ta) -> Exp r Int -> Exp r ta
-  Let  :: HasSin TFG.Typ tl => Exp r tl -> (Exp r tl -> Exp r tb) -> Exp r tb
+  Let  :: HasSin TFG.Typ tl =>
+          Exp r tl -> (Exp r tl -> Exp r tb) -> Exp r tb
   Cmx  :: Exp r Flt -> Exp r Flt -> Exp r Cmx
-  Tmp  :: String -> Exp r a
   Non  :: Exp r (May tl)
   Som  :: Exp r tl -> Exp r (May tl)
   May  :: HasSin TFG.Typ a =>
-          Exp r (May a) -> Exp r b -> (Exp r a -> Exp r b) -> Exp r b
-  Mul   :: Exp r a -> Exp r a -> Exp r a
+          Exp r (May a) -> Exp r b -> Exp r (Arr a b) -> Exp r b
+  Mul  :: Exp r a  -> Exp r a -> Exp r a
+  Tmp  :: String -> Exp r a
 
 deriving instance Show (Exp r t)
 
@@ -58,7 +58,7 @@ eql (App ef (ea :: Exp r ta)) (App ef' (ea' :: Exp r ta')) =
     Rgt Rfl -> eql ef ef' && eql ea ea'
     _       -> False
 eql (Cnd ec et ef) (Cnd ec' et' ef') = eql ec ec' && eql et et' && eql ef ef'
-eql (Whl ec eb ei) (Whl ec' eb' ei') = eqlF ec ec' && eqlF eb eb' && eql ei ei'
+eql (Whl ec eb ei) (Whl ec' eb' ei') = eql ec ec' && eql eb eb' && eql ei ei'
 eql (Tpl ef es)    (Tpl ef' es')     = eql ef ef' && eql es es'
 eql (Fst (e :: Exp r (Tpl t ts))) (Fst (e' :: Exp r (Tpl t ts'))) =
   case eqlSin (sin :: TFG.Typ ts) (sin :: TFG.Typ ts') of
@@ -68,14 +68,14 @@ eql (Snd (e :: Exp r (Tpl tf t))) (Snd (e' :: Exp r (Tpl tf' t))) =
   case eqlSin (sin :: TFG.Typ tf) (sin :: TFG.Typ tf') of
     Rgt Rfl -> eql e e'
     _       -> False
-eql (Ary ei ef) (Ary ei' ef') = eql ei ei' && eqlF ef ef'
+eql (Ary ei ef) (Ary ei' ef') = eql ei ei' && eql ef ef'
 eql (Len (e :: Exp r (Ary ta))) (Len (e' :: Exp r (Ary ta'))) =
   case eqlSin (sin :: TFG.Typ ta) (sin :: TFG.Typ ta') of
     Rgt Rfl -> eql e e'
     _       -> False
 eql (Ind (e :: Exp r (Ary t)) ei) (Ind (e' :: Exp r (Ary t)) ei') =
     eql e e' && eql ei ei'
-eql (AryV ei ef) (AryV ei' ef') = eql ei ei' && eqlF ef ef'
+eql (AryV ei ef) (AryV ei' ef') = eql ei ei' && eql ef ef'
 eql (LenV (e :: Exp r (Vec ta))) (LenV (e' :: Exp r (Vec ta'))) =
   case eqlSin (sin :: TFG.Typ ta) (sin :: TFG.Typ ta') of
     Rgt Rfl -> eql e e'
@@ -93,7 +93,7 @@ eql (Som e)     (Som e')      = eql e e'
 eql (May (em  :: Exp r (May tm)) en  es)
     (May (em' :: Exp r (May tm')) en' es') =
   case eqlSin (sin :: TFG.Typ tm)(sin :: TFG.Typ tm') of
-    Rgt Rfl -> eql em em' && eql en en' && eqlF es es'
+    Rgt Rfl -> eql em em' && eql en en' && eql es es'
     _       -> False
 eql (Mul ei er) (Mul ei' er') = eql ei ei' && eql er er'
 eql _           _             = False
@@ -119,15 +119,15 @@ mapVar f _ (Var v)        = Var (f v)
 mapVar f g (Abs eb)       = Abs (mapVarF f g eb)
 mapVar f g (App ef ea)    = App (mapVar f g ef) (mapVar f g ea)
 mapVar f g (Cnd ec et ef) = Cnd (mapVar f g ec) (mapVar f g et) (mapVar f g ef)
-mapVar f g (Whl ec eb ei) = Whl (mapVarF f g ec)
-                                (mapVarF f g eb) (mapVar f g ei)
+mapVar f g (Whl ec eb ei) = Whl (mapVar f g ec)
+                                (mapVar f g eb) (mapVar f g ei)
 mapVar f g (Tpl ef es)    = Tpl (mapVar f g ef) (mapVar f g es)
 mapVar f g (Fst e)        = Fst (mapVar f g e)
 mapVar f g (Snd e)        = Snd (mapVar f g e)
-mapVar f g (Ary el ef)    = Ary (mapVar f g el) (mapVarF f g ef)
+mapVar f g (Ary el ef)    = Ary (mapVar f g el) (mapVar f g ef)
 mapVar f g (Len e)        = Len (mapVar f g e)
 mapVar f g (Ind ea ei)    = Ind (mapVar f g ea) (mapVar f g ei)
-mapVar f g (AryV el ef)   = AryV (mapVar f g el) (mapVarF f g ef)
+mapVar f g (AryV el ef)   = AryV (mapVar f g el) (mapVar f g ef)
 mapVar f g (LenV e)       = LenV (mapVar f g e)
 mapVar f g (IndV ea ei)   = IndV (mapVar f g ea) (mapVar f g ei)
 mapVar f g (Let el eb)    = Let (mapVar f g el) (mapVarF f g eb)
@@ -135,7 +135,7 @@ mapVar f g (Cmx er ei)    = Cmx (mapVar f g er) (mapVar f g ei)
 mapVar _ _ (Tmp x)        = Tmp x
 mapVar _ _ Non            = Non
 mapVar f g (Som e)        = Som (mapVar f g e)
-mapVar f g (May em en es) = May (mapVar f g em) (mapVar f g en) (mapVarF f g es)
+mapVar f g (May em en es) = May (mapVar f g em) (mapVar f g en) (mapVar f g es)
 mapVar f g (Mul er ei)    = Mul (mapVar f g er) (mapVar f g ei)
 
 mapVarF :: (forall t'. Var r  t' -> Var r' t') ->
@@ -154,19 +154,19 @@ absTmp xx s ee = let t = sin :: TFG.Typ t in case ee of
     (PrfHasSin , PrfHasSin) -> Abs (aF eb)
   App ef ea                 -> App (a ef)   (a ea)
   Cnd ec et ef              -> Cnd (a ec)   (a et)
-                                    (a ef)
-  Whl ec eb ei              -> Whl (aF ec) (aF eb)
+                                   (a ef)
+  Whl ec eb ei              -> Whl (a ec) (a eb)
                                    (a ei)
   Tpl ef es                 -> case TFG.getPrfHasSinTpl t of
     (PrfHasSin , PrfHasSin) -> Tpl (a ef)   (a es)
   Fst e                     -> Fst (a e)
   Snd e                     -> Snd (a e)
   Ary el ef                 -> case TFG.getPrfHasSinAry t of
-    PrfHasSin               -> Ary (a el)   (aF ef)
+    PrfHasSin               -> Ary (a el)   (a ef)
   Len e                     -> Len (a e)
   Ind ea ei                 -> Ind (a ea)   (a ei)
   AryV el ef                -> case TFG.getPrfHasSinVec t of
-    PrfHasSin               -> AryV (a el)   (aF ef)
+    PrfHasSin               -> AryV (a el)   (a ef)
   LenV e                    -> LenV (a e)
   IndV ea ei                -> IndV (a ea)   (a ei)
   Let el eb                 -> Let (a el)   (aF eb)
@@ -180,7 +180,7 @@ absTmp xx s ee = let t = sin :: TFG.Typ t in case ee of
   Som e                     -> case TFG.getPrfHasSinMay t of
    PrfHasSin                -> Som (a e)
   May ec en es              -> May (a ec) (a en)
-                                   (aF es)
+                                   (a es)
   Mul el er                 -> Mul (a el) (a er)
   where
       a :: (HasSin TFG.Typ a) =>
@@ -200,14 +200,14 @@ hasTmp s ee = case ee of
   Abs eb                    -> hasTmpF s eb
   App ef ea                 -> hasTmp s ef || hasTmp s ea
   Cnd ec et ef              -> hasTmp s ec || hasTmp s et || hasTmp s ef
-  Whl ec eb ei              -> hasTmpF s ec || hasTmpF s eb || hasTmp s ei
+  Whl ec eb ei              -> hasTmp s ec || hasTmp s eb || hasTmp s ei
   Tpl ef es                 -> hasTmp s ef || hasTmp s es
   Fst e                     -> hasTmp s e
   Snd e                     -> hasTmp s e
-  Ary el ef                 -> hasTmp s el || hasTmpF s ef
+  Ary el ef                 -> hasTmp s el || hasTmp s ef
   Len e                     -> hasTmp s e
   Ind ea ei                 -> hasTmp s ea || hasTmp s ei
-  AryV el ef                -> hasTmp s el || hasTmpF s ef
+  AryV el ef                -> hasTmp s el || hasTmp s ef
   LenV e                    -> hasTmp s e
   IndV ea ei                -> hasTmp s ea || hasTmp s ei
   Let el eb                 -> hasTmp s el || hasTmpF s eb
@@ -217,7 +217,7 @@ hasTmp s ee = case ee of
     | otherwise             -> False
   Non                       -> False
   Som e                     -> hasTmp s e
-  May em en es              -> hasTmp s em || hasTmp s en || hasTmpF s es
+  May em en es              -> hasTmp s em || hasTmp s en || hasTmp s es
   Mul el er                 -> hasTmp s el || hasTmp s er
 
 hasTmpF :: String -> (Exp r ta -> Exp r tb) -> Bool

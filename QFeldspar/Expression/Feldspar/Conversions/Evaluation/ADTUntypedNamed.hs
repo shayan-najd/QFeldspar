@@ -28,10 +28,8 @@ instance Eq v => Cnv (Exp v , Env v FAV.Exp) FAV.Exp where
     Ind ea ei          -> FAV.ind  <$@> ea <*@> ei
     Let el xeb         -> pure     <$@> App (Abs xeb) el
     Cmx er ei          -> FAV.cmx  <$@> er <*@> ei
-    Non                -> pure FAV.non
-    Som e              -> FAV.som  <$@> e
-    May em en xes      -> FAV.may  <$@> em <*@> en <*@> xes
     Typ _  e           -> pure (cnvImp e)
+    Mul el er          -> FAV.mul  <$@> el <*@> er
     _                  -> impossibleM)
 
 instance Eq v => Cnv ((v , Exp v) , Env v FAV.Exp) (FAV.Exp -> FAV.Exp) where

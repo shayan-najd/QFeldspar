@@ -29,10 +29,6 @@ instance HasSin TFG.Typ t =>  Cnv (FAV.Exp , ()) (FGV.Exp t) where
                                             . mapM (fmap FGV.getTrm
                                                     . samTypM ta
                                                     . cnvImp)) v
-    (FAV.Cmx c         , TFG.Cmx)       -> pure (FGV.Exp c)
-    (FAV.Non           , TFG.May _)     -> pure FGV.non
-    (FAV.Som v         , TFG.May _)     -> case TFG.getPrfHasSinMay t of
-       PrfHasSin                        -> FGV.som <$@> v
     _                                   -> fail "Type Error!"
 
 instance HasSin TFG.Typ t => Cnv (FGV.Exp t , ()) FAV.Exp where
@@ -51,8 +47,5 @@ instance HasSin TFG.Typ t => Cnv (FGV.Exp t , ()) FAV.Exp where
     TFG.Ary ta                -> case TFG.getPrfHasSinAry t of
        PrfHasSin              -> FAV.Ary <$> (mapM (cnvImp . samTyp ta . FGV.Exp) ee)
     TFG.Cmx                   -> pure (FAV.Cmx ee)
-    TFG.May ta                -> case TFG.getPrfHasSinMay t of
-       PrfHasSin              -> case ee of
-         Nothing -> pure FAV.Non
-         Just e  -> FAV.Som <$@> (samTyp ta (FGV.Exp e))
+    TFG.May _                 -> impossibleM
     TFG.Vct _                 -> impossibleM

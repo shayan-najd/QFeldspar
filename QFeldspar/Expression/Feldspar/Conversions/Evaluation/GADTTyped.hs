@@ -30,9 +30,6 @@ instance Cnv (Exp n t , Env n FAV.Exp) FAV.Exp where
     Ind ea ei    -> FAV.ind  <$@> ea <*@> ei
     Let _  el eb -> return   <$@> App impossible (Abs eb) el
     Cmx er ei    -> FAV.cmx  <$@> er <*@> ei
-    Non          -> pure FAV.non
-    Som e        -> FAV.som  <$@> e
-    May _ em en es -> FAV.may  <$@> em <*@> en <*@> es
     Typ _ e      -> pure (cnvImp e)
     _            -> impossibleM)
 

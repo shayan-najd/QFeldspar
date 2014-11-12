@@ -33,8 +33,7 @@ instance (r ~ r' , n ~ Len r , HasSin TFG.Typ t) =>
                                              FGFO.App <$@> ef
                                                        <*> pure (samTyp ta' ea')
     (FGTD.Cnd ec et ef , _)            -> FGFO.Cnd <$@> ec <*@> et <*@> ef
-    (FGTD.Whl ec eb ei , _)            -> FGFO.Whl <$@> (t , ec) <*@> (t , eb)
-                                          <*@> ei
+    (FGTD.Whl ec eb ei , _)            -> FGFO.Whl <$@> ec <*@> eb <*@> ei
     (FGTD.Tpl ef es    , TFG.Tpl _ _)  -> case TFG.getPrfHasSinTpl t of
       (PrfHasSin , PrfHasSin)          -> FGFO.Tpl <$@> ef <*@> es
     (FGTD.Fst ts e     , _)            -> do ExsSin ts' <- cnv ts
@@ -48,7 +47,7 @@ instance (r ~ r' , n ~ Len r , HasSin TFG.Typ t) =>
                                              FGFO.Snd <$> pure
                                                       (samTyp (TFG.Tpl tf' t) e')
     (FGTD.Ary el ef    , TFG.Ary _)    -> case TFG.getPrfHasSinAry t of
-      PrfHasSin                        -> FGFO.Ary <$@> el <*@> (TFG.Int , ef)
+      PrfHasSin                        -> FGFO.Ary <$@> el <*@> ef
     (FGTD.Len ta e     , TFG.Int )     -> do ExsSin ta' :: ExsTyp <- cnv ta
                                              PrfHasSin <- getPrfHasSinM ta'
                                              e' <- cnvImp e
@@ -56,7 +55,7 @@ instance (r ~ r' , n ~ Len r , HasSin TFG.Typ t) =>
                                                       (samTyp (TFG.Ary ta') e')
     (FGTD.Ind e  ei    , _)            -> FGFO.Ind <$@> e  <*@> ei
     (FGTD.AryV el ef    , TFG.Vct _)   -> case TFG.getPrfHasSinVec t of
-      PrfHasSin                        -> FGFO.AryV <$@> el <*@> (TFG.Int , ef)
+      PrfHasSin                        -> FGFO.AryV <$@> el <*@> ef
     (FGTD.LenV ta e     , TFG.Int )    -> do ExsSin ta' :: ExsTyp <- cnv ta
                                              PrfHasSin <- getPrfHasSinM ta'
                                              e' <- cnvImp e
@@ -78,7 +77,7 @@ instance (r ~ r' , n ~ Len r , HasSin TFG.Typ t) =>
                                              em' <- cnvImp em
                                              FGFO.May
                                                <$> pure (samTyp (TFG.May t') em')
-                                               <*@> en <*@> (t' , es)
+                                               <*@> en <*@> es
     (FGTD.Typ _ e      , _)            -> cnvImp e
     _                                  -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
 
