@@ -74,30 +74,3 @@ mapVar f ee = case ee of
 
     mf :: Exp (ta ': r) tt -> Exp (ta ': r') tt
     mf = mapVar (inc f)
-
-{-
-sbs :: forall r t t'.Exp r t' -> Var r t -> Exp r t -> Exp r t'
-sbs ebb v eaa = case ebb of
-  ConI i       -> ConI i
-  ConB i       -> ConB i
-  Var x
-    | x == v     -> eaa
-    | otherwise  -> ebb
-  Abs eb       -> Abs (mf eb)
-  App ef ea    -> App (m ef)  (m ea)
-  Cnd ec et ef -> Cnd (m ec)  (m et)  (m ef)
-  Whl ec eb ei -> Whl (mf ec) (mf eb) (m ei)
-  Tpl ef es    -> Tpl (m ef)  (m es)
-  Fst e        -> Fst (m e)
-  Snd e        -> Snd (m e)
-  Ary el ef    -> Ary (m el)  (mf ef)
-  Len e        -> Len (m e)
-  Ind ea ei    -> Ind (m ea)  (m ei)
-  Let el eb    -> Let (m el)  (mf eb)
-  where
-    m :: forall t'. Exp r t' -> Exp r t'
-    m  e = sbs e v eaa
-
-    mf :: forall t' tt. Exp (tt ': r) t' -> Exp (tt ': r) t'
-    mf e = sbs e (Suc v) (sucAll eaa)
--}

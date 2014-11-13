@@ -10,7 +10,6 @@ import qualified QFeldspar.Nat.ADT as NA
 import QFeldspar.Environment.Scoped
 import QFeldspar.Conversion
 import QFeldspar.Expression.Feldspar.Conversions.Evaluation.GADTTyped ()
-import QFeldspar.TypeChecking.Feldspar ()
 import QFeldspar.Inference
 
 dbl :: Exp (NA.Suc NA.Zro) TFA.Typ

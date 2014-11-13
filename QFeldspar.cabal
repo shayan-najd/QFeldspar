@@ -79,7 +79,6 @@ library
      QFeldspar.Expression.Feldspar.Conversions.ScopeWithnessing,
      QFeldspar.Expression.Feldspar.Conversions.NameResolution,
      QFeldspar.Expression.Feldspar.Conversions.Evaluation.GADTHigherOrder,
-     QFeldspar.Expression.Feldspar.Conversions.Evaluation.ADTValue,
      QFeldspar.Expression.Feldspar.Conversions.Evaluation.GADTFirstOrder,
      QFeldspar.Expression.Feldspar.Conversions.Evaluation.ADTUntypedNamed,
      QFeldspar.Expression.Feldspar.Conversions.Evaluation.MiniFeldspar,

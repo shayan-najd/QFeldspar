@@ -1,4 +1,5 @@
-module QFeldspar.Expression.Feldspar.ADTUntypedNamed (Exp(..)) where
+module QFeldspar.Expression.Feldspar.ADTUntypedNamed
+       (Exp(..)) where
 
 import QFeldspar.MyPrelude
 import qualified QFeldspar.Type.Feldspar.ADT as TFA

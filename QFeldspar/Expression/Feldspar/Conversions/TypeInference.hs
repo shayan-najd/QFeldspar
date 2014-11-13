@@ -13,7 +13,6 @@ import QFeldspar.Conversion
 import QFeldspar.Variable.Conversion   ()
 
 import QFeldspar.Inference             (typInf)
-import QFeldspar.TypeChecking.Feldspar ()
 
 instance n ~ n' =>
       Cnv (FGTD.Exp n (Maybe TFA.Typ) , Env n TFA.Typ)(FGTD.Exp n' TFA.Typ) where

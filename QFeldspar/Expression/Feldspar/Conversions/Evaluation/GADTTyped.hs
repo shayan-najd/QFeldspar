@@ -33,6 +33,5 @@ instance Cnv (Exp n t , Env n FAV.Exp) FAV.Exp where
     Typ _ e      -> pure (cnvImp e)
     _            -> impossibleM)
 
-
 instance Cnv (Exp (Suc n) t , Env n FAV.Exp) (FAV.Exp -> FAV.Exp) where
   cnv (e , r) = pure (frmRgt . curry cnv e . (flip Ext r))

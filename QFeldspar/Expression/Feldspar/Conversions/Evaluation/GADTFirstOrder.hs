@@ -48,21 +48,3 @@ instance (ta' ~ ta , tb' ~ tb , HasSin TFG.Typ ta , HasSin TFG.Typ tb) =>
   cnv  (e , r) = (pure . FGV.Exp)
                   (FGV.getTrm . frmRgt . curry cnv e
                    . flip Ext r . (FGV.Exp :: ta -> FGV.Exp ta))
-
-{-
-instance (HasSin TFG.Typ t , r ~ r' , t ~ t') =>
-         Cnv (FGV.Exp t', Env FGV.Exp r') (Exp r t) where
-  cnv (v , r) = case sin :: TFG.Typ t of
-    TFG.Int       -> pure (ConI (FGV.getVal v))
-    TFG.Bol       -> pure (ConB (FGV.getVal v))
-    TFG.Arr ta tb -> case (getPrfHasSin ta , getPrfHasSin tb) of
-      (PrfHasSin , PrfHasSin) -> return (Abs undefined)
-    TFG.Tpl tf ts -> case (getPrfHasSin tf , getPrfHasSin ts) of
-      (PrfHasSin , PrfHasSin) -> do
-        ef <- cnv (FGV.Exp $ fst (FGV.getVal v) , r)
-        es <- cnv (FGV.Exp $ snd (FGV.getVal v) , r)
-        pure (Tpl ef es)
-    TFG.Ary (ta :: TFG.Typ ta)-> case getPrfHasSin ta of
-      PrfHasSin -> let (0,l) = bounds (FGV.getVal v) in
-        return (Ary (ConI l) undefined)
--}

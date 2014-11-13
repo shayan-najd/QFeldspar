@@ -1,5 +1,5 @@
 module QFeldspar.Expression.Feldspar.ADTUntypedDebruijn
-    (Exp(..),fre) where
+       (Exp(..)) where
 
 import QFeldspar.MyPrelude
 import QFeldspar.Variable.Plain
@@ -34,35 +34,3 @@ data Exp = ConI Int
 
 deriving instance Eq   Exp
 deriving instance Show Exp
-
-fre :: Exp -> [Nat]
-fre ee = case ee of
-  ConI _        -> []
-  ConB _        -> []
-  ConF _        -> []
-  Var  n        -> [n]
-  Abs  eb       -> freF eb
-  App  ef ea    -> fre  ef ++ fre ea
-  Cnd  ec et ef -> fre  ec ++ fre et ++ fre ef
-  Whl  ec eb ei -> fre  ec ++ fre eb ++ fre ei
-  Tpl  ef es    -> fre  ef ++ fre es
-  Fst  e        -> fre  e
-  Snd  e        -> fre  e
-  Ary  el ef    -> fre  el ++ fre ef
-  Len  e        -> fre  e
-  Ind  e  ei    -> fre  e  ++ fre ei
-  AryV el ef    -> fre  el ++ fre ef
-  LenV e        -> fre  e
-  IndV e  ei    -> fre  e  ++ fre ei
-  Let  el eb    -> fre  el ++ fre eb
-  Cmx  er ei    -> fre  er ++ fre ei
-  Non           -> []
-  Som  e        -> fre  e
-  May  em en es -> fre  em ++ fre en ++ fre es
-  Typ  _  e     -> fre e
-  Mul  er ei    -> fre  er ++ fre ei
-
-freF :: Exp -> [Nat]
-freF f = drpZro (fre f)
-  where
-    drpZro = fmap prd . filter (/= Zro)

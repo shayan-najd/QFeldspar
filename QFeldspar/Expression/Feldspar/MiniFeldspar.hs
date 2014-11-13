@@ -217,35 +217,6 @@ absVar'F xx ef = let v = genNewNam "absVar'F"
                      {-# NOINLINE v #-}
                  in deepseq v $ (\ x -> absTmp x v (absVar' xx (ef (Tmp v))))
 
--- when input string is not "__dummy__"
-hasTmp :: String -> Exp r t -> Bool
-hasTmp s ee = case ee of
-  ConI _                    -> False
-  ConB _                    -> False
-  ConF _                    -> False
-  AppV _ es                 -> foldl (\ b e -> b || hasTmp s e) False es
-  Cnd ec et ef              -> hasTmp  s ec || hasTmp  s et || hasTmp  s ef
-  Whl ec eb ei              -> hasTmpF s ec || hasTmpF s eb || hasTmp  s ei
-  Tpl ef es                 -> hasTmp  s ef || hasTmp  s es
-  Fst e                     -> hasTmp  s e
-  Snd e                     -> hasTmp  s e
-  Ary el ef                 -> hasTmp  s el || hasTmpF s ef
-  Len e                     -> hasTmp  s e
-  Ind ea ei                 -> hasTmp  s ea || hasTmp  s ei
-  Let el eb                 -> hasTmp  s el || hasTmpF s eb
-  Cmx er ei                 -> hasTmp  s er || hasTmp  s ei
-  Tmp x
-    | s == x                -> True
-    | otherwise             -> False
-  Tag _ e                   -> hasTmp  s e
-  Mul er ei                 -> hasTmp  s er || hasTmp  s ei
-
-hasTmpF :: String -> (Exp r ta -> Exp r tb) -> Bool
-hasTmpF s f = let v = genNewNam "hasTmpF"
-                  {-# NOINLINE v #-}
-              in  deepseq v $ hasTmp s (f (Tmp v))
-
--- when input string is not "__dummy__"
 cntTmp :: String -> Exp r t -> Int
 cntTmp s ee = case ee of
   ConI _                    -> 0
@@ -281,7 +252,7 @@ hasOneOrZro f = let v = genNewNam "hasOneOrZro"
 isFresh :: (Exp r ta -> Exp r tb) -> Bool
 isFresh f = let v = genNewNam "isFresh"
                 {-# NOINLINE v #-}
-            in  deepseq v $ not (hasTmp v (f (Tmp v)))
+            in  deepseq v $ cntTmp v (f (Tmp v)) == 0
 
 
 instance Show

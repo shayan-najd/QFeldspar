@@ -23,8 +23,6 @@ import qualified Examples.IPGray.QDSL ()
 import qualified Examples.Windowing.CDSL ()
 import qualified Examples.Windowing.QDSL ()
 
-import QFeldspar.Expression.Feldspar.Conversions.Evaluation.ADTValue ()
-
 main :: IO ()
 main = print (if FAUN.test  && FAUD.test && FGTD.test  &&
                  FGFO.test  && FGHO.test && FMWS.test  &&
