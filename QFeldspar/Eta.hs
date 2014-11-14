@@ -4,11 +4,11 @@ module QFeldspar.Eta
 
 import QFeldspar.MyPrelude
 
-import QFeldspar.Expression.Feldspar.GADTHigherOrder
-import QFeldspar.Expression.Feldspar.Utils.GADTHigherOrder(absTmp)
-import QFeldspar.Expression.Feldspar.Utils.Common
+import QFeldspar.Expression.GADTHigherOrder
+import QFeldspar.Expression.Utils.GADTHigherOrder(absTmp)
+import QFeldspar.Expression.Utils.Common
 import QFeldspar.Singleton
-import qualified QFeldspar.Type.Feldspar.GADT as TFG
+import qualified QFeldspar.Type.GADT as TFG
 
 eta :: forall n t. HasSin TFG.Typ t =>
        Exp n t -> Exp n t

@@ -14,15 +14,15 @@ import QFeldspar.MyPrelude (frmRgt)
 import qualified QFeldspar.MyPrelude as MP
 
 import QFeldspar.Conversion
-import QFeldspar.Expression.Feldspar.Conversions.Evaluation.MiniFeldspar ()
-import QFeldspar.Expression.Feldspar.Conversion ()
+import QFeldspar.Expression.Conversions.Evaluation.MiniFeldspar ()
+import QFeldspar.Expression.Conversion ()
 
-import qualified QFeldspar.Expression.Feldspar.ADTUntypedNamed as FAUN
-import qualified QFeldspar.Expression.Feldspar.GADTHigherOrder as FGHO
-import qualified QFeldspar.Expression.Feldspar.Utils.MiniFeldspar as FMWS (absVar)
-import qualified QFeldspar.Type.Feldspar.GADT                  as TFG
+import qualified QFeldspar.Expression.ADTUntypedNamed as FAUN
+import qualified QFeldspar.Expression.GADTHigherOrder as FGHO
+import qualified QFeldspar.Expression.Utils.MiniFeldspar as FMWS (absVar)
+import qualified QFeldspar.Type.GADT                  as TFG
 
-import QFeldspar.Type.Feldspar.Conversion ()
+import QFeldspar.Type.Conversion ()
 
 import qualified Language.Haskell.TH.Syntax as TH
 import QFeldspar.Normalisation

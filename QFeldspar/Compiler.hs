@@ -2,11 +2,11 @@ module QFeldspar.Compiler where
 
 import QFeldspar.MyPrelude hiding (fst , snd , cmx)
 
-import QFeldspar.Expression.Feldspar.C
-import qualified QFeldspar.Expression.Feldspar.MiniFeldspar as FMWS
+import QFeldspar.Expression.C
+import qualified QFeldspar.Expression.MiniFeldspar as FMWS
 
-import qualified QFeldspar.Type.Feldspar.ADT                  as TFA
-import qualified QFeldspar.Type.Feldspar.GADT                 as TFG
+import qualified QFeldspar.Type.ADT                  as TFA
+import qualified QFeldspar.Type.GADT                 as TFG
 
 import qualified QFeldspar.Environment.Scoped                 as ES
 import qualified QFeldspar.Environment.Typed                  as ET
@@ -14,9 +14,9 @@ import qualified QFeldspar.Environment.Typed                  as ET
 import qualified QFeldspar.Variable.Scoped                    as VS
 
 import QFeldspar.Conversion
-import QFeldspar.Type.Feldspar.Conversion ()
+import QFeldspar.Type.Conversion ()
 import QFeldspar.Variable.Conversion ()
-import QFeldspar.Expression.Feldspar.Conversions.CodeGeneration (pretty)
+import QFeldspar.Expression.Conversions.CodeGeneration (pretty)
 
 import QFeldspar.Singleton
 

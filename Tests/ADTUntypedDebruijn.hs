@@ -2,11 +2,11 @@ module Tests.ADTUntypedDebruijn where
 
 import QFeldspar.MyPrelude
 
-import QFeldspar.Expression.Feldspar.ADTUntypedDebruijn
+import QFeldspar.Expression.ADTUntypedDebruijn
 import QFeldspar.Variable.Plain
-import qualified QFeldspar.Expression.Feldspar.ADTValue as V
+import qualified QFeldspar.Expression.ADTValue as V
 import QFeldspar.Conversion
-import QFeldspar.Expression.Feldspar.Conversions.Evaluation.ADTUntypedDebruijn ()
+import QFeldspar.Expression.Conversions.Evaluation.ADTUntypedDebruijn ()
 
 dbl :: Exp
 dbl = Abs (Fun (App (App (Var (Suc Zro)) (Var Zro)) (Var Zro)))

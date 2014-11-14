@@ -2,10 +2,10 @@ module Tests.ADTUntypedNamed where
 
 import QFeldspar.MyPrelude
 
-import QFeldspar.Expression.Feldspar.ADTUntypedNamed
-import qualified QFeldspar.Expression.Feldspar.ADTValue as V
+import QFeldspar.Expression.ADTUntypedNamed
+import qualified QFeldspar.Expression.ADTValue as V
 import QFeldspar.Conversion
-import QFeldspar.Expression.Feldspar.Conversions.Evaluation.ADTUntypedNamed ()
+import QFeldspar.Expression.Conversions.Evaluation.ADTUntypedNamed ()
 import qualified Language.Haskell.TH.Syntax as TH
 
 type Var = TH.Name
@@ -32,4 +32,3 @@ test :: Bool
 test = (case cnv (four , [((stripNameSpace '(+)) , V.addV)]) of
           Rgt (V.ConI 4) -> True
           _              -> False)
-

@@ -2,12 +2,12 @@ module Tests.MiniFeldspar where
 
 import QFeldspar.MyPrelude
 
-import QFeldspar.Expression.Feldspar.MiniFeldspar
+import QFeldspar.Expression.MiniFeldspar
 import QFeldspar.Environment.Typed
-import qualified QFeldspar.Expression.Feldspar.GADTValue as FGV
+import qualified QFeldspar.Expression.GADTValue as FGV
 import QFeldspar.Variable.Typed
 import QFeldspar.Conversion
-import QFeldspar.Expression.Feldspar.Conversions.Evaluation.MiniFeldspar ()
+import QFeldspar.Expression.Conversions.Evaluation.MiniFeldspar ()
 
 type Add = Arr Int (Arr Int Int)
 type EnvAdd = Add ': '[]

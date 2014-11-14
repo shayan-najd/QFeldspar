@@ -2,14 +2,14 @@ module QFeldspar.Prelude.Environment where
 
 import QFeldspar.MyPrelude
 
-import qualified QFeldspar.Expression.Feldspar.ADTValue  as FAV
-import qualified QFeldspar.Expression.Feldspar.GADTValue as FGV
+import qualified QFeldspar.Expression.ADTValue  as FAV
+import qualified QFeldspar.Expression.GADTValue as FGV
 import qualified Language.Haskell.TH.Syntax    as TH
 
 import qualified QFeldspar.Nat.ADT            as NA
 import QFeldspar.Nat.TH   as NT
 
-import qualified QFeldspar.Type.Feldspar.GADT as TFG
+import qualified QFeldspar.Type.GADT as TFG
 
 import qualified QFeldspar.Environment.Map    as EM
 import qualified QFeldspar.Environment.Plain  as EP

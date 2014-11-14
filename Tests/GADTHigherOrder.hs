@@ -2,13 +2,13 @@ module Tests.GADTHigherOrder where
 
 import QFeldspar.MyPrelude
 
-import QFeldspar.Expression.Feldspar.GADTHigherOrder
+import QFeldspar.Expression.GADTHigherOrder
 import QFeldspar.Variable.Typed
 import QFeldspar.Conversion as E
-import QFeldspar.Expression.Feldspar.Conversions.Evaluation.GADTHigherOrder ()
-import qualified QFeldspar.Expression.Feldspar.GADTValue as FGV
+import QFeldspar.Expression.Conversions.Evaluation.GADTHigherOrder ()
+import qualified QFeldspar.Expression.GADTValue as FGV
 import QFeldspar.Singleton
-import QFeldspar.Type.Feldspar.GADT
+import QFeldspar.Type.GADT
 import QFeldspar.Environment.Typed
 
 dbl :: Exp (Arr Int (Arr Int Int) ': '[])

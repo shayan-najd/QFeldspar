@@ -5,7 +5,7 @@ import Control.Applicative (pure)
 import Language.Haskell.TH.Syntax hiding (unQ)
 import Language.Haskell.TH hiding (match)
 import QFeldspar.ErrorMonad
-import QFeldspar.Expression.TemplateHaskell.Conversion ()
+import QFeldspar.Expression.TemplateHaskell ()
 
 stripNameSpace :: Name -> Name
 stripNameSpace (Name x _) = Name x NameS

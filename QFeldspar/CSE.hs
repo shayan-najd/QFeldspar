@@ -1,13 +1,13 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 module QFeldspar.CSE where
 
-import QFeldspar.Expression.Feldspar.MiniFeldspar
-import QFeldspar.Expression.Feldspar.Utils.MiniFeldspar(absTmp)
-import QFeldspar.Expression.Feldspar.Utils.Common
+import QFeldspar.Expression.MiniFeldspar
+import QFeldspar.Expression.Utils.MiniFeldspar(absTmp)
+import QFeldspar.Expression.Utils.Common
 
 import QFeldspar.MyPrelude hiding (foldl)
 
-import qualified QFeldspar.Type.Feldspar.GADT as TFG
+import qualified QFeldspar.Type.GADT as TFG
 import qualified QFeldspar.Environment.Typed  as ET
 import QFeldspar.ChangeMonad
 import QFeldspar.Singleton

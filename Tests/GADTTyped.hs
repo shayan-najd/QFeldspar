@@ -2,14 +2,14 @@ module Tests.GADTTyped where
 
 import QFeldspar.MyPrelude
 
-import QFeldspar.Expression.Feldspar.GADTTyped
+import QFeldspar.Expression.GADTTyped
 import QFeldspar.Variable.Scoped
-import qualified QFeldspar.Type.Feldspar.ADT as TFA
-import qualified QFeldspar.Expression.Feldspar.ADTValue as V
+import qualified QFeldspar.Type.ADT as TFA
+import qualified QFeldspar.Expression.ADTValue as V
 import qualified QFeldspar.Nat.ADT as NA
 import QFeldspar.Environment.Scoped
 import QFeldspar.Conversion
-import QFeldspar.Expression.Feldspar.Conversions.Evaluation.GADTTyped ()
+import QFeldspar.Expression.Conversions.Evaluation.GADTTyped ()
 import QFeldspar.Inference
 
 dbl :: Exp (NA.Suc NA.Zro) TFA.Typ

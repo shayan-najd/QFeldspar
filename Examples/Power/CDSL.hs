@@ -1,7 +1,7 @@
 module Examples.Power.CDSL where
 import Prelude
 import QFeldspar.CDSL hiding (div,Int)
-import QFeldspar.Expression.Feldspar.Utils.MiniFeldspar (eqlF)
+import QFeldspar.Expression.Utils.MiniFeldspar (eqlF)
 
 (.==.) :: Equality t => Data t -> Data t -> Data Bool
 (.==.) = eql

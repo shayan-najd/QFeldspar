@@ -3,14 +3,14 @@ module Tests.Conversion where
 import QFeldspar.MyPrelude
 
 import qualified Language.Haskell.TH.Syntax              as TH
-import qualified QFeldspar.Expression.Feldspar.ADTUntypedNamed     as FAUN
-import qualified QFeldspar.Expression.Feldspar.ADTUntypedDebruijn  as FAUD
-import qualified QFeldspar.Expression.Feldspar.GADTTyped           as FGTD
-import qualified QFeldspar.Expression.Feldspar.GADTFirstOrder      as FGFO
-import qualified QFeldspar.Expression.Feldspar.GADTHigherOrder     as FGHO
-import qualified QFeldspar.Expression.Feldspar.MiniFeldspar      as FMWS
-import qualified QFeldspar.Expression.Feldspar.ADTValue            as FAV
-import qualified QFeldspar.Expression.Feldspar.GADTValue           as FGV
+import qualified QFeldspar.Expression.ADTUntypedNamed     as FAUN
+import qualified QFeldspar.Expression.ADTUntypedDebruijn  as FAUD
+import qualified QFeldspar.Expression.GADTTyped           as FGTD
+import qualified QFeldspar.Expression.GADTFirstOrder      as FGFO
+import qualified QFeldspar.Expression.GADTHigherOrder     as FGHO
+import qualified QFeldspar.Expression.MiniFeldspar      as FMWS
+import qualified QFeldspar.Expression.ADTValue            as FAV
+import qualified QFeldspar.Expression.GADTValue           as FGV
 
 import qualified Tests.TemplateHaskell     as TH
 import qualified Tests.ADTUntypedNamed     as FAUN
@@ -20,8 +20,8 @@ import qualified Tests.GADTFirstOrder      as FGFO
 import qualified Tests.GADTHigherOrder     as FGHO
 import qualified Tests.MiniFeldspar      as FMWS ()
 
-import qualified QFeldspar.Type.Feldspar.ADT                       as TFA
-import qualified QFeldspar.Type.Feldspar.GADT                      as TFG
+import qualified QFeldspar.Type.ADT                       as TFA
+import qualified QFeldspar.Type.GADT                      as TFG
 
 import qualified QFeldspar.Environment.Map                         as EM
 import qualified QFeldspar.Environment.Plain                       as EP
@@ -29,14 +29,14 @@ import qualified QFeldspar.Environment.Scoped                      as ES
 import qualified QFeldspar.Environment.Typed                       as ET
 
 import QFeldspar.Normalisation
-import QFeldspar.Normalisation.Feldspar.GADTHigherOrder  ()
+import QFeldspar.Normalisation.GADTHigherOrder  ()
 
 import QFeldspar.Conversion
 import QFeldspar.Variable.Conversion                     ()
 import QFeldspar.Environment.Conversion                  ()
-import QFeldspar.Type.Feldspar.Conversion                ()
-import QFeldspar.Expression.TemplateHaskell.Conversion   ()
-import QFeldspar.Expression.Feldspar.Conversion          ()
+import QFeldspar.Type.Conversion                ()
+import QFeldspar.Expression.TemplateHaskell     ()
+import QFeldspar.Expression.Conversion          ()
 
 import qualified QFeldspar.Nat.ADT as NA
 

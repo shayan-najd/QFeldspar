@@ -8,7 +8,7 @@ import QFeldspar.Type.Herbrand hiding (Tpl,May,Cmx,Ary,App)
 import QFeldspar.Solver
 import QFeldspar.Conversion
 import QFeldspar.Nat.Conversion ()
-import QFeldspar.Expression.Feldspar.GADTTyped
+import QFeldspar.Expression.GADTTyped
 import QFeldspar.Environment.Scoped  as ES
 import QFeldspar.InferenceMonad
 

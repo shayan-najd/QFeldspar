@@ -7,11 +7,11 @@ import qualified QFeldspar.Environment.Plain  as EP
 import qualified QFeldspar.Environment.Typed  as ET
 import qualified QFeldspar.Environment.Scoped as ES
 
-import qualified QFeldspar.Type.Feldspar.ADT  as TFA
-import qualified QFeldspar.Type.Feldspar.GADT as TFG
+import qualified QFeldspar.Type.ADT  as TFA
+import qualified QFeldspar.Type.GADT as TFG
 
 import QFeldspar.Conversion
-import QFeldspar.Type.Feldspar.Conversion ()
+import QFeldspar.Type.Conversion ()
 import QFeldspar.Singleton
 
 ---------------------------------------------------------------------------------

@@ -9,15 +9,15 @@ import QFeldspar.MyPrelude (frmRgt,String,(.),Bool)
 import qualified QFeldspar.MyPrelude as MP
 
 import QFeldspar.Conversion
-import QFeldspar.Expression.Feldspar.Conversions.Evaluation.MiniFeldspar ()
-import QFeldspar.Expression.Feldspar.Conversion ()
+import QFeldspar.Expression.Conversions.Evaluation.MiniFeldspar ()
+import QFeldspar.Expression.Conversion ()
 
-import qualified QFeldspar.Expression.Feldspar.MiniFeldspar  as FMWS
-import qualified QFeldspar.Type.Feldspar.GADT                  as TFG
-import qualified QFeldspar.Expression.Feldspar.GADTValue       as FGV
+import qualified QFeldspar.Expression.MiniFeldspar  as FMWS
+import qualified QFeldspar.Type.GADT                  as TFG
+import qualified QFeldspar.Expression.GADTValue       as FGV
 import QFeldspar.Compiler(scompile)
 import QFeldspar.Normalisation
-import QFeldspar.Normalisation.Feldspar.MiniFeldspar ()
+import QFeldspar.Normalisation.MiniFeldspar ()
 import QFeldspar.CSE
 import QFeldspar.ChangeMonad
 import QFeldspar.Simplify

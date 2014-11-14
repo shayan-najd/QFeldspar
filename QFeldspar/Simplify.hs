@@ -2,11 +2,11 @@ module QFeldspar.Simplify  where
 
 import QFeldspar.MyPrelude hiding (foldl,fmap)
 
-import QFeldspar.Expression.Feldspar.MiniFeldspar
-import QFeldspar.Expression.Feldspar.Utils.MiniFeldspar(eql,hasOneOrZro,absTmp,pattern TF)
+import QFeldspar.Expression.MiniFeldspar
+import QFeldspar.Expression.Utils.MiniFeldspar(eql,hasOneOrZro,absTmp,pattern TF)
 
 import QFeldspar.Singleton
-import qualified QFeldspar.Type.Feldspar.GADT as TFG
+import qualified QFeldspar.Type.GADT as TFG
 import QFeldspar.ChangeMonad
 
 class SmpOne a where
