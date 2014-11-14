@@ -1,4 +1,6 @@
-module QFeldspar.Expression.Conversions.Evaluation.ADTUntypedDebruijn () where
+{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
+module QFeldspar.Expression.Conversions.Evaluation.ADTUntypedDebruijn
+       () where
 
 import QFeldspar.MyPrelude
 
@@ -12,24 +14,17 @@ import QFeldspar.Variable.Conversion ()
 
 instance Cnv (Exp , Env FAV.Exp) FAV.Exp where
   cnv (ee , r) = let ?r = r in join (case ee of
-    ConI i       -> pure (FAV.conI i)
-    ConB b       -> pure (FAV.conB b)
-    ConF f       -> pure (FAV.conF f)
-    Var x        -> FAV.var  <$@> x
-    Abs eb       -> FAV.abs  <$@> eb
-    App ef ea    -> FAV.app  <$@> ef <*@> ea
-    Cnd ec et ef -> FAV.cnd  <$@> ec <*@> et <*@> ef
-    Whl ec eb ei -> FAV.whl  <$@> ec <*@> eb <*@> ei
-    Tpl ef es    -> FAV.tpl  <$@> ef <*@> es
-    Fst e        -> FAV.fst  <$@> e
-    Snd e        -> FAV.snd  <$@> e
-    Ary el ef    -> FAV.ary  <$@> el <*@> ef
-    Len e        -> FAV.len  <$@> e
-    Ind ea ei    -> FAV.ind  <$@> ea <*@> ei
-    Let el eb    -> pure     <$@> App (Abs eb) el
-    Cmx er ei    -> FAV.cmx  <$@> er <*@> ei
-    Typ _  e     -> pure (cnvImp e)
-    _            -> impossibleM)
+    AryV _ _     -> impossibleM
+    LenV _       -> impossibleM
+    IndV _ _     -> impossibleM
+    Non          -> impossibleM
+    Som _        -> impossibleM
+    May _ _ _    -> impossibleM
+    Mul _ _      -> impossibleM
+    Let el eb    -> FAV.leT  <$@> el <*@> eb
+    _ -> $(biRecAppMQS 'ee ''Exp "FAV"
+     ['AryV,'LenV,'IndV,'Non,'Som,'May,'Mul,'Let]
+     (const id)))
 
 instance Cnv (Fun , Env FAV.Exp)  (FAV.Exp -> FAV.Exp) where
   cnv (Fun e , r) = pure (frmRgt . curry cnv e . (: r))

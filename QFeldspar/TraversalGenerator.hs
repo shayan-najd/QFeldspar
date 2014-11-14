@@ -6,6 +6,7 @@ import Language.Haskell.TH.Syntax hiding (unQ)
 import Language.Haskell.TH hiding (match)
 import QFeldspar.ErrorMonad
 import QFeldspar.Expression.TemplateHaskell ()
+import Data.Char
 
 stripNameSpace :: Name -> Name
 stripNameSpace (Name x _) = Name x NameS
@@ -61,7 +62,6 @@ genOverloadedW :: Name -> Name -> [Name] -> (Name -> Q Exp -> Q Exp) ->
 genOverloadedW e n ns wf f = recAppQ e n (return . ConE)
                            ns wf f
 
-
 recAppQ :: Name -> Name -> (Name -> Q Exp) -> [Name] ->
            (Name -> Q Exp -> Q Exp) -> (Type -> Q Exp) -> Q Exp
 recAppQ e dn g ns wf fn = recApp e dn (unQ . g) ns
@@ -73,18 +73,22 @@ recApp :: Name -> Name -> (Name -> Exp) -> [Name] -> (Name -> Exp -> Exp) ->
 recApp e dn g ns wf fn = recAppM e dn g ns
                          (unQ [| id |]) (unQ [| ($) |]) (unQ [| ($) |])
                                         wf fn
-{-
+
+lowerFirst :: String -> String
+lowerFirst []        = []
+lowerFirst (x : xs)  = toLower x : xs
+
+
 biRecAppMQS :: Name -> Name -> String -> [Name] ->
                (Name -> Q Exp -> Q Exp) -> Q Exp
 biRecAppMQS e dn g ns wf = recAppMQ e dn
-   (\ n -> conE (mkName (g ++ "." ++ nameBase n)))
+   (\ n -> varE (mkName (g ++ "." ++ (lowerFirst (nameBase n)))))
    ns [| pure |]
    (varE $ stripNameSpace $ mkName "<$@>")
    (varE $ stripNameSpace $ mkName "<*@>")
    wf
    (const [| id |])
 
--}
 biRecAppMQ :: Name -> Name -> String -> Q Exp
 biRecAppMQ e dn g =  biRecAppMQW e dn g [] (const id)
 

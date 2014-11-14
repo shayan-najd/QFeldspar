@@ -2,15 +2,11 @@
 module QFeldspar.Expression.Conversions.NameResolution () where
 
 import QFeldspar.MyPrelude
-
 import qualified QFeldspar.Expression.ADTUntypedNamed    as FAUN
 import qualified QFeldspar.Expression.ADTUntypedDebruijn as FAUD
-
 import qualified QFeldspar.Environment.Map                        as EM
 import qualified QFeldspar.Environment.Plain                      as EP
-
 import QFeldspar.Variable.Plain
-
 import QFeldspar.Conversion
 import QFeldspar.Variable.Conversion    ()
 
@@ -21,7 +17,7 @@ instance Eq x =>
 instance Eq x =>
          Cnv (FAUN.Exp x , EM.Env x Var) FAUD.Exp where
   cnv (ee , r) = let ?r = r in
-   $(biRecAppMQ 'ee ''FAUN.Exp "FAUD")
+                 $(biRecAppMQ 'ee ''FAUN.Exp "FAUD")
 
 instance Eq x =>
          Cnv ((x , FAUN.Exp x) , EM.Env x Var)
