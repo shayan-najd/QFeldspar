@@ -80,11 +80,5 @@ instance (n ~ Len r) =>
     VT.Zro   -> pure VS.Zro
     VT.Suc n -> VS.Suc <$@> n
 
-instance (r ~ r' , t ~ t') =>
-         Cnv (VT.Var r t , rr)          (VT.Var r' t') where
-  cnv = pure . fst
-
 instance Cnv (VT.Var r t , ET.Env tf r) (tf t) where
   cnv (x , r) = return (ET.get x r)
-
-

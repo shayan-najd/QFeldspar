@@ -1,7 +1,6 @@
 module QFeldspar.Expression.Feldspar.Conversions.TypeWithnessing () where
 
 import QFeldspar.MyPrelude
-
 import qualified QFeldspar.Expression.Feldspar.GADTTyped      as FGTD
 import qualified QFeldspar.Expression.Feldspar.GADTFirstOrder as FGFO
 

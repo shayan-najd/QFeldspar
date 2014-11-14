@@ -22,7 +22,7 @@ instance (HasSin TFG.Typ t , t' ~ t) =>
     ConF f                   -> pure (FGV.conF f)
     Var x                    -> FGV.var  <$@> x
     Abs eb                   -> case TFG.getPrfHasSinArr t of
-     (PrfHasSin , PrfHasSin) -> cnv (eb , r)
+     (PrfHasSin , PrfHasSin) -> cnvImp eb
     App ef ea                -> FGV.app  <$@> ef <*@> ea
     Cnd ec et ef             -> FGV.cnd  <$@> ec <*@> et <*@> ef
     Whl ec eb ei             -> FGV.whl  <$@> ec <*@> eb <*@> ei
@@ -34,7 +34,7 @@ instance (HasSin TFG.Typ t , t' ~ t) =>
      PrfHasSin               -> FGV.ary  <$@> el <*@> ef
     Len e                    -> FGV.len  <$@> e
     Ind ea ei                -> FGV.ind  <$@> ea <*@> ei
-    Let el eb                -> cnv (App (Abs eb) el , r)
+    Let el eb                -> cnvImp (App (Abs eb) el)
     Cmx er ei                -> FGV.cmx  <$@> er <*@> ei
     Non                      -> pure FGV.non
     Som e                    -> case TFG.getPrfHasSinMay t of

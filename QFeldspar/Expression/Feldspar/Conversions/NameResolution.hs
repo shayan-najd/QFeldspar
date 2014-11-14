@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 module QFeldspar.Expression.Feldspar.Conversions.NameResolution () where
 
 import QFeldspar.MyPrelude
@@ -19,34 +20,29 @@ instance Eq x =>
 
 instance Eq x =>
          Cnv (FAUN.Exp x , EM.Env x Var) FAUD.Exp where
-  cnv (ee , r) = let ?r = r in case ee of
-    FAUN.ConI i              -> pure (FAUD.ConI i)
-    FAUN.ConB b              -> pure (FAUD.ConB b)
-    FAUN.ConF f              -> pure (FAUD.ConF f)
-    FAUN.Var  x              -> FAUD.Var <$@> x
-    FAUN.Abs  xeb            -> FAUD.Abs <$@> xeb
-    FAUN.App  ef ea          -> FAUD.App <$@> ef  <*@> ea
-    FAUN.Cnd  ec et ef       -> FAUD.Cnd <$@> ec  <*@> et  <*@> ef
-    FAUN.Whl  xec xeb ei     -> FAUD.Whl <$@> xec <*@> xeb <*@> ei
-    FAUN.Tpl  ef es          -> FAUD.Tpl <$@> ef  <*@> es
-    FAUN.Fst  e              -> FAUD.Fst <$@> e
-    FAUN.Snd  e              -> FAUD.Snd <$@> e
-    FAUN.Ary  el xef         -> FAUD.Ary <$@> el <*@> xef
-    FAUN.Len  e              -> FAUD.Len <$@> e
-    FAUN.Ind  ea ei          -> FAUD.Ind <$@> ea <*@> ei
-    FAUN.AryV  el xef        -> FAUD.AryV <$@> el <*@> xef
-    FAUN.LenV  e             -> FAUD.LenV <$@> e
-    FAUN.IndV  ea ei         -> FAUD.IndV <$@> ea  <*@> ei
-    FAUN.Let  el xeb         -> FAUD.Let <$@> el  <*@> xeb
-    FAUN.Cmx  er ei          -> FAUD.Cmx <$@> er  <*@> ei
-    FAUN.Non                 -> pure FAUD.Non
-    FAUN.Som  e              -> FAUD.Som <$@> e
-    FAUN.May  em en xes      -> FAUD.May <$@> em <*@> en <*@> xes
-    FAUN.Typ  t  e           -> FAUD.Typ <$> pure t <*@> e
-    FAUN.Mul  er ei          -> FAUD.Mul <$@> er  <*@> ei
+  cnv (ee , r) = let ?r = r in
+   $(biRecAppMQ 'ee ''FAUN.Exp "FAUD")
 
 instance Eq x =>
          Cnv ((x , FAUN.Exp x) , EM.Env x Var)
          FAUD.Fun where
- cnv ((x , e) , r) = fmap FAUD.Fun
-                     (cnv (e , (x , Zro) : fmap (fmap Suc) r))
+  cnv ((x , e) , r) = fmap FAUD.Fun
+                      (cnv (e , (x , Zro) : fmap (fmap Suc) r))
+
+instance Cnv (Var, (EP.Env x', EM.Env Var x')) x' where
+  cnv (v , r) = cnv (v , snd r)
+
+instance (x ~ x') =>
+         Cnv (FAUD.Exp , (EP.Env x , EM.Env Var x)) (FAUN.Exp x') where
+  cnv (ee , r) = let ?r = r in
+                 $(biRecAppMQ 'ee ''FAUD.Exp "FAUN")
+
+instance (x ~ x') =>
+         Cnv (FAUD.Fun , (EP.Env x , EM.Env Var x)) (x' , FAUN.Exp x')
+         where
+   cnv (FAUD.Fun e , r) = case r of
+     (x : xs , r') -> do e' <- cnv (e ,
+                                    (xs , (Zro , x) :
+                                    fmap (\(v , n) -> (Suc v , n)) r'))
+                         pure (x , e')
+     _             -> fail "Bad Name Pool!"

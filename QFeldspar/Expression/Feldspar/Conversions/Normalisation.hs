@@ -1,7 +1,8 @@
+{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 module QFeldspar.Expression.Feldspar.Conversions.Normalisation () where
 
 import QFeldspar.MyPrelude
-
+import QFeldspar.Expression.Feldspar.Utils.Common
 import qualified QFeldspar.Expression.Feldspar.GADTHigherOrder as FGHO
 import qualified QFeldspar.Expression.Feldspar.MiniFeldspar  as FMWS
 
@@ -16,20 +17,23 @@ import QFeldspar.Singleton
 instance (HasSin TFG.Typ t , t ~ t' , r ~ r') =>
          Cnv (FGHO.Exp r t , rr) (FMWS.Exp r' t') where
   cnv (ee , r) = let ?r = r in let t = (sin :: TFG.Typ t) in case ee of
-    FGHO.ConI i               -> pure (FMWS.ConI i)
-    FGHO.ConB b               -> pure (FMWS.ConB b)
-    FGHO.ConF f               -> pure (FMWS.ConF f)
     FGHO.Var v                -> case sin :: TFG.Typ t of
       TFG.Int                 -> pure (FMWS.AppV v Emp)
       TFG.Bol                 -> pure (FMWS.AppV v Emp)
       TFG.Flt                 -> pure (FMWS.AppV v Emp)
-      TFG.Arr _ _             -> fail "Normalisation Error!"
       TFG.Tpl _ _             -> pure (FMWS.AppV v Emp)
       TFG.Ary _               -> pure (FMWS.AppV v Emp)
-      TFG.Vct _               -> pure (FMWS.AppV v Emp)
       TFG.Cmx                 -> pure (FMWS.AppV v Emp)
-      TFG.May _               -> pure (FMWS.AppV v Emp)
+      TFG.Vct _               -> fail "Normalisation Error!"
+      TFG.Arr _ _             -> fail "Normalisation Error!"
+      TFG.May _               -> fail "Normalisation Error!"
     FGHO.Abs _                -> fail "Normalisation Error!"
+    FGHO.Non                  -> fail "Normalisation Error!"
+    FGHO.Som _                -> fail "Normalisation Error!"
+    FGHO.May _ _ _            -> fail "Normalisation Error!"
+    FGHO.AryV _ _             -> fail "Normalisation Error!"
+    FGHO.LenV _               -> fail "Normalisation Error!"
+    FGHO.IndV _ _             -> fail "Normalisation Error!"
     FGHO.App _ _              -> do Exs1 v tv <- getVar ee
                                     PrfHasSin <- getPrfHasSinM tv
                                     DblExsSin es tys <- getArg ee
@@ -37,26 +41,9 @@ instance (HasSin TFG.Typ t , t ~ t' , r ~ r') =>
                                     TFG.EqlOut <- TFG.eqlOut t tv
                                     TFG.EqlArg <- TFG.eqlArg tys tv
                                     pure (FMWS.AppV v es)
-    FGHO.Cnd ec et ef         -> FMWS.Cnd <$@> ec <*@> et <*@> ef
-    FGHO.Whl ec eb ei         -> FMWS.Whl <$@> ec <*@> eb <*@> ei
-    FGHO.Tpl ef es            -> case TFG.getPrfHasSinTpl t of
-      (PrfHasSin , PrfHasSin) -> FMWS.Tpl <$@> ef <*@> es
-    FGHO.Fst e                -> FMWS.Fst <$@> e
-    FGHO.Snd e                -> FMWS.Snd <$@> e
-    FGHO.Ary el ef            -> case TFG.getPrfHasSinAry t of
-      PrfHasSin               -> FMWS.Ary <$@> el <*@> ef
-    FGHO.Len ea               -> FMWS.Len <$@> ea
-    FGHO.Ind ea ei            -> FMWS.Ind <$@> ea <*@> ei
-    FGHO.AryV _ _             -> fail "Normalisation Error!"
-    FGHO.LenV _               -> fail "Normalisation Error!"
-    FGHO.IndV _ _             -> fail "Normalisation Error!"
-    FGHO.Let el eb            -> FMWS.Let <$@> el <*@> eb
-    FGHO.Cmx er ei            -> FMWS.Cmx <$@> er <*@> ei
-    FGHO.Tmp x                -> pure (FMWS.Tmp x)
-    FGHO.Non                  -> fail "Normalisation Error!"
-    FGHO.Som _                -> fail "Normalisation Error!"
-    FGHO.May _ _ _            -> fail "Normalisation Error!"
-    FGHO.Mul er ei            -> FMWS.Mul <$@> er <*@> ei
+    _                         -> $(biRecAppMQW 'ee ''FGHO.Exp "FMWS"
+     ['FGHO.Var,'FGHO.Abs,'FGHO.App,'FGHO.Non,'FGHO.Som,'FGHO.May
+     ,'FGHO.AryV,'FGHO.LenV,'FGHO.IndV] (trvWrp 't))
 
 instance (HasSin TFG.Typ a , HasSin TFG.Typ b, a ~ a' , b ~ b' , r ~ r') =>
     Cnv (FGHO.Exp r' (Arr a' b') , rr) (FMWS.Exp r a -> FMWS.Exp r b)  where
@@ -74,36 +61,21 @@ instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb , r ~ r' , ta ~ ta' ,tb ~ tb') =
 instance (HasSin TFG.Typ t , t' ~ t , r' ~ r) =>
          Cnv (FMWS.Exp r' t' , rr) (FGHO.Exp r t)  where
   cnv (ee , r) = let ?r = r in let t = (sin :: TFG.Typ t) in case ee of
-    FMWS.ConI i               -> pure (FGHO.ConI i)
-    FMWS.ConB b               -> pure (FGHO.ConB b)
-    FMWS.ConF f               -> pure (FGHO.ConF f)
     FMWS.AppV v es            -> case (sinTyp v , es) of
-      (TFG.Int     , Emp)     -> FGHO.Var <$> pure v
-      (TFG.Bol     , Emp)     -> FGHO.Var <$> pure v
-      (TFG.Flt     , Emp)     -> FGHO.Var <$> pure v
       (TFG.Arr _ _ , Ext _ _) -> do Exs1 e te <- fldApp (FGHO.Var v) es
                                     Rfl <- eqlSin te t
                                     pure e
-      (TFG.Tpl _ _ , Emp)     -> FGHO.Var <$> pure v
-      (TFG.Ary _   , Emp)     -> FGHO.Var <$> pure v
-      (TFG.Vct _   , Emp)     -> FGHO.Var <$> pure v
-      (TFG.Cmx     , Emp)     -> FGHO.Var <$> pure v
-      (TFG.May _   , Emp)     -> FGHO.Var <$> pure v
-    FMWS.Cnd ec et ef         -> FGHO.Cnd <$@> ec <*@> et <*@> ef
-    FMWS.Whl ec eb ei         -> FGHO.Whl <$@> ec <*@> eb <*@> ei
-    FMWS.Tpl ef es            -> case TFG.getPrfHasSinTpl t of
-      (PrfHasSin , PrfHasSin) -> FGHO.Tpl <$@> ef <*@> es
-    FMWS.Fst e                -> FGHO.Fst <$@> e
-    FMWS.Snd e                -> FGHO.Snd <$@> e
-    FMWS.Ary el ef            -> case TFG.getPrfHasSinAry t of
-      PrfHasSin               -> FGHO.Ary <$@> el <*@> ef
-    FMWS.Len ea               -> FGHO.Len <$@> ea
-    FMWS.Ind ea ei            -> FGHO.Ind <$@> ea <*@> ei
-    FMWS.Let el eb            -> FGHO.Let <$@> el <*@> eb
-    FMWS.Cmx er ei            -> FGHO.Cmx <$@> er <*@> ei
+      (TFG.Int     , Emp)     -> pure (FGHO.Var v)
+      (TFG.Bol     , Emp)     -> pure (FGHO.Var v)
+      (TFG.Flt     , Emp)     -> pure (FGHO.Var v)
+      (TFG.Tpl _ _ , Emp)     -> pure (FGHO.Var v)
+      (TFG.Ary _   , Emp)     -> pure (FGHO.Var v)
+      (TFG.Vct _   , Emp)     -> pure (FGHO.Var v)
+      (TFG.Cmx     , Emp)     -> pure (FGHO.Var v)
+      (TFG.May _   , Emp)     -> pure (FGHO.Var v)
     FMWS.Tag _  e             -> cnvImp e
-    FMWS.Tmp x                -> pure (FGHO.Tmp x)
-    FMWS.Mul er ei            -> FGHO.Mul <$@> er <*@> ei
+    _                         ->
+      $(biRecAppMQW 'ee ''FMWS.Exp "FGHO" ['FMWS.AppV,'FMWS.Tag] (trvWrp 't))
 
 instance (HasSin TFG.Typ a , HasSin TFG.Typ b, a ~ a' , b ~ b' , r ~ r') =>
     Cnv (FMWS.Exp r a -> FMWS.Exp r b , rr) (FGHO.Exp r' (Arr a' b')) where

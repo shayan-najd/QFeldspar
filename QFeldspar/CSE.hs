@@ -1,7 +1,9 @@
+{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 module QFeldspar.CSE where
 
 import QFeldspar.Expression.Feldspar.MiniFeldspar
 import QFeldspar.Expression.Feldspar.Utils.MiniFeldspar(absTmp)
+import QFeldspar.Expression.Feldspar.Utils.Common
 
 import QFeldspar.MyPrelude hiding (foldl)
 
@@ -26,50 +28,30 @@ cseF f  = let v = genNewNam "cseF"
 hasTagEnv :: String -> ET.Env (Exp r) r' -> Bool
 hasTagEnv x es = ET.foldl (\ b e -> b || hasTag x e) False es
 
-remTag :: Exp r t -> Exp r t
+remTag :: forall r t. Exp r t -> Exp r t
 remTag ee = case ee of
-  ConI i                    -> ConI i
-  ConB i                    -> ConB i
-  ConF i                    -> ConF i
-  AppV v es                 -> AppV v (TFG.mapC (sinTyp v) remTag es)
-  Cnd ec et ef              -> Cnd (remTag ec)  (remTag et)  (remTag ef)
-  Whl ec eb ei              -> Whl (remTagF ec) (remTagF eb) (remTag ei)
-  Tpl ef es                 -> Tpl (remTag ef)  (remTag es)
-  Fst e                     -> Fst (remTag e)
-  Snd e                     -> Snd (remTag e)
-  Ary el ef                 -> Ary (remTag el)  (remTagF ef)
-  Len e                     -> Len (remTag e)
-  Ind ea ei                 -> Ind (remTag ea)  (remTag ei)
-  Let el eb                 -> Let (remTag el)  (remTagF eb)
-  Cmx er ei                 -> Cmx (remTag er)  (remTag ei)
-  Tmp x                     -> Tmp x
-  Tag _ e                   -> remTag e
-  Mul er ei                 -> Mul (remTag er)  (remTag ei)
+  AppV v es -> AppV v (TFG.mapC (sinTyp v) remTag es)
+  Tag _  e  -> remTag e
+  _         -> $(genOverloaded 'ee ''Exp  ['AppV,'Tag]
+   (\ tt -> if
+    | matchQ tt [t| Exp t t -> Exp t t |] -> [| remTagF |]
+    | matchQ tt [t| Exp t t |]            -> [| remTag  |]
+    | otherwise                           -> [| id |]))
 
 remTagF :: (Exp r a -> Exp r b) -> (Exp r a -> Exp r b)
 remTagF = (remTag .)
 
-remTheTag :: String -> Exp r t -> Exp r t
+remTheTag :: forall r t. String -> Exp r t -> Exp r t
 remTheTag x ee = case ee of
-  ConI i                    -> ConI i
-  ConB i                    -> ConB i
-  ConF i                    -> ConF i
-  AppV v es                 -> AppV v (TFG.mapC (sinTyp v) (remTheTag x) es)
-  Cnd ec et ef              -> Cnd (remTheTag x ec) (remTheTag x et) (remTheTag x ef)
-  Whl ec eb ei              -> Whl (remTheTag x . ec) (remTheTag x . eb) (remTheTag x ei)
-  Tpl ef es                 -> Tpl (remTheTag x ef)   (remTheTag x es)
-  Fst e                     -> Fst (remTheTag x e)
-  Snd e                     -> Snd (remTheTag x e)
-  Ary el ef                 -> Ary (remTheTag x el)   (remTheTag x . ef)
-  Len e                     -> Len (remTheTag x e)
-  Ind ea ei                 -> Ind (remTheTag x ea)   (remTheTag x ei)
-  Let el eb                 -> Let (remTheTag x el)   (remTheTag x . eb)
-  Cmx er ei                 -> Cmx (remTheTag x er)   (remTheTag x ei)
-  Tmp n                     -> Tmp n
+  AppV v es       -> AppV v (TFG.mapC (sinTyp v) (remTheTag x) es)
   Tag y e
-      | x == y              -> e
-      | otherwise           -> Tag y (remTheTag x e)
-  Mul er ei                 -> Mul (remTheTag x er)   (remTheTag x ei)
+      | x == y    -> e
+      | otherwise -> Tag y (remTheTag x e)
+  _               -> $(genOverloaded 'ee ''Exp  ['AppV,'Tag]
+   (\ tt -> if
+    | matchQ tt [t| Exp t t -> Exp t t |] -> [| (remTheTag x .) |]
+    | matchQ tt [t| Exp t t |]            -> [| remTheTag  x |]
+    | otherwise                           -> [| id |]))
 
 cmt :: forall t ra rb r.
        (HasSin TFG.Typ t , TFG.Arg t ~ Add ra rb) =>
@@ -187,26 +169,15 @@ Nothing  <||> m = m
 findTag :: forall r t. HasSin TFG.Typ t =>
           Exp r t -> Maybe (String , Exs1 (Exp r) TFG.Typ)
 findTag ee = let t = sin :: TFG.Typ t in case ee of
-  ConI _                    -> Nothing
-  ConB _                    -> Nothing
-  ConF _                    -> Nothing
-  AppV v es                 -> TFG.fld (\ b e -> (findTag e) <||> b) Nothing
-                               (sinTyp v) es
-  Cnd ec et ef              -> findTag  ec <||> findTag  et <||> findTag ef
-  Whl ec eb ei              -> findTagF ec <||> findTagF eb <||> findTag ei
-  Tpl ef es                 -> case TFG.getPrfHasSinTpl t of
-    (PrfHasSin , PrfHasSin) -> findTag  ef <||> findTag  es
-  Fst e                     -> findTag  e
-  Snd e                     -> findTag  e
-  Ary el ef                 -> case TFG.getPrfHasSinAry t of
-    PrfHasSin               -> findTag  el <||> findTagF ef
-  Len e                     -> findTag  e
-  Ind ea ei                 -> findTag  ea <||> findTag  ei
-  Let el eb                 -> findTag  el <||> findTagF eb
-  Cmx er ei                 -> findTag  er <||> findTag  ei
-  Tmp _                     -> Nothing
-  Tag x e                   -> Just (x , Exs1 e (sinTyp e))
-  Mul er ei                 -> findTag  er <||> findTag  ei
+  AppV v es -> TFG.fld (\ b e -> (findTag e) <||> b) Nothing
+               (sinTyp v) es
+  Tag x e   -> Just (x , Exs1 e (sinTyp e))
+  _         -> $(recAppMQ 'ee ''Exp (const [| Nothing |]) ['AppV,'Tag]
+    [| \ _x -> Nothing |] [| (<||>) |] [| (<||>) |] (trvWrp 't)
+   (\ tt -> if
+    | matchQ tt [t| Exp t t -> Exp t t |] -> [| findTagF |]
+    | matchQ tt [t| Exp t t |]            -> [| findTag  |]
+    | otherwise                           -> [| const Nothing |]))
 
 findTagF :: (HasSin TFG.Typ a , HasSin TFG.Typ b) =>
             (Exp r a -> Exp r b) -> Maybe (String , Exs1 (Exp r) TFG.Typ)
@@ -217,82 +188,41 @@ findTagF f = let v = genNewNam "findTagF"
 absTag :: forall r t t'. (HasSin TFG.Typ t', HasSin TFG.Typ t) =>
           Exp r t' -> String -> Exp r t -> Exp r t
 absTag xx s ee = let t = sin :: TFG.Typ t in case ee of
-  ConI i                    -> ConI i
-  ConB i                    -> ConB i
-  ConF i                    -> ConF i
-  AppV v es                 -> AppV v (TFG.mapC (sinTyp v) (absTag xx s) es)
-  Cnd ec et ef              -> Cnd (absTag xx s ec)   (absTag xx s et)
-                                    (absTag xx s ef)
-  Whl ec eb ei              -> Whl (absTag xx s . ec) (absTag xx s . eb)
-                                   (absTag xx s ei)
-  Tpl ef es                 -> case TFG.getPrfHasSinTpl t of
-    (PrfHasSin , PrfHasSin) -> Tpl (absTag xx s ef)   (absTag xx s es)
-  Fst e                     -> Fst (absTag xx s e)
-  Snd e                     -> Snd (absTag xx s e)
-  Ary el ef                 -> case TFG.getPrfHasSinAry t of
-    PrfHasSin               -> Ary (absTag xx s el)   (absTag xx s . ef)
-  Len e                     -> Len (absTag xx s e)
-  Ind ea ei                 -> Ind (absTag xx s ea)   (absTag xx s ei)
-  Let el eb                 -> Let (absTag xx s el)   (absTag xx s . eb)
-  Cmx er ei                 -> Cmx (absTag xx s er)   (absTag xx s ei)
-  Tmp x                     -> Tmp x
-  Tag x e
-    | s == x                -> case eqlSin (sinTyp xx) t of
-      Rgt Rfl               -> xx
-      _                     -> impossible
-    | otherwise             -> Tag x (absTag xx s e)
-  Mul er ei                 -> Mul (absTag xx s er)   (absTag xx s ei)
+ AppV v es    -> AppV v (TFG.mapC (sinTyp v) (absTag xx s) es)
+ Tag x e
+  | s == x    -> case eqlSin (sinTyp xx) t of
+    Rgt Rfl   -> xx
+    _         -> impossible
+  | otherwise -> Tag x (absTag xx s e)
+ _            -> $(genOverloadedW 'ee ''Exp  ['AppV,'Tag] (trvWrp 't)
+  (\ tt -> if
+    | matchQ tt [t| Exp t t -> Exp t t |] -> [| (absTag xx s .) |]
+    | matchQ tt [t| Exp t t |]            -> [| absTag xx s |]
+    | otherwise                           -> [| id |]))
 
 hasTag :: String -> Exp r t -> Bool
-hasTag s ee = case ee of
-  ConI _                    -> False
-  ConB _                    -> False
-  ConF _                    -> False
-  AppV _ es                 -> ET.foldl (\ b e -> b || hasTag s e) False es
-  Cnd ec et ef              -> hasTag s ec || hasTag s et || hasTag s ef
-  Whl ec eb ei              -> hasTagF s ec || hasTagF s eb || hasTag s ei
-  Tpl ef es                 -> hasTag s ef || hasTag s es
-  Fst e                     -> hasTag s e
-  Snd e                     -> hasTag s e
-  Ary el ef                 -> hasTag s el || hasTagF s ef
-  Len e                     -> hasTag s e
-  Ind ea ei                 -> hasTag s ea || hasTag s ei
-  Let el eb                 -> hasTag s el || hasTagF s eb
-  Cmx er ei                 -> hasTag s er || hasTag s ei
-  Tmp _                     -> False
-  Tag x e
-    | s == x                -> True
-    | otherwise             -> hasTag s e
-  Mul el er                 -> hasTag s el || hasTag s er
+hasTag s ee = numTag s ee /= 0
 
 hasTagF :: String -> (Exp r ta -> Exp r tb) -> Bool
 hasTagF s f = let v = genNewNam "hasTagF"
                   {-# NOINLINE v #-}
               in deepseq v $ hasTag s (f (Tmp v))
 
-numTag :: String -> Exp r t -> Int
+numTag :: forall r t. String -> Exp r t -> Int
 numTag s ee = case ee of
-  ConI _                    -> 0
-  ConB _                    -> 0
-  ConF _                    -> 0
-  AppV _ es                 -> ET.foldl (\ b e -> b + numTag s e) 0 es
-  Cnd ec et ef              -> numTag s ec + numTag s et + numTag s ef
-  Whl ec eb ei              -> numTagF s ec + numTagF s eb + numTag s ei
-  Tpl ef es                 -> numTag s ef + numTag s es
-  Fst e                     -> numTag s e
-  Snd e                     -> numTag s e
-  Ary el ef                 -> numTag s el + numTagF s ef
-  Len e                     -> numTag s e
-  Ind ea ei                 -> numTag s ea + numTag s ei
-  Let el eb                 -> numTag s el + numTagF s eb
-  Cmx er ei                 -> numTag s er + numTag s ei
-  Tmp _                     -> 0
-  Tag x e
-    | s == x                -> 1
-    | otherwise             -> numTag s e
-  Mul el er                 -> numTag s el + numTag s er
+ AppV _ es    -> ET.foldl (\ b e -> b + numTag s e) 0 es
+ Tag x e
+  | s == x    -> 1
+  | otherwise -> numTag s e
+ _            -> $(recAppMQ 'ee ''Exp (const [| 0 |]) ['AppV,'Tag]
+    [| \ _x -> 0 |] [| (+) |] [| (+) |] (const id)
+   (\ tt -> if
+    | matchQ tt [t| Exp t t -> Exp t t |] -> [| numTagF s |]
+    | matchQ tt [t| Exp t t |]            -> [| numTag  s |]
+    | otherwise                           -> [| const 0   |]))
 
-numTagF :: String -> (Exp r ta -> Exp r tb) -> Int
+numTagF :: forall r ta tb.
+           String -> (Exp r ta -> Exp r tb) -> Int
 numTagF s f = let v = genNewNam "numTagF"
                   {-# NOINLINE v #-}
               in deepseq v $ numTag s (f (Tmp v))
