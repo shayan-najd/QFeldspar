@@ -27,8 +27,8 @@ import QFeldspar.MyPrelude (Int,Flt,Cmx,Ary,Bol,Num(..)
   ,deepseq,($),(.))
 import qualified QFeldspar.MyPrelude as MP
 
-import QFeldspar.Expression.Feldspar.MiniFeldspar hiding (eql,eqlF)
-import qualified QFeldspar.Expression.Feldspar.MiniFeldspar as FMWS
+import QFeldspar.Expression.Feldspar.MiniFeldspar
+import qualified QFeldspar.Expression.Feldspar.Utils.MiniFeldspar as FMWS (eql,eqlF)
 import qualified QFeldspar.Type.Feldspar.GADT    as TFG
 
 import QFeldspar.Singleton

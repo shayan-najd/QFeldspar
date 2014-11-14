@@ -3,6 +3,8 @@ module QFeldspar.Normalisation.Feldspar.GADTHigherOrder () where
 import QFeldspar.MyPrelude
 
 import QFeldspar.Expression.Feldspar.GADTHigherOrder
+import QFeldspar.Expression.Feldspar.Utils.GADTHigherOrder(isFresh,absTmp)
+
 
 import QFeldspar.Normalisation
 import QFeldspar.Singleton

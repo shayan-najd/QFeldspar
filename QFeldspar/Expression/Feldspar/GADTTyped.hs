@@ -2,9 +2,7 @@ module QFeldspar.Expression.Feldspar.GADTTyped
        (Exp(..)) where
 
 import QFeldspar.MyPrelude
-
 import QFeldspar.Variable.Scoped
-
 import qualified QFeldspar.Nat.ADT as NA
 
 data Exp :: NA.Nat -> * -> * where

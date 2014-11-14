@@ -25,3 +25,4 @@
 :set -XPatternSynonyms
 :set -XViewPatterns
 :set -XNoImplicitPrelude
+:set -XMultiWayIf

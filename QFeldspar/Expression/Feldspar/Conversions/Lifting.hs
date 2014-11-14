@@ -4,7 +4,7 @@ import QFeldspar.MyPrelude
 
 import qualified QFeldspar.Expression.Feldspar.GADTFirstOrder  as FGFO
 import qualified QFeldspar.Expression.Feldspar.GADTHigherOrder as FGHO
-
+import qualified QFeldspar.Expression.Feldspar.Utils.GADTHigherOrder as FGHO (sucAll,prdAll)
 import qualified QFeldspar.Type.Feldspar.GADT                  as TFG
 
 import QFeldspar.Variable.Typed    as VT

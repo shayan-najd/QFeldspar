@@ -19,7 +19,7 @@ import QFeldspar.Expression.Feldspar.Conversion ()
 
 import qualified QFeldspar.Expression.Feldspar.ADTUntypedNamed as FAUN
 import qualified QFeldspar.Expression.Feldspar.GADTHigherOrder as FGHO
-import qualified QFeldspar.Expression.Feldspar.MiniFeldspar    as FMWS
+import qualified QFeldspar.Expression.Feldspar.Utils.MiniFeldspar as FMWS (absVar)
 import qualified QFeldspar.Type.Feldspar.GADT                  as TFG
 
 import QFeldspar.Type.Feldspar.Conversion ()

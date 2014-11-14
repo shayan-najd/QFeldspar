@@ -1,5 +1,5 @@
 module QFeldspar.Expression.Feldspar.GADTFirstOrder
-    (Exp(..),sucAll,prdAll,mapVar) where
+      (Exp(..)) where
 
 import QFeldspar.MyPrelude
 
@@ -35,42 +35,3 @@ data Exp :: [*] -> * -> * where
   May  :: HasSin TFG.Typ a =>
           Exp r (May a) -> Exp r b -> Exp r (Arr a b) -> Exp r b
   Mul  :: Exp r a  -> Exp r a -> Exp r a
-
-sucAll :: Exp r t' -> Exp (t ': r) t'
-sucAll = mapVar Suc
-
-prdAll :: Exp (t ': r) t' -> Exp r t'
-prdAll = mapVar (\(Suc x) -> x)
-
-mapVar :: forall r r' t.
-          (forall t'. Var r t' -> Var r' t') -> Exp r t -> Exp r' t
-mapVar f ee = case ee of
-  ConI i       -> ConI i
-  ConB i       -> ConB i
-  ConF i       -> ConF i
-  Var v        -> Var (f v)
-  Abs eb       -> Abs (mf eb)
-  App ef ea    -> App (m ef)  (m ea)
-  Cnd ec et ef -> Cnd (m ec)  (m et)  (m ef)
-  Whl ec eb ei -> Whl (m ec)  (m eb) (m ei)
-  Tpl ef es    -> Tpl (m ef)  (m es)
-  Fst e        -> Fst (m e)
-  Snd e        -> Snd (m e)
-  Ary el ef    -> Ary (m el)  (m ef)
-  Len e        -> Len (m e)
-  Ind ea ei    -> Ind (m ea)  (m ei)
-  AryV el ef   -> AryV (m el)  (m ef)
-  LenV e       -> LenV (m e)
-  IndV ea ei   -> IndV (m ea)  (m ei)
-  Let el eb    -> Let (m el)  (mf eb)
-  Cmx er ei    -> Cmx (m er)  (m ei)
-  Non          -> Non
-  Som e        -> Som (m e)
-  May ec en es -> May (m ec)  (m en) (m es)
-  Mul el er    -> Mul (m el)  (m er)
-  where
-    m :: Exp r tt -> Exp r' tt
-    m  = mapVar f
-
-    mf :: Exp (ta ': r) tt -> Exp (ta ': r') tt
-    mf = mapVar (inc f)

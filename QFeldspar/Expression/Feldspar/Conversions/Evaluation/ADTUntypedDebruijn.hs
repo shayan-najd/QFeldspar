@@ -31,5 +31,5 @@ instance Cnv (Exp , Env FAV.Exp) FAV.Exp where
     Typ _  e     -> pure (cnvImp e)
     _            -> impossibleM)
 
-instance Cnv (Exp , Env FAV.Exp)  (FAV.Exp -> FAV.Exp) where
-  cnv (e , r) = pure (frmRgt . curry cnv e . (: r))
+instance Cnv (Fun , Env FAV.Exp)  (FAV.Exp -> FAV.Exp) where
+  cnv (Fun e , r) = pure (frmRgt . curry cnv e . (: r))

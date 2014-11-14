@@ -1,7 +1,7 @@
 module QFeldspar.Expression.TemplateHaskell.Conversion () where
 
-import QFeldspar.MyPrelude
-
+import Prelude ((++),Monad(..),(.))
+import QFeldspar.ErrorMonad
 import qualified Language.Haskell.TH.Syntax as TH
 
 instance TH.Quasi ErrM where

@@ -1,8 +1,10 @@
-module QFeldspar.Eta where
+module QFeldspar.Eta
+       (eta) where
 
 import QFeldspar.MyPrelude
 
 import QFeldspar.Expression.Feldspar.GADTHigherOrder
+import QFeldspar.Expression.Feldspar.Utils.GADTHigherOrder(absTmp)
 import QFeldspar.Singleton
 import qualified QFeldspar.Type.Feldspar.GADT as TFG
 

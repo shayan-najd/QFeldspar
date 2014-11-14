@@ -5,6 +5,9 @@ import QFeldspar.MyPrelude
 class Cnv a b where
   cnv :: a -> ErrM b
 
+instance Cnv (a, r) a where
+  cnv (x , _) = pure x
+ 
 cnvImp :: (Cnv (a , r) b , ?r :: r) => a -> ErrM b
 cnvImp x = cnv (x  , ?r)
 

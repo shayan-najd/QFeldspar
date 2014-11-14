@@ -1,17 +1,20 @@
 module QFeldspar.Expression.Feldspar.ADTUntypedDebruijn
-       (Exp(..)) where
+       (Exp(..),Fun(..)) where
 
 import QFeldspar.MyPrelude
 import QFeldspar.Variable.Plain
 import qualified QFeldspar.Type.Feldspar.ADT as TFA
 
--- data Fun = Fun Exp
+data Fun = Fun Exp
+
+deriving instance Eq   Fun
+deriving instance Show Fun
 
 data Exp = ConI Int
          | ConB Bool
          | ConF Float
          | Var  Var
-         | Abs  Exp
+         | Abs  Fun
          | App  Exp Exp
          | Cnd  Exp Exp Exp
          | Whl  Exp Exp Exp
@@ -24,7 +27,7 @@ data Exp = ConI Int
          | AryV Exp Exp
          | LenV Exp
          | IndV Exp Exp
-         | Let  Exp Exp
+         | Let  Exp Fun
          | Cmx  Exp Exp
          | Non
          | Som  Exp

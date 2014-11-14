@@ -1,6 +1,7 @@
 module QFeldspar.CSE where
 
 import QFeldspar.Expression.Feldspar.MiniFeldspar
+import QFeldspar.Expression.Feldspar.Utils.MiniFeldspar(absTmp)
 
 import QFeldspar.MyPrelude hiding (foldl)
 
@@ -212,7 +213,6 @@ findTagF :: (HasSin TFG.Typ a , HasSin TFG.Typ b) =>
 findTagF f = let v = genNewNam "findTagF"
                  {-# NOINLINE v #-}
              in  deepseq v $ findTag (f (Tmp v))
-
 
 absTag :: forall r t t'. (HasSin TFG.Typ t', HasSin TFG.Typ t) =>
           Exp r t' -> String -> Exp r t -> Exp r t

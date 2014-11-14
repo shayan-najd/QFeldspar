@@ -1,7 +1,7 @@
 module QFeldspar.MyPrelude
        (Num(..),pi,fromIntegral,toRational
        ,floor,log,sqrt,
-        Word32,Rational, stripNameSpace,
+        Word32,Rational,
         Float,
         Bool(..),(&&),(||),not,
         Complex(..),realPart,imagPart,cis,magnitude,
@@ -25,6 +25,7 @@ module QFeldspar.MyPrelude
         genNewNam,deepseq,($),
         module QFeldspar.ErrorMonad,
         module QFeldspar.Existential,
+        module QFeldspar.TraversalGenerator,
         module Data.Monoid,
         module Data.Foldable,
         module Data.Traversable,
@@ -56,7 +57,7 @@ import Data.Char(ord)
 import System.Environment
 import Data.Unique
 import System.IO.Unsafe
-import qualified Language.Haskell.TH.Syntax as TH
+import QFeldspar.TraversalGenerator
 
 impossible :: a
 impossible = error "Impossible!"
@@ -89,9 +90,6 @@ data Vec a   = Vec Int (Int -> a)
 {-# NOINLINE genNewNam #-}
 genNewNam :: String -> String
 genNewNam x = unsafePerformIO (fmap (x ++) (fmap (show . hashUnique) newUnique))
-
-stripNameSpace :: TH.Name -> TH.Name
-stripNameSpace (TH.Name x _) = TH.Name x TH.NameS
 
 cnd :: Bool -> s -> s -> s
 cnd c t f = if c then t else f

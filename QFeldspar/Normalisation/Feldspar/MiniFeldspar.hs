@@ -3,6 +3,7 @@ module QFeldspar.Normalisation.Feldspar.MiniFeldspar () where
 import QFeldspar.MyPrelude hiding (foldl,fmap)
 
 import QFeldspar.Expression.Feldspar.MiniFeldspar
+import QFeldspar.Expression.Feldspar.Utils.MiniFeldspar(isFresh,absTmp,pattern TF)
 
 import QFeldspar.Normalisation
 import QFeldspar.Singleton

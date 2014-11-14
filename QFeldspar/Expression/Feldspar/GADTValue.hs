@@ -31,8 +31,8 @@ conB = Exp
 conF :: Float -> Exp Flt
 conF = Exp
 
-abs :: (ta -> tb) -> Exp (Arr ta tb)
-abs = Exp
+abs :: Exp (Arr ta tb) -> Exp (Arr ta tb)
+abs = id
 
 app :: Exp (Arr ta tb) -> Exp ta -> Exp tb
 app (Exp vf) (Exp va) = Exp (vf va)

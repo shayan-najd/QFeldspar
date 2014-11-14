@@ -124,11 +124,9 @@ getPrfHasSinVecM :: HasSin Typ (Vec ta) =>
                    t (Vec ta) -> ErrM (PrfHasSin Typ ta)
 getPrfHasSinVecM = return  . getPrfHasSinVec
 
-
 getPrfHasSinMayM :: HasSin Typ (May ta) =>
                    t (May ta) -> ErrM (PrfHasSin Typ ta)
 getPrfHasSinMayM = return  . getPrfHasSinMay
-
 
 type family Out (t :: *) :: * where
   Out (ta -> tb) = Out tb

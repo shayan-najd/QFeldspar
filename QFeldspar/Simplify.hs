@@ -3,6 +3,7 @@ module QFeldspar.Simplify  where
 import QFeldspar.MyPrelude hiding (foldl,fmap)
 
 import QFeldspar.Expression.Feldspar.MiniFeldspar
+import QFeldspar.Expression.Feldspar.Utils.MiniFeldspar(eql,hasOneOrZro,absTmp,pattern TF)
 
 import QFeldspar.Singleton
 import qualified QFeldspar.Type.Feldspar.GADT as TFG

@@ -47,5 +47,6 @@ instance Eq x =>
 
 instance Eq x =>
          Cnv ((x , FAUN.Exp x) , EM.Env x Var)
-         FAUD.Exp where
-  cnv ((x , e) , r) = cnv (e , (x , Zro) : fmap (fmap Suc) r)
+         FAUD.Fun where
+ cnv ((x , e) , r) = fmap FAUD.Fun
+                     (cnv (e , (x , Zro) : fmap (fmap Suc) r))
