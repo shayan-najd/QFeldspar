@@ -5,20 +5,23 @@ module QFeldspar.MyPrelude
         Float,
         Bool(..),(&&),(||),not,
         Complex(..),realPart,imagPart,cis,magnitude,
-        (.&.),(.|.),xor,shiftR,shiftL,complement,popCountDefault,testBit,
+        (.&.),(.|.),xor,shiftR,shiftL,complement,popCountDefault,
+        testBit,
         IO,print,readFile,writeFile,putStrLn,getArgs,
         fst,snd,
         String,lines,unlines,
         read,
         (.),flip,curry,uncurry,id,const,
-        (++),zip,head,dropWhile,iterate,length,zipWith,filter,(!!),delete,init,
+        (++),zip,head,dropWhile,iterate,length,zipWith,filter,(!!),
+        delete,init,
         ord,
         Maybe(..),fromJust,maybe,
         Enum(..),
         Ord(..),
         Eq(..),
         Show(..),Fractional(..),Integral(..),
-        otherwise, impossible , impossibleM,badUse,badTypVal,badTypValM,
+        otherwise, impossible , impossibleM,badUse,badTypVal,
+        badTypValM,
         lookup,
         State,getState,put,modify,runState,execState,evalState,StateT
              ,lift,runStateT,evalStateT,
@@ -34,10 +37,10 @@ module QFeldspar.MyPrelude
         module Control.Monad,
         module Data.Array,
         Bol,Ary,May,Cmx,Flt,Int,Arr,Tpl,Vec(..),
-        cnd,while,tpl,arr,arrLen,arrIx,cmx,non,som,may)
+        cnd,while,whileM,tpl,arr,arrLen,arrIx,cmx,non,som,may)
        where
 import Control.DeepSeq
-import Prelude hiding (Int)
+import Prelude hiding (Int,mapM,sequence)
 import QFeldspar.Existential
 import Data.Maybe
 import QFeldspar.ErrorMonad
@@ -46,9 +49,10 @@ import Data.Foldable
 import Data.Traversable
 import Control.Applicative
 import Data.Functor
-import Control.Monad hiding (forM,forM_,sequence,sequence_,msum,mapM,mapM_)
+import Control.Monad hiding
+   (forM,forM_,sequence,sequence_,msum,mapM,mapM_)
 import Data.Monoid
-import Control.Monad.State
+import Control.Monad.State hiding (mapM,sequence)
 import Data.List
 import Data.Complex
 import Data.Word
@@ -89,7 +93,8 @@ data Vec a   = Vec Int (Int -> a)
 
 {-# NOINLINE genNewNam #-}
 genNewNam :: String -> String
-genNewNam x = unsafePerformIO (fmap (x ++) (fmap (show . hashUnique) newUnique))
+genNewNam x = unsafePerformIO (fmap (x ++)
+                               (fmap (show . hashUnique) newUnique))
 
 cnd :: Bool -> s -> s -> s
 cnd c t f = if c then t else f
@@ -97,11 +102,18 @@ cnd c t f = if c then t else f
 while :: (s -> Bool) -> (s -> s) -> s -> s
 while fc fb = head . dropWhile fc . iterate fb
 
+whileM :: Monad m =>
+          (s -> m Bool) -> (s -> m s) -> s -> m s
+whileM fc fb v = do b' <- fc v
+                    if b'
+                    then whileM fc fb =<< fb v
+                    else return v
+
 tpl :: a -> b -> (a , b)
 tpl = ((,))
 
 arr :: Int -> (Int -> a) -> Array Int a
-arr l f = listArray (0 , l - 1) (fmap f [0 .. l - 1])
+arr  l f = fmap f (listArray (0 , l - 1) [0 .. l - 1])
 
 arrLen :: (Array Int a) -> Int
 arrLen = (1 +) . uncurry (flip (-)) . bounds

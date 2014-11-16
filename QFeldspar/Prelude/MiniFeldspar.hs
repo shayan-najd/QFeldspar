@@ -34,6 +34,7 @@ import qualified QFeldspar.Type.GADT    as TFG
 import QFeldspar.Singleton
 import QFeldspar.Environment.Typed (Env(Emp,Ext))
 import QFeldspar.Prelude.Environment
+import QFeldspar.Prelude.HaskellEnvironment
 import qualified QFeldspar.Variable.Typed as VT
 
 type Data t = Exp Prelude t

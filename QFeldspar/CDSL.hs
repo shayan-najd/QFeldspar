@@ -12,7 +12,6 @@ import QFeldspar.Conversion
 import QFeldspar.Expression.Conversions.Evaluation.MiniFeldspar ()
 import QFeldspar.Expression.Conversion ()
 
-import qualified QFeldspar.Expression.MiniFeldspar  as FMWS
 import qualified QFeldspar.Type.GADT                  as TFG
 import qualified QFeldspar.Expression.GADTValue       as FGV
 import QFeldspar.Compiler(scompile)
@@ -22,7 +21,7 @@ import QFeldspar.CSE
 import QFeldspar.ChangeMonad
 import QFeldspar.Simplify
 
-type Dp a = FMWS.Exp Prelude a
+type Dp a = Data a
 
 evaluate :: forall a. Syn a => a -> InT a
 evaluate ee = let e = toExp ee

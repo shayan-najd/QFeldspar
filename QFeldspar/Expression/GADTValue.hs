@@ -1,8 +1,8 @@
 module QFeldspar.Expression.GADTValue
     (Exp(..)
-    ,conI,conB,conF,var,abs,app,cnd,whl,fst,snd,tpl,ary,len,ind,leT
-    ,cmx,mul,tag
-    ,getTrm,mapTrm) where
+    ,conI,conB,conF,var,abs,app,cnd,whl,tpl,fst,snd,ary,len,ind,leT
+    ,cmx,tag,mul
+    ,getTrm) where
 
 import QFeldspar.MyPrelude hiding (abs,fst,snd,may,som,non,cmx,tpl,cnd)
 import qualified QFeldspar.MyPrelude as MP
@@ -13,62 +13,78 @@ data Exp :: * -> * where
 
 deriving instance Functor Exp
 
-mapTrm :: (a -> b) -> Exp a -> Exp b
-mapTrm = fmap
-
 getTrm :: Exp t -> t
 getTrm (Exp x) = x
+
+prm0 :: a -> Exp a
+prm0 = Exp
+
+prm1 :: (a -> b) -> Exp a -> Exp b
+prm1 f = fmap f
+
+prm2 :: (a -> b -> c) ->
+        Exp a -> Exp b -> Exp c
+prm2 f e1 e2 = let e1' = getTrm e1
+                   e2' = getTrm e2
+               in Exp (f e1' e2')
+
+prm3 :: (a -> b -> c -> d) ->
+        Exp a -> Exp b -> Exp c -> Exp d
+prm3 f e1 e2 e3 = let e1' = getTrm e1
+                      e2' = getTrm e2
+                      e3' = getTrm e3
+                  in  Exp (f e1' e2' e3')
 
 var :: t -> t
 var = id
 
 conI :: Int -> Exp Int
-conI = Exp
+conI = prm0
 
 conB :: Bool -> Exp Bol
-conB = Exp
+conB = prm0
 
 conF :: Float -> Exp Flt
-conF = Exp
+conF = prm0
 
 abs :: Exp (Arr ta tb) -> Exp (Arr ta tb)
 abs = id
 
 app :: Exp (Arr ta tb) -> Exp ta -> Exp tb
-app (Exp vf) (Exp va) = Exp (vf va)
+app = prm2 ($)
 
 cnd :: Exp Bol -> Exp a -> Exp a -> Exp a
-cnd (Exp vc) (Exp vt) (Exp vf) = Exp (MP.cnd vc vt vf)
+cnd = prm3 MP.cnd
 
 whl :: Exp (Arr s  Bol) -> Exp (Arr s s) -> Exp s -> Exp s
-whl (Exp fc) (Exp fb) (Exp s) = Exp (MP.while fc fb s)
+whl = prm3 MP.while
 
 tpl :: Exp tf -> Exp ts -> Exp (Tpl tf ts)
-tpl (Exp vf) (Exp vs) = Exp (MP.tpl vf vs)
+tpl = prm2 MP.tpl
 
 fst :: Exp (Tpl a b) -> Exp a
-fst (Exp v) = Exp (MP.fst v)
+fst = prm1 MP.fst
 
 snd :: Exp (Tpl a b) -> Exp b
-snd (Exp v) = Exp (MP.snd v)
+snd = prm1 MP.snd
 
 ary :: Exp Int -> Exp (Arr Int a) -> Exp (Ary a)
-ary (Exp vl) (Exp vf) = Exp (MP.arr vl vf)
+ary = prm2 MP.arr
 
 len :: Exp (Ary a) -> Exp Int
-len (Exp e)  = Exp (MP.arrLen e)
+len = prm1 MP.arrLen
 
 ind :: Exp (Ary a) -> Exp Int -> Exp a
-ind (Exp v) (Exp vi) = Exp (MP.arrIx v vi)
+ind = prm2 MP.arrIx
 
 leT :: Exp tl -> Exp (Arr tl tb) -> Exp tb
-leT (Exp vl) (Exp vb) = Exp (vb vl)
+leT = prm2 (flip ($))
 
 cmx :: Exp Flt -> Exp Flt -> Exp Cmx
-cmx (Exp fr) (Exp fi) = Exp (MP.cmx fr fi)
+cmx = prm2 MP.cmx
 
 mul :: Num a => Exp a -> Exp a -> Exp a
-mul (Exp i) (Exp i') = Exp (i + i')
+mul = prm2 (*)
 
 tag :: String -> Exp a -> Exp a
-tag _ = id
+tag = const id

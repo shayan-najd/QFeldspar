@@ -13,6 +13,7 @@ import qualified QFeldspar.Type.GADT as TFG
 import QFeldspar.Conversion
 import QFeldspar.Type.Conversion ()
 import QFeldspar.Singleton
+import qualified QFeldspar.Nat.GADT as NG
 
 ---------------------------------------------------------------------------------
 -- Conversion from EM.Env
@@ -30,13 +31,19 @@ instance Cnv (a , r) b =>
          Cnv (EP.Env a , r) (EP.Env b)  where
   cnv (ee , rr) = let ?r = rr in mapM cnvImp ee
 
+instance (n ~ n', a ~ a') => Cnv (EP.Env a , NG.Nat n) (ES.Env n' a')  where
+  cnv ([]    , NG.Zro)   = return ES.Emp
+  cnv (x : xs, NG.Suc n) = do xs' <- cnv (xs , n)
+                              return (ES.Ext x xs')
+  cnv _                  = fail "Conversion Error!"
+
 instance Cnv (a , r) (ExsSin b) =>
          Cnv (EP.Env a , r) (ExsSin (ET.Env b)) where
   cnv (ee , rr) = let ?r = rr in case ee of
-    []      -> return (ExsSin ET.Emp)
-    (t : r) -> do ExsSin t' <- cnvImp t
-                  ExsSin r' <- cnvImp r
-                  return (ExsSin (ET.Ext t' r'))
+    []    -> return (ExsSin ET.Emp)
+    t : r -> do ExsSin t' <- cnvImp t
+                ExsSin r' <- cnvImp r
+                return (ExsSin (ET.Ext t' r'))
 
 ---------------------------------------------------------------------------------
 -- Conversion from ES.Env

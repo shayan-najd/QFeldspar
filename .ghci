@@ -1,5 +1,6 @@
 :set -Wall
 :set -fno-warn-orphans
+:set -fcontext-stack=40
 :set -XNoMonomorphismRestriction
 :set -XPolyKinds
 :set -XDataKinds

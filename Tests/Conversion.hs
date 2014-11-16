@@ -59,13 +59,13 @@ envAddValG = ET.Ext (FGV.Exp (+)
              ET.Emp
 
 envAddValV :: ES.Env One FAV.Exp
-envAddValV = ES.Ext FAV.addV ES.Emp
+envAddValV = ES.Ext (FAV.lft ((+) :: Int -> Int -> Int)) ES.Emp
 
 envAddValA :: EP.Env FAV.Exp
-envAddValA = FAV.addV : []
+envAddValA = (FAV.lft ((+) :: Int -> Int -> Int)) : []
 
 envAddValM :: EM.Env TH.Name FAV.Exp
-envAddValM = (stripNameSpace '(+) , FAV.addV) : []
+envAddValM = (stripNameSpace '(+) , FAV.lft ((+) :: Int -> Int -> Int)) : []
 
 cnvFMWS :: Cnv (e , ET.Env TFG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
                (FGHO.Exp EnvAdd Int) => e -> Int -> Bool
@@ -90,28 +90,28 @@ cnvFGFO :: Cnv (e , ET.Env TFG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
 cnvFGFO e j = case (do e' :: FGFO.Exp EnvAdd Int <- cnv (e , envAddTypG ,vec)
                        curry cnv e' envAddValG) of
            Rgt (FGV.Exp i) -> i == j
-           _             -> False
+           _               -> False
 
 cnvFGTD :: Cnv (e , ET.Env TFG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
            (FGTD.Exp One TFA.Typ) => e -> Int -> Bool
 cnvFGTD e j = case (do e' :: FGTD.Exp One TFA.Typ <- cnv (e , envAddTypG , vec)
                        curry cnv e' envAddValV) of
-           Rgt (FAV.ConI i) -> i == j
-           _                -> False
+           Rgt (FAV.colft -> Rgt i) -> i == j
+           _                        -> False
 
 cnvFAUD :: Cnv (e , ET.Env TFG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
            FAUD.Exp => e -> Int -> Bool
 cnvFAUD e j = case (do e' :: FAUD.Exp <- cnv (e , envAddTypG , vec)
                        curry cnv e' envAddValA) of
-           Rgt (FAV.ConI i) -> i == j
-           _                -> False
+           Rgt (FAV.colft -> Rgt i) -> i == j
+           _                        -> False
 
 cnvFAUN :: Cnv (e , ET.Env TFG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
            (FAUN.Exp TH.Name) => e -> Int -> Bool
 cnvFAUN e j = case (do e' :: FAUN.Exp TH.Name <- cnv (e , envAddTypG , vec)
                        curry cnv e' envAddValM) of
-           Rgt (FAV.ConI i) -> i == j
-           _                -> False
+           Rgt (FAV.colft -> Rgt i) -> i == j
+           _                        -> False
 
 test :: Bool
 test = cnvFAUN TH.four   4 && cnvFAUN FAUN.four 4 &&

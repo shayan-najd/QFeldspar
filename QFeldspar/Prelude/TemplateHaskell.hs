@@ -27,7 +27,7 @@ import qualified QFeldspar.MyPrelude as MP
 import Language.Haskell.TH.Syntax (Lift(lift),Q,Exp(LitE),TExp
                                   ,Lit(IntegerL,RationalL))
 
-import QFeldspar.Prelude.Environment
+import QFeldspar.Prelude.HaskellEnvironment
 
 type Data t = Q (TExp t)
 

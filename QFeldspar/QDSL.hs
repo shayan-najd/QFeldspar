@@ -26,6 +26,7 @@ import QFeldspar.Type.Conversion ()
 
 import qualified Language.Haskell.TH.Syntax as TH
 import QFeldspar.Normalisation
+import QFeldspar.Prelude.HaskellEnvironment
 import QFeldspar.Prelude.Environment
 
 type Qt a = Data a

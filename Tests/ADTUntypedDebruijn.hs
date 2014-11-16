@@ -22,6 +22,6 @@ four :: Exp
 four = App (App (App compose dbl) dbl) (ConI 1)
 
 test :: Bool
-test = (case cnv (four , [V.addV]) of
-          Rgt (V.ConI 4) -> True
-          _              -> False)
+test = (case cnv (four , [V.lft ((+) :: Int -> Int -> Int)]) of
+          Rgt (V.colft -> Rgt (4 :: Int)) -> True
+          _                               -> False)

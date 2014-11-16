@@ -5,7 +5,7 @@ import QFeldspar.MyPrelude
 import QFeldspar.Expression.GADTHigherOrder
 import qualified QFeldspar.Expression.GADTValue as FGV
 import qualified QFeldspar.Type.GADT as TFG
-import QFeldspar.Environment.Typed
+import QFeldspar.Environment.Typed hiding (fmap)
 import QFeldspar.Conversion
 import QFeldspar.Variable.Conversion ()
 import QFeldspar.Singleton
@@ -20,15 +20,16 @@ instance (HasSin TFG.Typ t , t' ~ t) =>
     Non                      -> impossibleM
     Som _                    -> impossibleM
     May _ _ _                -> impossibleM
-    Mul _ _                  -> impossibleM
-    Tmp _                    -> fail "Not Supported!"
+    Tmp _                    -> impossibleM
     Let el eb                -> FGV.leT <$@> el <*@> eb
     _  -> $(biRecAppMQS 'ee ''Exp "FGV"
             ['AryV,'LenV,'IndV,'Non,'Som,'May,'Mul,'Let,'Tmp]
             (trvWrp 't))
 
-instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb , ta' ~ ta , tb' ~ tb) =>
-         Cnv (Exp r ta -> Exp r tb , Env FGV.Exp r) (FGV.Exp (Arr ta' tb')) where
+instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb
+         , ta' ~ ta , tb' ~ tb) =>
+         Cnv (Exp r ta -> Exp r tb , Env FGV.Exp r)
+             (FGV.Exp (Arr ta' tb')) where
   cnv (f , r)  =  let ?r = r in
     pure (FGV.Exp ( FGV.getTrm
                   . frmRgt . cnvImp
@@ -46,7 +47,8 @@ instance (HasSin TFG.Typ t , r ~ r' , t ~ t') =>
     TFG.Arr _ _               -> case TFG.getPrfHasSinArr t of
      (PrfHasSin , PrfHasSin)  -> Abs  <$@> samTyp t (FGV.Exp v)
     TFG.Tpl _ _               -> case TFG.getPrfHasSinTpl t of
-     (PrfHasSin , PrfHasSin)  -> Tpl  <$@> FGV.Exp (fst v) <*@> FGV.Exp (snd v)
+     (PrfHasSin , PrfHasSin)  -> Tpl  <$@> FGV.Exp (fst v)
+                                      <*@> FGV.Exp (snd v)
     TFG.Ary ta                -> case TFG.getPrfHasSinAry t of
       PrfHasSin
         | fst (bounds v) == 0 -> Ary  <$@> (FGV.Exp . (+ 1) . snd . bounds) v
@@ -56,14 +58,12 @@ instance (HasSin TFG.Typ t , r ~ r' , t ~ t') =>
         | otherwise           -> fail "Bad Array!"
     TFG.Cmx                   -> Cmx <$@> FGV.Exp (realPart v)
                                      <*@> FGV.Exp (imagPart v)
-    TFG.May _                 -> case TFG.getPrfHasSinMay t of
-      PrfHasSin               -> case v of
-                                   Nothing -> pure Non
-                                   Just vv -> Som <$@> FGV.Exp vv
-    TFG.Vct _                 -> impossible
+    TFG.Vct _                 -> impossibleM
+    TFG.May _                 -> impossibleM
+
 
 instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb , r ~ r' , ta ~ ta' , tb ~ tb')=>
          Cnv (FGV.Exp (Arr ta' tb') , Env FGV.Exp r') (Exp r ta -> Exp r tb)
          where
   cnv (FGV.Exp f , r) = let ?r = r in
-    pure (frmRgt . cnvImp . FGV.mapTrm f . frmRgt . cnvImp)
+    pure (frmRgt . cnvImp . (fmap f :: FGV.Exp ta -> FGV.Exp tb) . frmRgt . cnvImp)

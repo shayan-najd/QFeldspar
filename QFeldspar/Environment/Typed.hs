@@ -1,11 +1,12 @@
 module QFeldspar.Environment.Typed
-    (Env(Emp,Ext),fmap,foldMap,foldl,traverse,len,get,add) where
+    (Env(Emp,Ext),fmap,foldMap,foldl,traverse,len,get,add,Get) where
 
 import QFeldspar.MyPrelude hiding (mapM,fmap,traverse,foldMap,foldl)
 
 import QFeldspar.Variable.Typed
 
 import QFeldspar.Singleton
+import qualified QFeldspar.Nat.ADT  as NA
 import qualified QFeldspar.Nat.GADT as NG
 
 data Env :: (k -> *) -> [k] -> * where
@@ -43,16 +44,9 @@ add :: Env t ra -> Env t rb -> Env t (Add ra rb)
 add Emp        ys = ys
 add (Ext x xs) ys = Ext x (add xs ys)
 
--- add :: (?env :: Env tf r') => Var r t -> Var (Add r' r) t
--- add v = case ?env of
---   Emp      -> v
---   Ext _ xs -> let ?env = xs in Suc (add v)
-
---type instance Trm '[]        = ()
---type instance Trm (tf ': ts) = (Trm tf , Trm ts)
-
---type instance RevTrm ()        = '[]
---type instance RevTrm (tf , ts) = (RevTrm tf ': RevTrm ts)
+type family Get (ls :: [k]) (n :: NA.Nat) :: k where
+    Get (x ': xs) 'NA.Zro     = x
+    Get (x ': xs) ('NA.Suc n) = Get xs n
 
 instance HasSin (Env tf) '[] where
   sin = Emp
