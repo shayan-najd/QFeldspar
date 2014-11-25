@@ -8,150 +8,45 @@
 #ifndef Feldspar_Header
 #define Feldspar_Header
 
-typedef uint32_t Int;
-typedef float Flt;
-typedef bool  Bol;
-typedef float complex Cmx;
+#define Int int
+#define Flt float
+#define Bol bool
+#define Cmx float complex
 
-Cmx cmx(Flt r , Flt i)
-{
-  return (r + i * I);
-}
+#define cmx(X,Y) (X + Y * I)
+#define realPart(X) crealf(X)
+#define imagPart(X) cimagf(X)
 
-Flt realPart(Cmx c)
-{
-  return (crealf(c));
-}
+#define eqlBol(X,Y) (X == Y)
+#define eqlInt(X,Y) (X == Y)
+#define eqlFlt(X,Y) (X == Y)
 
-Flt imagPart(Cmx c)
-{
-  return (cimagf(c));
-}
+#define ltdBol(X,Y) (X < Y)
+#define ltdInt(X,Y) (X < Y)
+#define ltdFlt(X,Y) (X < Y)
 
-Bol eqlBol(Bol l , Bol r)
-{
-  return (l == r);
-}
+#define addInt(X,Y) (X + Y)
+#define subInt(X,Y) (X - Y)
+#define mulInt(X,Y) (X * Y)
+#define divInt(X,Y) (X / Y)
 
-Bol eqlInt(Int l , Int r)
-{
-  return (l == r);
-}
+#define addFlt(X,Y) (X + Y)
+#define subFlt(X,Y) (X - Y)
+#define mulFlt(X,Y) (X * Y)
+#define divFlt(X,Y) (X / Y)
 
-Bol eqlFlt(Flt l , Flt r)
-{
-  return (l == r);
-}
+#define addCmx(X,Y) (X + Y)
+#define subCmx(X,Y) (X - Y)
+#define mulCmx(X,Y) (X * Y)
+#define divCmx(X,Y) (X / Y)
 
-Bol ltdBol(Bol l , Bol r)
-{
-  return (l < r);
-}
-
-Bol ltdInt(Int l , Int r)
-{
-  return (l < r);
-}
-
-Bol ltdFlt(Flt l , Flt r)
-{
-  return (l < r);
-}
-
-Int addInt(Int l , Int r)
-{
-  return (l + r);
-}
-
-Int subInt(Int l , Int r)
-{
-  return (l - r);
-}
-
-Int mulInt(Int l , Int r)
-{
-  return (l * r);
-}
-
-Int divInt (Int l , Int r)
-{
-  return (l / r);
-}
-
-Flt addFlt(Flt l , Flt r)
-{
-  return (l + r);
-}
-
-Flt subFlt(Flt l , Flt r)
-{
-  return (l - r);
-}
-
-Flt mulFlt(Flt l , Flt r)
-{
-  return (l * r);
-}
-
-Flt divFlt (Flt l , Flt r)
-{
-  return (l / r);
-}
-
-Cmx addCmx(Cmx l , Cmx r)
-{
-  return (l + r);
-}
-
-Cmx subCmx(Cmx l , Cmx r)
-{
-  return (l - r);
-}
-
-Cmx mulCmx(Cmx l , Cmx r)
-{
-  return (l * r);
-}
-
-Cmx divCmx (Cmx l , Cmx r)
-{
-  return (l / r);
-}
-
-Int andInt (Int l , Int r)
-{
-  return (l & r);
-}
-
-Int orInt (Int l , Int r)
-{
-  return (l | r);
-}
-
-Int xorInt (Int l , Int r)
-{
-  return (l ^ r);
-}
-
-Int shrInt (Int l , Int r)
-{
-  return (l >> r);
-}
-
-Int shlInt (Int l , Int r)
-{
-  return (l << r);
-}
-
-Int cmpInt (Int i)
-{
-  return (~ i);
-}
-
-Flt i2f (Int i)
-{
-  return (Flt) i;
-}
+#define andInt(X,Y) (X & Y)
+#define orInt(X,Y) (X | Y)
+#define xorInt(X,Y) (X ^ Y)
+#define shrInt(X,Y) (X >> Y)
+#define shlInt(X,Y) (X << Y)
+#define cmpInt(X) (~ X)
+#define i2f(X) ((float) X)
 
 Cmx cis (Flt f)
 {
@@ -163,10 +58,7 @@ Int ilog2 (Int i)
   return ((Int)(floorf(log2f(i2f(i)))));
 }
 
-Flt sqrtFlt (Flt f)
-{
-  return sqrtf(f);
-}
+#define sqrtFlt(X) (sqrtf(X))
 
 typedef struct
 {

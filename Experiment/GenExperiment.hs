@@ -20,8 +20,9 @@ main = sequence_ $
             "import Experiment.Common\n"++
             "import QFeldspar." ++ show f ++ "\n" ++
             "import Examples." ++e++ "." ++ show f ++ "\n" ++
+            "main :: IO ()\n" ++
             "main = writeFile \"Experiment/" ++ e ++ show f ++ show s ++".c\""
-                   ++ " (header++(compileF "++show s++" "++lower e
+                   ++ " (header++(compileF False "++show s++" "++lower e
                           ++")++loader"++e++")"
    in writeFile ("Experiment/run"++e++show f++show s++".hs") ff
   )

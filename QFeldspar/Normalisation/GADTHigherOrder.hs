@@ -36,6 +36,7 @@ isVal ee = case ee of
     Som  e        -> isVal e
     May  _ _  _   -> False
     Mul _ _       -> False
+    Int _         -> True -- shouldn't matter
 
 val :: Exp n t -> (Bool,Exp n t)
 val ee = (isVal ee , ee)
@@ -142,6 +143,10 @@ instance HasSin TFG.Typ t => NrmOne (Exp n t) where
     Mul (NV er) (V ei)           -> chg (Let er (\ x -> Mul  x  ei))
     Mul er ei                    -> Mul  <$@> er <*@> ei
 
+    Int i                        -> case t of
+      TFG.Int                    -> chg (ConI i)
+      TFG.Flt                    -> chg (ConF (fromIntegral i))
+      _                          -> fail "Type Error3!"
 
 instance (HasSin TFG.Typ tb, HasSin TFG.Typ ta) =>
          NrmOne (Exp n ta -> Exp n tb) where

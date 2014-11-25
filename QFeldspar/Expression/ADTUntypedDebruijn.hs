@@ -34,6 +34,7 @@ data Exp = ConI Int
          | May  Exp Exp Exp
          | Typ  TFA.Typ Exp
          | Mul  Exp Exp
+         | Int  Int
 
 deriving instance Eq   Exp
 deriving instance Show Exp

@@ -12,7 +12,7 @@ extra-source-files:  README.md
 cabal-version:       >=1.10
 
 library
-  ghc-options: -Wall -fno-warn-orphans
+  ghc-options: -Wall -fno-warn-orphans -fcontext-stack=40
   default-extensions:
      NoMonomorphismRestriction,
      PolyKinds,

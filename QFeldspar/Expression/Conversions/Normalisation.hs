@@ -34,6 +34,7 @@ instance (HasSin TFG.Typ t , t ~ t' , r ~ r') =>
     FGHO.AryV _ _             -> fail "Normalisation Error!"
     FGHO.LenV _               -> fail "Normalisation Error!"
     FGHO.IndV _ _             -> fail "Normalisation Error!"
+    FGHO.Int  _               -> fail "Normalisation Error!"
     FGHO.App _ _              -> do Exs1 v tv <- getVar ee
                                     PrfHasSin <- getPrfHasSinM tv
                                     DblExsSin es tys <- getArg ee
@@ -43,7 +44,7 @@ instance (HasSin TFG.Typ t , t ~ t' , r ~ r') =>
                                     pure (FMWS.AppV v es)
     _                         -> $(biRecAppMQW 'ee ''FGHO.Exp "FMWS"
      ['FGHO.Var,'FGHO.Abs,'FGHO.App,'FGHO.Non,'FGHO.Som,'FGHO.May
-     ,'FGHO.AryV,'FGHO.LenV,'FGHO.IndV] (trvWrp 't))
+     ,'FGHO.AryV,'FGHO.LenV,'FGHO.IndV,'FGHO.Int] (trvWrp 't))
 
 instance (HasSin TFG.Typ a , HasSin TFG.Typ b, a ~ a' , b ~ b' , r ~ r') =>
     Cnv (FGHO.Exp r' (Arr a' b') , rr) (FMWS.Exp r a -> FMWS.Exp r b)  where

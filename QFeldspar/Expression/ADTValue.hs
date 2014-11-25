@@ -1,7 +1,7 @@
 module QFeldspar.Expression.ADTValue
     (Exp
     ,conI,conB,conF,var,abs,app,cnd,whl,tpl,fst,snd,ary,len,ind,leT
-    ,cmx,typ,mul
+    ,cmx,typ,mul,int
     ,Lft(..),CoLft(..)) where
 
 import QFeldspar.MyPrelude hiding (abs,fst,snd,may,som,non,cmx,tpl,cnd)
@@ -59,20 +59,20 @@ instance CoLft Float where
   colft _        = badTypValM
 
 instance (Lft a , CoLft b) => CoLft (a -> ErrM b) where
-  colft (Abs f) = return (\ e -> colft =<< (f (lft e)))
-  colft _       = badTypValM
+  colft (Abs f)  = return (\ e -> colft =<< (f (lft e)))
+  colft _        = badTypValM
 
 instance (CoLft a , CoLft b) => CoLft (a , b) where
-  colft (Tpl (x , y) ) = ((,)) <$> colft x <*> colft y
-  colft _              = badTypValM
+  colft (Tpl (x , y)) = ((,)) <$> colft x <*> colft y
+  colft _             = badTypValM
 
 instance CoLft a => CoLft (Array Int a) where
-  colft (Ary x) = mapM colft x
-  colft _       = badTypValM
+  colft (Ary x)  = mapM colft x
+  colft _        = badTypValM
 
 instance CoLft (Complex Float) where
-  colft (Cmx c) = return c
-  colft _       = badTypVal
+  colft (Cmx c)  = return c
+  colft _        = badTypVal
 
 class ToHsk t where
   toHsk :: Exp -> ErrM t
@@ -90,20 +90,20 @@ instance ToHsk Float where
   toHsk _        = badTypValM
 
 instance ToHsk (Exp -> ErrM Exp) where
-  toHsk (Abs f) = return f
-  toHsk _       = badTypValM
+  toHsk (Abs f)  = return f
+  toHsk _        = badTypValM
 
 instance ToHsk (Exp , Exp) where
   toHsk (Tpl p ) = return p
   toHsk _        = badTypValM
 
 instance ToHsk (Array Int Exp) where
-  toHsk (Ary x) = return x
-  toHsk _       = badTypValM
+  toHsk (Ary x)  = return x
+  toHsk _        = badTypValM
 
 instance ToHsk (Complex Float) where
-  toHsk (Cmx c) = return c
-  toHsk _       = badTypVal
+  toHsk (Cmx c)  = return c
+  toHsk _        = badTypVal
 
 prm0 :: Lft a => a -> ErrM Exp
 prm0 = return . lft
@@ -185,3 +185,6 @@ mul :: Exp -> Exp -> ErrM Exp
 mul (ConI i) (ConI i') = return (lft (i * i'))
 mul (ConF f) (ConF f') = return (lft (f * f'))
 mul _        _         = badTypValM
+
+int :: Int -> ErrM Exp
+int = prm0

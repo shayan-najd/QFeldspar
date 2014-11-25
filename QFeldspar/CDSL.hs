@@ -1,6 +1,6 @@
 module QFeldspar.CDSL(module QFeldspar.Prelude.MiniFeldspar
                      ,Dp,evaluate,compile,compileF,normalise,normaliseF
-                     ,simplify,simplifyF) where
+                     ,simplify,simplifyF,cdsl) where
 
 import QFeldspar.Prelude.MiniFeldspar
 import QFeldspar.Prelude.Environment
@@ -21,6 +21,7 @@ import QFeldspar.CSE
 import QFeldspar.ChangeMonad
 import QFeldspar.Simplify
 
+type C    = String
 type Dp a = Data a
 
 evaluate :: forall a. Syn a => a -> InT a
@@ -29,16 +30,19 @@ evaluate ee = let e = toExp ee
                     = frmRgt (cnv (e , etFGV))
               in v
 
-compile :: forall a. Syn a => MP.Bool -> a -> String
-compile c ee = let e = toExp ee
-               in  frmRgt (scompile (sin :: TFG.Typ (InT a))
+compile :: forall a. Syn a => Bool -> Bool -> a -> String
+compile bSmp bCSE ee = let e = toExp ee
+                       in  frmRgt (scompile (sin :: TFG.Typ (InT a))
                                     esString
-                                    (normalise c e))
+                                    ((if bSmp then simplify else MP.id)
+                                     (normalise bCSE e)))
 
-compileF :: forall a b. (Syn a , Syn b) => MP.Bool -> (a -> b) -> String
-compileF c ff = let f = toExpF ff
-                in  frmRgt (scompile (sin :: TFG.Typ (InT b)) esString
-                                     (normaliseF c f))
+compileF :: forall a b. (Syn a , Syn b) =>
+            Bool -> Bool -> (a -> b) -> String
+compileF cSmp cCSE ff = let f = toExpF ff
+                    in  frmRgt (scompile (sin :: TFG.Typ (InT b)) esString
+                          ((if cSmp then simplifyF else MP.id)
+                           (normaliseF cCSE f)))
 
 normalise :: Syn a => Bool -> a -> a
 normalise c ee = let e = toExp ee
@@ -55,3 +59,6 @@ simplifyF :: (Syn a , Syn b) =>
              (a -> b) -> a -> b
 simplifyF ff = let f = toExpF ff
                in  frmExpF (tilNotChg smpOne f)
+
+cdsl :: (Type a , Type b) => (Dp a -> Dp b) -> C
+cdsl = compileF MP.True MP.True

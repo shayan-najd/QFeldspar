@@ -41,9 +41,9 @@ addVar v = do
 runCompileMonad :: TFA.Typ -> CompileMonad (Exp , [Stmt]) -> Int ->
                    ErrM Func
 runCompileMonad ty m i = do ((exp,stmts),(_,ps,vs)) <- runStateT m (i,[],[])
-                            pure (Func "func" (ps ++ [("*out",ty)])
+                            pure (Func ty "func" ps
                                   ([Declare (v , t) | (v , t) <- vs] ++
-                                   stmts ++ [Assign "*out" exp]))
+                                   stmts ++ [Return exp]))
 
 cnvImpLft :: (Cnv (a, r) b, ?r :: r) =>
              a -> CompileMonad b
@@ -158,7 +158,7 @@ instance (HasSin TFG.Typ t, n ~ Len r) =>
                                      xa <- newName
                                      addVar (xa , t')
                                      xi <- newName
-                                     addVar (xi , ta)
+                                     addVar (xi , TFA.Int)
                                      (el , sl) <- cmpImp l
                                      (ef , sf) <- cmpImp (f (FMWS.Tmp xi))
                                      return ( Var xa

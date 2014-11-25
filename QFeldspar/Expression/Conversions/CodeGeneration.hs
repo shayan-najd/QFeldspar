@@ -32,10 +32,11 @@ instance Pretty Stmt where
    $+$ rbrace)
  pretty (Assign v e)      = text v <+> text "=" <+> pretty e <> semi
  pretty (Declare (v , t)) = pretty t <+> text v <> semi
+ pretty (Return e)        = text "return" <+> pretty e <> semi
 
 instance Pretty Func where
- pretty (Func name vs ss) =
-  text "void" <+> text name
+ pretty (Func ty name vs ss) =
+  pretty ty <+> text name
   <+> parens (commaCat (fmap pretty vs) )
   $+$ (lbrace
    $+$ nest 2 (vcat (fmap pretty ss))

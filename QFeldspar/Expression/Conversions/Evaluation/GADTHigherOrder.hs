@@ -22,8 +22,16 @@ instance (HasSin TFG.Typ t , t' ~ t) =>
     May _ _ _                -> impossibleM
     Tmp _                    -> impossibleM
     Let el eb                -> FGV.leT <$@> el <*@> eb
+    Mul er ei                -> case t of
+      TFG.Int                -> FGV.mul  <$@> er <*@> ei
+      TFG.Flt                -> FGV.mul  <$@> er <*@> ei
+      _                      -> fail "Type Error in Mul"
+    Int i                    -> case t of
+      TFG.Int                -> pure (FGV.conI i)
+      TFG.Flt                -> pure (FGV.conF (fromIntegral i))
+      _                      -> fail "Type Error in Int"
     _  -> $(biRecAppMQS 'ee ''Exp "FGV"
-            ['AryV,'LenV,'IndV,'Non,'Som,'May,'Mul,'Let,'Tmp]
+            ['AryV,'LenV,'IndV,'Non,'Som,'May,'Mul,'Let,'Tmp,'Int]
             (trvWrp 't))
 
 instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb

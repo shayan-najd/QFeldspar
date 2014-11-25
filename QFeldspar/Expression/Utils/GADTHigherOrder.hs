@@ -59,6 +59,7 @@ eql (May (em  :: Exp r (May tm)) en  es)
     Rgt Rfl -> eql em em' && eql en en' && eql es es'
     _       -> False
 eql (Mul ei er) (Mul ei' er') = eql ei ei' && eql er er'
+eql (Int i)     (Int j)       = i == j
 eql _           _             = False
 
 eqlF :: forall r ta tb.  (Exp r ta -> Exp r tb) ->

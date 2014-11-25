@@ -12,8 +12,8 @@ sbs xx ee' ee = case ee of
      | otherwise  -> ee
   _               -> $(genOverloaded 'ee ''Exp ['Var]
    (\ t -> if
-    | matchQ t [t| (x , Exp x) |] -> [| sbsF  xx ee' |]
-    | matchQ t [t| Exp x |]       -> [| sbs   xx ee' |]
+    | matchQ t [t| (x , Exp x) |] -> [| sbsF xx ee' |]
+    | matchQ t [t| Exp x |]       -> [| sbs  xx ee' |]
     | otherwise                   -> [| id |]))
 
 sbsF :: Eq x => x -> Exp x -> (x , Exp x) -> (x , Exp x)

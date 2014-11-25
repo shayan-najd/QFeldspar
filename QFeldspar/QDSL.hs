@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-unused-binds -fno-warn-name-shadowing #-}
 module QFeldspar.QDSL (module TH,dbg,dbgF
                       ,Qt,translate,translateF,evaluate,compile,compileF,wrp
-                      ,ghoF,nghoF,gho,ngho)
+                      ,ghoF,nghoF,gho,ngho,qdsl)
     where
 import Prelude(Float,Bool(..),Maybe,String,(.))
 import QFeldspar.CDSL (Dp)
@@ -80,13 +80,13 @@ evaluate = CDSL.evaluate . translate . wrp
 
 compile :: forall a.
              (Type a, FO a) =>
-             Bool -> Qt a -> C
-compile b = CDSL.compile b . translate . wrp
+             Bool -> Bool -> Qt a -> C
+compile b1 b2 = CDSL.compile b1 b2 . translate . wrp
 
 compileF :: forall a b.
              (Type a , Type b , FO a) =>
-             Bool -> Qt (a -> b) -> C
-compileF b = CDSL.compileF b . translateF . wrp
+             Bool -> Bool -> Qt (a -> b) -> C
+compileF b1 b2 = CDSL.compileF b1 b2 . translateF . wrp
 
 dbg :: Type a => Qt a -> FAUN.Exp TH.Name
 dbg e = frmRgt (cnv(wrp e,etTFG , esTH))
@@ -105,3 +105,6 @@ nghoF e = nrm (ghoF e)
 
 ngho :: Type a => Qt a -> FGHO.Exp Prelude a
 ngho e = nrm (gho e)
+
+qdsl :: (FO a , Type a , Type b) => Qt (a -> b) -> C
+qdsl = compileF True True

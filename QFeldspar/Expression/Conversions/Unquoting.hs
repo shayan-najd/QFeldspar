@@ -28,14 +28,113 @@ instance Cnv (TH.Exp , ()) (FAUN.Exp TH.Name) where
     TH.ParensE e            -> cnvImp e
     TH.InfixE (Just el) ef
       (Just er)             -> cnvImp (TH.AppE (TH.AppE ef el) er)
-    TH.LitE (TH.IntegerL i) -> pure (FAUN.ConI (fromInteger  i :: Int))
+    TH.DoE stmts            -> mkDo stmts
+    TH.LitE (TH.IntegerL i) -> pure (FAUN.Int  (fromInteger  i :: Int))
     TH.LitE (TH.RationalL i)-> pure (FAUN.ConF (fromRational i :: Flt))
     TH.ConE n
-      | n == 'True          -> pure (FAUN.ConB True)
-      | n == 'False         -> pure (FAUN.ConB False)
-      | n == 'Nothing       -> pure FAUN.Non
+      | n === 'True         -> pure (FAUN.ConB True)
+      | n === 'False        -> pure (FAUN.ConB False)
+      | n === 'Nothing      -> pure FAUN.Non
+      | n === 'Vec          -> let v1 = genNewNam "__UnqVec1__"
+                                   {-# NOINLINE v1 #-}
+                               in deepseq v1 $
+                               let vv1 = stripNameSpace (TH.mkName v1) in
+                               let v2 = genNewNam "__UnqVec2__"
+                                   {-# NOINLINE v2 #-}
+                               in deepseq v2 $
+                               let vv2 = stripNameSpace (TH.mkName v2) in
+                               pure (FAUN.Abs (vv1 ,
+                                     FAUN.Abs (vv2 ,
+                                     FAUN.AryV (FAUN.Var vv1)
+                                               (FAUN.Var vv2))))
+      | n === 'Just         -> let v1 = genNewNam "__UnqJust1__"
+                                   {-# NOINLINE v1 #-}
+                               in deepseq v1 $
+                               let vv1 = stripNameSpace (TH.mkName v1) in
+                               pure (FAUN.Abs (vv1 ,
+                                     FAUN.Som (FAUN.Var vv1)))
       | otherwise           -> pure (FAUN.Var (stripNameSpace n))
-    TH.VarE x               -> pure (FAUN.Var (stripNameSpace x))
+    TH.VarE n
+      | n === 'fst          -> let v1 = genNewNam "__Unqfst1__"
+                                   {-# NOINLINE v1 #-}
+                               in deepseq v1 $
+                               let vv1 = stripNameSpace (TH.mkName v1) in
+                               pure (FAUN.Abs (vv1 ,
+                               FAUN.Fst (FAUN.Var vv1)))
+      | n === 'snd          -> let v1 = genNewNam "__Unqsnd1__"
+                                   {-# NOINLINE v1 #-}
+                               in deepseq v1 $
+                               let vv1 = stripNameSpace (TH.mkName v1) in
+                               pure (FAUN.Abs (vv1 ,
+                               FAUN.Snd (FAUN.Var vv1)))
+      | n === 'arrLen       -> let v1 = genNewNam "__Unqlen1__"
+                                   {-# NOINLINE v1 #-}
+                               in deepseq v1 $
+                               let vv1 = stripNameSpace (TH.mkName v1) in
+                               pure (FAUN.Abs (vv1 ,
+                               FAUN.Len (FAUN.Var vv1)))
+      | n === 'arrIx        -> let v1 = genNewNam "__UnqInd1__"
+                                   {-# NOINLINE v1 #-}
+                               in deepseq v1 $
+                               let vv1 = stripNameSpace (TH.mkName v1) in
+                               let v2 = genNewNam "__UnqInd2__"
+                                   {-# NOINLINE v2 #-}
+                               in deepseq v2 $
+                               let vv2 = stripNameSpace (TH.mkName v2) in
+                               pure (FAUN.Abs (vv1 ,
+                                     FAUN.Abs (vv2 ,
+                                     FAUN.Ind (FAUN.Var vv1) (FAUN.Var vv2))))
+      | n === 'cmx          -> let v1 = genNewNam "__UnqCmx1__"
+                                   {-# NOINLINE v1 #-}
+                               in deepseq v1 $
+                               let vv1 = stripNameSpace (TH.mkName v1) in
+                               let v2 = genNewNam "__UnqCmx2__"
+                                   {-# NOINLINE v2 #-}
+                               in deepseq v2 $
+                               let vv2 = stripNameSpace (TH.mkName v2) in
+                               pure (FAUN.Abs (vv1 ,
+                                     FAUN.Abs (vv2 ,
+                                     FAUN.Cmx (FAUN.Var vv1) (FAUN.Var vv2))))
+      | n === '(*)          -> let v1 = genNewNam "__UnqMul1__"
+                                   {-# NOINLINE v1 #-}
+                               in deepseq v1 $
+                               let vv1 = stripNameSpace (TH.mkName v1) in
+                               let v2 = genNewNam "__UnqMul2__"
+                                   {-# NOINLINE v2 #-}
+                               in deepseq v2 $
+                               let vv2 = stripNameSpace (TH.mkName v2) in
+                               pure (FAUN.Abs (vv1 ,
+                                     FAUN.Abs (vv2 ,
+                                     FAUN.Mul (FAUN.Var vv1) (FAUN.Var vv2))))
+      | n === 'arr          -> let v1 = genNewNam "__UnqAry1__"
+                                   {-# NOINLINE v1 #-}
+                               in deepseq v1 $
+                               let vv1 = stripNameSpace (TH.mkName v1) in
+                               let v2 = genNewNam "__Unqary2__"
+                                   {-# NOINLINE v2 #-}
+                               in deepseq v2 $
+                               let vv2 = stripNameSpace (TH.mkName v2) in
+                               pure (FAUN.Abs (vv1 ,
+                                     FAUN.Abs (vv2 ,
+                                     FAUN.Ary (FAUN.Var vv1) (FAUN.Var vv2))))
+      | n === 'while        -> let v1 = genNewNam "__UnqWhl1__"
+                                   {-# NOINLINE v1 #-}
+                               in deepseq v1 $
+                               let vv1 = stripNameSpace (TH.mkName v1) in
+                               let v2 = genNewNam "__UnqWhl2__"
+                                   {-# NOINLINE v2 #-}
+                               in deepseq v2 $
+                               let vv2 = stripNameSpace (TH.mkName v2) in
+                               let v3 = genNewNam "__UnqWhl3__"
+                                   {-# NOINLINE v3 #-}
+                               in deepseq v3 $
+                               let vv3 = stripNameSpace (TH.mkName v3) in
+                               pure (FAUN.Abs (vv1 ,
+                                     FAUN.Abs (vv2 ,
+                                     FAUN.Abs (vv3 ,
+                                     FAUN.Whl (FAUN.Var vv1) (FAUN.Var vv2)
+                                              (FAUN.Var vv3)))))
+      | otherwise           -> pure (FAUN.Var (stripNameSpace n))
 
     TH.LamE [TH.VarP x] eb  -> FAUN.Abs <$@> (x , eb)
     TH.LamE [p]         eb  -> let v1 = genNewNam "__UnqoutingL__"
@@ -47,7 +146,6 @@ instance Cnv (TH.Exp , ()) (FAUN.Exp TH.Name) where
                                        [TH.Match p (TH.NormalB eb) []]))
     TH.LamE (x:xs)      eb  -> cnvImp (TH.LamE [x] (TH.LamE xs eb))
 
-    TH.DoE stmts            -> mkDo stmts
     TH.AppE (TH.AppE (TH.ConE n) el) l
       | n === 'Vec           -> FAUN.AryV <$@> el <*@> l
     TH.AppE (TH.ConE n) e
@@ -61,16 +159,10 @@ instance Cnv (TH.Exp , ()) (FAUN.Exp TH.Name) where
       | n === 'arrIx         -> FAUN.Ind  <$@> el <*@> er
       | n === 'cmx           -> FAUN.Cmx  <$@> el <*@> er
       | n === '(*)           -> FAUN.Mul  <$@> el <*@> er
-    TH.AppE (TH.AppE
-             (TH.VarE n) el)
-            l
-      | n === 'arr           -> FAUN.Ary  <$@> el  <*@> l
-
+      | n === 'arr           -> FAUN.Ary  <$@> el <*@> er
     TH.AppE (TH.AppE
         (TH.AppE (TH.VarE n)
-        l1)
-        l2)
-        ei
+        l1) l2) ei
       | n === 'while        -> FAUN.Whl  <$@> l1 <*@> l2
                                          <*@> ei
     TH.AppE ef ea           -> FAUN.App  <$@> ef <*@> ea

@@ -35,3 +35,4 @@ data Exp :: [*] -> * -> * where
   May  :: HasSin TFG.Typ a =>
           Exp r (May a) -> Exp r b -> Exp r (Arr a b) -> Exp r b
   Mul  :: Exp r a  -> Exp r a -> Exp r a
+  Int  :: Int      -> Exp r a

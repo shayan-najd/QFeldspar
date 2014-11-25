@@ -13,7 +13,7 @@ loaderCRC = "\nint main()\
 \\n  for (Int i = 0; i < size(imgIn); i++)\
 \\n    aryIn = setAryInt(aryIn , i , imgIn.data[i]);\
 \\n  Int out;\
-\\n  func(aryIn , &out);\
+\\n  out = func(aryIn);\
 \\n  printf(\"%u\",out);\
 \\n  return 0;\
 \\n}"
@@ -26,7 +26,7 @@ loaderFFT = "\nint main()\
 \\n  for (Int i = 0; i < size(imgIn); i++)\
 \\n    aryIn = setAryCmx(aryIn , i , cmx(i2f(imgIn.data[i]),0.0));\
 \\n  AryCmx aryOut;\
-\\n  func(aryIn , &aryOut);\
+\\n  aryOut = func(aryIn);\
 \\n  Image imgOut = {.sizeX = imgIn.sizeX, \
 \\n                  .sizeY = imgIn.sizeY,\
 \\n                  .type  = 2,\
@@ -45,7 +45,7 @@ loaderIPBW = "\nint main()\
 \\n  for (Int i = 0; i < size(imgIn); i++)\
 \\n    aryIn = setAryInt(aryIn , i , imgIn.data[i]);\
 \\n  AryInt aryOut;\
-\\n  func(aryIn , &aryOut);\
+\\n  aryOut = func(aryIn);\
 \\n  Image imgOut = {.sizeX = imgIn.sizeX, \
 \\n                  .sizeY = imgIn.sizeY,\
 \\n                  .type  = 1,\
@@ -64,7 +64,7 @@ loaderIPGray = "\nint main()\
 \\n  for (Int i = 0; i < size(imgIn); i++)\
 \\n    aryIn = setAryInt(aryIn , i , imgIn.data[i]);\
 \\n  AryInt aryOut;\
-\\n  func(aryIn , &aryOut);\
+\\n  aryOut = func(aryIn);\
 \\n  Image imgOut = {.sizeX = imgIn.sizeX, \
 \\n                  .sizeY = imgIn.sizeY,\
 \\n                  .type  = 2,\
@@ -84,7 +84,7 @@ loaderWindowing = "\nint main()\
 \\n  for (Int i = 0; i < size(imgIn); i++)\
 \\n    aryIn = setAryCmx(aryIn , i , cmx(i2f(imgIn.data[i]),0.0));\
 \\n  AryCmx aryOut;\
-\\n  func(aryIn , &aryOut);\
+\\n  aryOut = func(aryIn);\
 \\n  Image imgOut = {.sizeX = imgIn.sizeX, \
 \\n                  .sizeY = imgIn.sizeY,\
 \\n                  .type  = 2,\
