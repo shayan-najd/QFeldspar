@@ -58,6 +58,7 @@ library
      QFeldspar.CDSL,
      QFeldspar.Compiler,
      QFeldspar.ErrorMonad,
+     QFeldspar.NameMonad,
      QFeldspar.Type.Herbrand,
      QFeldspar.Type.GADT,
      QFeldspar.Type.Conversion,
