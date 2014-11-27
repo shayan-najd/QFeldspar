@@ -1,9 +1,9 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
-module QFeldspar.Expression.Feldspar.Utils.ADTUntypedDebruijn
+module QFeldspar.Expression.Utils.ADTUntypedDebruijn
        (fre) where
 
 import QFeldspar.MyPrelude
-import QFeldspar.Expression.Feldspar.ADTUntypedDebruijn
+import QFeldspar.Expression.ADTUntypedDebruijn
 import QFeldspar.Variable.Plain
 
 fre :: Exp -> [Nat]

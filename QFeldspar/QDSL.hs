@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-unused-binds -fno-warn-name-shadowing #-}
 module QFeldspar.QDSL (module TH,dbg,dbgF
                       ,Qt,translate,translateF,evaluate,compile,compileF,wrp
-                      ,ghoF,nghoF,gho,ngho,qdsl)
+                      ,ghoF,nghoF,gho,ngho,qdsl,trmEql)
     where
 import Prelude(Float,Bool(..),Maybe,String,(.))
 import QFeldspar.CDSL (Dp)
@@ -12,10 +12,12 @@ import QFeldspar.Prelude.TemplateHaskell as TH
 import QFeldspar.Singleton
 import QFeldspar.MyPrelude (frmRgt)
 import qualified QFeldspar.MyPrelude as MP
+import QFeldspar.Expression.Utils.TemplateHaskell(trmEql)
 
 import QFeldspar.Conversion
 import QFeldspar.Expression.Conversions.Evaluation.MiniFeldspar ()
 import QFeldspar.Expression.Conversion ()
+
 
 import qualified QFeldspar.Expression.ADTUntypedNamed as FAUN
 import qualified QFeldspar.Expression.GADTHigherOrder as FGHO

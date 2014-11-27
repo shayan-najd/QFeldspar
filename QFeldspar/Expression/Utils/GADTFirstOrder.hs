@@ -1,9 +1,9 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
-module QFeldspar.Expression.Feldspar.Utils.GADTFirstOrder
+module QFeldspar.Expression.Utils.GADTFirstOrder
        (sucAll,prdAll,mapVar) where
 
 import QFeldspar.MyPrelude
-import QFeldspar.Expression.Feldspar.GADTFirstOrder as FGFO
+import QFeldspar.Expression.GADTFirstOrder as FGFO
 import QFeldspar.Variable.Typed
 
 sucAll :: Exp r t' -> Exp (t ': r) t'

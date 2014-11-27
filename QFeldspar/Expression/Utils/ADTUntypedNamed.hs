@@ -1,9 +1,9 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
-module QFeldspar.Expression.Feldspar.Utils.ADTUntypedNamed
+module QFeldspar.Expression.Utils.ADTUntypedNamed
        (sbs)  where
 
 import QFeldspar.MyPrelude
-import QFeldspar.Expression.Feldspar.ADTUntypedNamed
+import QFeldspar.Expression.ADTUntypedNamed
 
 sbs :: forall x. Eq x => x -> Exp x -> Exp x -> Exp x
 sbs xx ee' ee = case ee of

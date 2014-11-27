@@ -1,9 +1,9 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
-module QFeldspar.Expression.Feldspar.Untils.GADTTyped
+module QFeldspar.Expression.Utils.GADTTyped
        (sucAll,prdAll,mapVar,sbs,fre,fre') where
 
 import QFeldspar.MyPrelude
-import QFeldspar.Expression.Feldspar.GADTTyped as GT
+import QFeldspar.Expression.GADTTyped as GT
 import QFeldspar.Variable.Scoped
 import qualified QFeldspar.Nat.ADT as NA
 
