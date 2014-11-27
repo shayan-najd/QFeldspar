@@ -27,4 +27,4 @@ instance Cnv (Exp , Env FAV.Exp) FAV.Exp where
      (const id)))
 
 instance Cnv (Fun , Env FAV.Exp)  (FAV.Exp -> FAV.Exp) where
-  cnv (Fun e , r) = pure (frmRgt . curry cnv e . (: r))
+  cnv (Fun e , r) = pure (frmRgtZro . curry cnv e . (: r))

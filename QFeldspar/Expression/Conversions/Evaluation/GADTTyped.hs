@@ -29,4 +29,4 @@ instance Cnv (Exp n t , Env n FAV.Exp) FAV.Exp where
       'Non,'Som,'May,'Mul] (const id)))
 
 instance Cnv (Exp (Suc n) t , Env n FAV.Exp) (FAV.Exp -> FAV.Exp) where
-  cnv (e , r) = pure (frmRgt . curry cnv e . (flip Ext r))
+  cnv (e , r) = pure (frmRgtZro . curry cnv e . (flip Ext r))

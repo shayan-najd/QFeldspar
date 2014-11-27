@@ -27,7 +27,7 @@ type Dp a = Data a
 evaluate :: forall a. Syn a => a -> InT a
 evaluate ee = let e = toExp ee
                   FGV.Exp v :: FGV.Exp (InT a)
-                    = frmRgt (cnv (e , etFGV))
+                    = MP.frmRgtZro (cnv (e , etFGV))
               in v
 
 compile :: forall a. Syn a => Bool -> Bool -> a -> String

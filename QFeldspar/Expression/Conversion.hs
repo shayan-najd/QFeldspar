@@ -86,7 +86,7 @@ instance (n ~ Len r , HasSin TFG.Typ tt) =>
          Cnv (TH.Q (TH.TExp tt) , ET.Env TFG.Typ r , ES.Env n TH.Name)
              TH.Exp
          where
-  cnv (e , _ , _) = TH.runQ (TH.unTypeQ e)
+  cnv (e , _ , _) = lift (TH.runQ (TH.unTypeQ e))
 
 instance (n ~ Len r , HasSin TFG.Typ tt , tt ~ tt') =>
          Cnv (TH.Q (TH.TExp tt) , ET.Env TFG.Typ r , ES.Env n TH.Name)

@@ -8,7 +8,7 @@ import qualified Language.Haskell.TH.Syntax          as TH
 import QFeldspar.Conversion
 import QFeldspar.Type.Conversion ()
 
-mkDo :: [TH.Stmt] -> ErrM (FAUN.Exp TH.Name)
+mkDo :: [TH.Stmt] -> NamM ErrM (FAUN.Exp TH.Name)
 mkDo st = let ?r = () in case st of
   [TH.NoBindS e]                -> cnvImp e
   (TH.BindS (TH.VarP x) e : es) -> FAUN.App <$>

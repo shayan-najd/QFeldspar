@@ -26,4 +26,4 @@ instance Eq v => Cnv (Exp v , Env v FAV.Exp) FAV.Exp where
      (const id)))
 
 instance Eq v => Cnv ((v , Exp v) , Env v FAV.Exp) (FAV.Exp -> FAV.Exp) where
-  cnv ((x , e) , r) = pure (frmRgt . curry cnv e . (: r) . (,) x)
+  cnv ((x , e) , r) = pure (frmRgtZro . curry cnv e . (: r) . (,) x)

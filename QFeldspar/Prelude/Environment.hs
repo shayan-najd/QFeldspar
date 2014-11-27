@@ -95,6 +95,6 @@ esFAV = $(return (foldr
 -----------------------------------------------------------------------
 
 emTHFAV :: EM.Env TH.Name FAV.Exp
-emTHFAV = let is :: EP.Env TH.Name = frmRgt (cnv (esTH  , ()))
-              es :: EP.Env FAV.Exp = frmRgt (cnv (esFAV , ()))
+emTHFAV = let is :: EP.Env TH.Name = frmRgtZro (cnv (esTH  , ()))
+              es :: EP.Env FAV.Exp = frmRgtZro (cnv (esFAV , ()))
           in zip is es

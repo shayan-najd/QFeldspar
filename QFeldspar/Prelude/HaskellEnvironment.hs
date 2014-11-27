@@ -88,7 +88,7 @@ esTH' = 'realPartHsk
     <+> ES.Emp
 
 epTH :: EP.Env TH.Name
-epTH = frmRgt (cnv (esTH , ()))
+epTH = frmRgtZro (cnv (esTH , ()))
 
 ---------------------------------------------------------------------------------
 -- TH.Name

@@ -27,10 +27,10 @@ four = App TFA.Int
          (compose TFA.Int TFA.Int) dbl) dbl) (ConI 1)
 
 test :: Bool
-test = (case cnv (four , (Ext (V.lft ((+) :: Int -> Int -> Int)) Emp)) of
+test = (case runNamM $ cnv (four , (Ext (V.lft ((+) :: Int -> Int -> Int)) Emp)) of
           Rgt (V.colft -> Rgt (4 :: Int)) -> True
           _                           -> False)
-       && (typChk four (Ext (TFA.Arr TFA.Int
-                             (TFA.Arr TFA.Int TFA.Int)) Emp)
+       && (runNamM (typChk four (Ext (TFA.Arr TFA.Int
+                             (TFA.Arr TFA.Int TFA.Int)) Emp))
            ==
            Rgt TFA.Int)

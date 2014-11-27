@@ -37,5 +37,5 @@ instance (ta' ~ ta , tb' ~ tb , HasSin TFG.Typ ta , HasSin TFG.Typ tb) =>
          Cnv (Exp (ta ': r) tb , Env FGV.Exp r)  (FGV.Exp (Arr ta' tb'))
          where
   cnv  (e , r) = (pure . FGV.Exp)
-                  (FGV.getTrm . frmRgt . curry cnv e
+                  (FGV.getTrm . frmRgtZro . curry cnv e
                    . flip Ext r . (FGV.Exp :: ta -> FGV.Exp ta))

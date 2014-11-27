@@ -119,72 +119,72 @@ prm2 f x y = do x' <- toHsk x
                 return (lft (f x' y'))
 -}
 
-var :: a -> ErrM a
+var :: a -> NamM ErrM a
 var = return
 
-conI :: Int -> ErrM Exp
-conI = prm0
+conI :: Int -> NamM ErrM Exp
+conI = lift . prm0
 
-conB :: Bool -> ErrM Exp
-conB = prm0
+conB :: Bool -> NamM ErrM Exp
+conB = lift . prm0
 
-conF :: Float -> ErrM Exp
-conF = prm0
+conF :: Float -> NamM ErrM Exp
+conF = lift . prm0
 
-abs :: (Exp -> Exp) -> ErrM Exp
+abs :: (Exp -> Exp) -> NamM ErrM Exp
 abs f = return (Abs (return . f))
 
-app :: Exp -> Exp -> ErrM Exp
-app vf va = do vf' <- toHsk vf
-               vf' va
+app :: Exp -> Exp -> NamM ErrM Exp
+app vf va = do vf' <- lift (toHsk vf)
+               lift (vf' va)
 
-cnd :: Exp -> Exp -> Exp -> ErrM Exp
-cnd vc v1 v2 = do vc' <- toHsk vc
+cnd :: Exp -> Exp -> Exp -> NamM ErrM Exp
+cnd vc v1 v2 = do vc' <- lift (toHsk vc)
                   return (if vc' then v1 else v2)
 
-whl :: Exp -> Exp -> Exp -> ErrM Exp
-whl fc fb v = do fc' <- toHsk fc
-                 fb' <- toHsk fb
-                 whileM ((colft =<<) . fc') fb' v
+whl :: Exp -> Exp -> Exp -> NamM ErrM Exp
+whl fc fb v = do fc' <- lift (toHsk fc)
+                 fb' <- lift (toHsk fb)
+                 whileM ((lift . colft =<<) . (lift . fc')) (lift . fb') v
 
-fst :: Exp -> ErrM Exp
+fst :: Exp -> NamM ErrM Exp
 fst (Tpl p) = return (MP.fst p)
 fst _       = badTypValM
 
-snd :: Exp -> ErrM Exp
+snd :: Exp -> NamM ErrM Exp
 snd (Tpl p) = return (MP.snd p)
 snd _       = badTypValM
 
-tpl :: Exp -> Exp -> ErrM Exp
+tpl :: Exp -> Exp -> NamM ErrM Exp
 tpl vf vs = return (lft (vf , vs))
 
-ary :: Exp -> Exp -> ErrM Exp
-ary (ConI l) (Abs vf) = fmap lft (sequence (arr l (vf . ConI)))
+ary :: Exp -> Exp -> NamM ErrM Exp
+ary (ConI l) (Abs vf) = fmap lft (sequence (arr l ((lift . vf) . ConI)))
 ary _        _        = badTypValM
 
-len :: Exp -> ErrM Exp
+len :: Exp -> NamM ErrM Exp
 len (Ary a) = return (lft (arrLen a))
 len _       = badTypValM
 
-ind :: Exp -> Exp -> ErrM Exp
+ind :: Exp -> Exp -> NamM ErrM Exp
 ind (Ary a) (ConI i) = return (a ! i)
 ind _       _        = badTypValM
 
-cmx :: Exp -> Exp -> ErrM Exp
-cmx fr fi = do fr' <- toHsk fr
-               fi' <- toHsk fi
+cmx :: Exp -> Exp -> NamM ErrM Exp
+cmx fr fi = do fr' <- lift (toHsk fr)
+               fi' <- lift (toHsk fi)
                return (Cmx (fr' :+ fi'))
 
-leT :: Exp -> (Exp -> Exp) -> ErrM Exp
+leT :: Exp -> (Exp -> Exp) -> NamM ErrM Exp
 leT e f = return (f e)
 
-typ :: TFA.Typ -> Exp -> ErrM Exp
+typ :: TFA.Typ -> Exp -> NamM ErrM Exp
 typ _ = return
 
-mul :: Exp -> Exp -> ErrM Exp
+mul :: Exp -> Exp -> NamM ErrM Exp
 mul (ConI i) (ConI i') = return (lft (i * i'))
 mul (ConF f) (ConF f') = return (lft (f * f'))
 mul _        _         = badTypValM
 
-int :: Int -> ErrM Exp
-int = prm0
+int :: Int -> NamM ErrM Exp
+int = lift . prm0

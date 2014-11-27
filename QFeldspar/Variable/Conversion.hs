@@ -58,7 +58,7 @@ instance n ~ n' =>
 
 instance (n ~ Len r , r ~ r' , EqlSin tf , HasSin tf t) =>
          Cnv (VS.Var n, ET.Env tf r) (VT.Var r' t)  where
-  cnv (VS.Zro   , ET.Ext x _ ) = do Rfl <- eqlSin x (sin :: tf t)
+  cnv (VS.Zro   , ET.Ext x _ ) = do Rfl <- lift (eqlSin x (sin :: tf t))
                                     return VT.Zro
   cnv (VS.Suc n , ET.Ext _ xs) = VT.Suc <$> cnv (n , xs)
   cnv _                        = impossibleM

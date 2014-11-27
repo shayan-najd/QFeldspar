@@ -21,12 +21,13 @@ module QFeldspar.MyPrelude
         Eq(..),
         Show(..),Fractional(..),Integral(..),
         otherwise, impossible , impossibleM,badUse,badTypVal,
-        badTypValM,
+        badTypValM,frmRgtZro,
         lookup,
         State,getState,put,modify,runState,execState,evalState,StateT
              ,lift,runStateT,evalStateT,
         genNewNam,deepseq,($),
         module QFeldspar.ErrorMonad,
+        module QFeldspar.NameMonad,
         module QFeldspar.Existential,
         module QFeldspar.TraversalGenerator,
         module Data.Monoid,
@@ -44,6 +45,7 @@ import Prelude hiding (Int,mapM,sequence)
 import QFeldspar.Existential
 import Data.Maybe
 import QFeldspar.ErrorMonad
+import QFeldspar.NameMonad
 import Data.Array
 import Data.Foldable
 import Data.Traversable
@@ -62,6 +64,9 @@ import System.Environment
 import Data.Unique
 import System.IO.Unsafe
 import QFeldspar.TraversalGenerator
+
+frmRgtZro :: NamM ErrM a -> a
+frmRgtZro = frmRgt . runNamM
 
 impossible :: a
 impossible = error "Impossible!"

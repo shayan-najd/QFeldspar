@@ -69,47 +69,53 @@ envAddValM = (stripNameSpace '(+) , FAV.lft ((+) :: Int -> Int -> Int)) : []
 
 cnvFMWS :: Cnv (e , ET.Env TFG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
                (FGHO.Exp EnvAdd Int) => e -> Int -> Bool
-cnvFMWS e j = case (do e'   :: FGHO.Exp EnvAdd Int <- cnv (e , envAddTypG
-                                                              , vec)
-                       let e'' = nrm e'
-                       e''' :: FMWS.Exp EnvAdd Int <- cnv (e'' , envAddTypG
-                                                              ,vec)
-                       curry cnv e''' envAddValG) of
+cnvFMWS e j = case runNamM
+              (do e'   :: FGHO.Exp EnvAdd Int <- cnv (e , envAddTypG
+                                                     , vec)
+                  let e'' = nrm e'
+                  e''' :: FMWS.Exp EnvAdd Int <- cnv (e'' , envAddTypG
+                                                     ,vec)
+                  curry cnv e''' envAddValG) of
            Rgt (FGV.Exp i) -> i == j
            _     -> False
 
 cnvFGHO :: Cnv (e , ET.Env TFG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
            (FGHO.Exp EnvAdd Int) => e -> Int -> Bool
-cnvFGHO e j = case (do e' :: FGHO.Exp EnvAdd  Int <- cnv (e , envAddTypG,vec)
-                       curry cnv e' envAddValG) of
+cnvFGHO e j = case runNamM
+              (do e' :: FGHO.Exp EnvAdd  Int <- cnv (e , envAddTypG,vec)
+                  curry cnv e' envAddValG) of
            Rgt (FGV.Exp i) -> i == j
            _     -> False
 
 cnvFGFO :: Cnv (e , ET.Env TFG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
            (FGFO.Exp EnvAdd Int) => e -> Int -> Bool
-cnvFGFO e j = case (do e' :: FGFO.Exp EnvAdd Int <- cnv (e , envAddTypG ,vec)
-                       curry cnv e' envAddValG) of
+cnvFGFO e j = case runNamM
+              (do e' :: FGFO.Exp EnvAdd Int <- cnv (e , envAddTypG ,vec)
+                  curry cnv e' envAddValG) of
            Rgt (FGV.Exp i) -> i == j
            _               -> False
 
 cnvFGTD :: Cnv (e , ET.Env TFG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
            (FGTD.Exp One TFA.Typ) => e -> Int -> Bool
-cnvFGTD e j = case (do e' :: FGTD.Exp One TFA.Typ <- cnv (e , envAddTypG , vec)
-                       curry cnv e' envAddValV) of
+cnvFGTD e j = case runNamM
+              (do e' :: FGTD.Exp One TFA.Typ <- cnv (e , envAddTypG , vec)
+                  curry cnv e' envAddValV) of
            Rgt (FAV.colft -> Rgt i) -> i == j
            _                        -> False
 
 cnvFAUD :: Cnv (e , ET.Env TFG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
            FAUD.Exp => e -> Int -> Bool
-cnvFAUD e j = case (do e' :: FAUD.Exp <- cnv (e , envAddTypG , vec)
-                       curry cnv e' envAddValA) of
+cnvFAUD e j = case runNamM
+              (do e' :: FAUD.Exp <- cnv (e , envAddTypG , vec)
+                  curry cnv e' envAddValA) of
            Rgt (FAV.colft -> Rgt i) -> i == j
            _                        -> False
 
 cnvFAUN :: Cnv (e , ET.Env TFG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
            (FAUN.Exp TH.Name) => e -> Int -> Bool
-cnvFAUN e j = case (do e' :: FAUN.Exp TH.Name <- cnv (e , envAddTypG , vec)
-                       curry cnv e' envAddValM) of
+cnvFAUN e j = case runNamM
+              (do e' :: FAUN.Exp TH.Name <- cnv (e , envAddTypG , vec)
+                  curry cnv e' envAddValM) of
            Rgt (FAV.colft -> Rgt i) -> i == j
            _                        -> False
 

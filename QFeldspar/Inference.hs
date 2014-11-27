@@ -26,31 +26,31 @@ ind e = (flip evalState
                          return (Mta i)) return)) e
 
 typInf :: Exp n (Maybe TypFld) -> ES.Env n TypFld ->
-          ErrM (Exp n TypFld)
+          NamM ErrM (Exp n TypFld)
 typInf e r = inf (ind e) r
 
 maxMta :: Exp n TypFld -> Nat
 maxMta = mxm . concat . fmap mtas . toList
 
-inf :: Exp n TypFld -> ES.Env n TypFld -> ErrM (Exp n TypFld)
+inf :: Exp n TypFld -> ES.Env n TypFld -> NamM ErrM (Exp n TypFld)
 inf e r = do let mts = (mxm . concat) [mtas x | x <- toList e]
                  (i' , cs) = execState (collect e r) (succ mts , [])
-             mTs <- slv (fmap Mta [Zro .. pred i']) cs
+             mTs <- lift (slv (fmap Mta [Zro .. pred i']) cs)
              let ttas = zip [Zro ..] mTs
 
              return (fmap (appTtas ttas) e)
 
-chk :: Exp n TypFld -> ES.Env n TypFld -> ErrM TypFld
+chk :: Exp n TypFld -> ES.Env n TypFld -> NamM ErrM TypFld
 chk e r = do let mts = (mxm . concat) [mtas x | x <- toList e]
                  (t , (i' , cs)) = runState (collect e r) (mts , [])
-             mTs <- slv (fmap Mta [Zro .. pred i']) cs
+             mTs <- lift (slv (fmap Mta [Zro .. pred i']) cs)
              let ttas = zip [Zro ..] mTs
              if length [() | Mta _ <- mTs] == 0
                then return (appTtas ttas t)
                else fail "Type Error!"
 
 typChk :: forall n t. (Cnv (TypFld, ()) t , Cnv (t, ()) TypFld) =>
-          Exp n t -> ES.Env n t-> ErrM t
+          Exp n t -> ES.Env n t-> NamM ErrM t
 typChk e r = do r' :: ES.Env n TypFld <- traverse
                       (flip (curry cnv) ()) r
                 e' :: Exp n TypFld <- traverse (flip (curry cnv) ()) e

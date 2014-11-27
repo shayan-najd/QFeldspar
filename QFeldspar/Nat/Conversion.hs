@@ -25,6 +25,5 @@ instance Cnv P.Int NA.Nat where
     | otherwise = fail "Conversion Error!"
 
 instance Enum NA.Nat where
-  fromEnum = frmRgt . cnv
-  toEnum   = frmRgt . cnv
-
+  fromEnum = frmRgtZro . cnv
+  toEnum   = frmRgtZro . cnv

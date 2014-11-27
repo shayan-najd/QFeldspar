@@ -34,10 +34,10 @@ instance (ta ~ ta' , tb ~ tb' , r ~ r') =>
              (FGHO.Exp r' ta' -> FGHO.Exp r' tb')
          where
   cnv (eb , r) = pure (FGHO.prdAll
-                      . frmRgt . cnv' eb
+                      . frmRgtZro . cnv' eb
                       . ET.fmap FGHO.sucAll
                       . flip Ext r)
     where
       cnv' :: forall rr tt. FGFO.Exp rr tt  -> Env (FGHO.Exp rr) rr ->
-              ErrM (FGHO.Exp rr tt)
+              NamM ErrM (FGHO.Exp rr tt)
       cnv' = curry cnv

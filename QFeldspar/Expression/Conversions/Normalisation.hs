@@ -39,8 +39,8 @@ instance (HasSin TFG.Typ t , t ~ t' , r ~ r') =>
                                     PrfHasSin <- getPrfHasSinM tv
                                     DblExsSin es tys <- getArg ee
                                       (DblExsSin Emp Emp)
-                                    TFG.EqlOut <- TFG.eqlOut t tv
-                                    TFG.EqlArg <- TFG.eqlArg tys tv
+                                    TFG.EqlOut <- lift (TFG.eqlOut t tv)
+                                    TFG.EqlArg <- lift (TFG.eqlArg tys tv)
                                     pure (FMWS.AppV v es)
     _                         -> $(biRecAppMQW 'ee ''FGHO.Exp "FMWS"
      ['FGHO.Var,'FGHO.Abs,'FGHO.App,'FGHO.Non,'FGHO.Som,'FGHO.May
@@ -57,14 +57,14 @@ instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb , r ~ r' , ta ~ ta' ,tb ~ tb') =
              (FMWS.Exp r' ta' -> FMWS.Exp r' tb')
          where
   cnv (ee , r) = let ?r = r in
-    pure (frmRgt . cnvImp . ee . frmRgt . cnvImp)
+    pure (frmRgtZro . cnvImp . ee . frmRgtZro . cnvImp)
 
 instance (HasSin TFG.Typ t , t' ~ t , r' ~ r) =>
          Cnv (FMWS.Exp r' t' , rr) (FGHO.Exp r t)  where
   cnv (ee , r) = let ?r = r in let t = (sin :: TFG.Typ t) in case ee of
     FMWS.AppV v es            -> case (sinTyp v , es) of
       (TFG.Arr _ _ , Ext _ _) -> do Exs1 e te <- fldApp (FGHO.Var v) es
-                                    Rfl <- eqlSin te t
+                                    Rfl <- lift (eqlSin te t)
                                     pure e
       (TFG.Int     , Emp)     -> pure (FGHO.Var v)
       (TFG.Bol     , Emp)     -> pure (FGHO.Var v)
@@ -87,12 +87,12 @@ instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb, ta ~ ta' , tb ~ tb' , r ~ r') =
              (FGHO.Exp r' ta' -> FGHO.Exp r' tb')
          where
   cnv (ee , r) = let ?r = r in
-    pure (frmRgt . cnvImp . ee . frmRgt . cnvImp)
+                 pure (frmRgtZro . cnvImp . ee . frmRgtZro . cnvImp)
 
 fldApp :: forall r t ta tb . (t ~ (Arr ta tb) , HasSin TFG.Typ t) =>
           FGHO.Exp r t ->
           Env (FMWS.Exp r) (ta ': TFG.Arg tb) ->
-          ErrM (Exs1 (FGHO.Exp r) TFG.Typ)
+          NamM ErrM (Exs1 (FGHO.Exp r) TFG.Typ)
 fldApp e ess = let ?r = () in case TFG.getPrfHasSinArr (T :: T t) of
   (PrfHasSin , PrfHasSin) -> case (sin :: TFG.Typ t , ess) of
     (TFG.Arr _ (TFG.Arr _ _) , Ext ea es@(Ext _ _)) -> do
@@ -105,7 +105,7 @@ fldApp e ess = let ?r = () in case TFG.getPrfHasSinArr (T :: T t) of
       impossibleM
 
 getVar :: forall r t. HasSin TFG.Typ t =>
-          FGHO.Exp r t -> ErrM (Exs1 (Var r) TFG.Typ)
+          FGHO.Exp r t -> NamM ErrM (Exs1 (Var r) TFG.Typ)
 getVar e = case e of
   FGHO.App (FGHO.Var v)       _ -> pure (Exs1 v (sinTyp v))
   FGHO.App ef@(FGHO.App _  _) _ -> getVar ef
@@ -115,7 +115,7 @@ data DblExsSin :: (ka -> kb -> *) -> ka -> ka -> * where
   DblExsSin :: c2 tf1 t -> c2 tf2 t -> DblExsSin c2 tf1 tf2
 
 getArg :: forall r t. FGHO.Exp r t -> DblExsSin Env (FMWS.Exp r) TFG.Typ ->
-          ErrM (DblExsSin Env (FMWS.Exp r) TFG.Typ)
+          NamM ErrM (DblExsSin Env (FMWS.Exp r) TFG.Typ)
 getArg e (DblExsSin args tys) = let ?r = () in case e of
   FGHO.App (FGHO.Var _)       ea -> do
     ea' <- cnvImp ea

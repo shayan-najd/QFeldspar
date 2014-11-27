@@ -47,7 +47,7 @@ runCompileMonad ty m i = do ((exp,stmts),(_,ps,vs)) <- runStateT m (i,[],[])
 
 cnvImpLft :: (Cnv (a, r) b, ?r :: r) =>
              a -> CompileMonad b
-cnvImpLft  = lift . cnvImp
+cnvImpLft  = lift . runNamM . cnvImp
 
 cmpImp :: (Compilable (t, r), ?r :: r) =>
           t -> CompileMonad (Exp , [Stmt])
@@ -219,7 +219,7 @@ cnvETEnv _                 _              = impossibleM
 scompileWith :: Compilable (a , ES.Env n String) =>
                 [Var] -> TFG.Typ t -> ES.Env n String -> Int -> a -> ErrM String
 scompileWith vs t r i e = let ?r = r in
-                        do t' :: TFA.Typ <- cnvImp t
+                        do t' :: TFA.Typ <- runNamM (cnvImp t)
                            c <- runCompileMonad t'
                                 (do mapM_ addParam vs
                                     cmpImp e) i

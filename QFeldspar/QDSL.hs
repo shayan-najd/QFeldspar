@@ -10,7 +10,7 @@ import qualified QFeldspar.CDSL as CDSL
 import QFeldspar.Prelude.TemplateHaskell as TH
 
 import QFeldspar.Singleton
-import QFeldspar.MyPrelude (frmRgt)
+import QFeldspar.MyPrelude (frmRgtZro)
 import qualified QFeldspar.MyPrelude as MP
 import QFeldspar.Expression.Utils.TemplateHaskell(trmEql)
 
@@ -58,18 +58,18 @@ wrp f = wrpTyp [|| let (<)    = (\ x -> \ y -> ltdIntHsk x y)       in
 wrpTyp :: forall a. Type a => Data a -> Data a
 wrpTyp ee = do e <- ee
                MP.return (TH.TExp (TH.SigE (TH.unType e)
-                                  (frmRgt (cnv (sin :: TFG.Typ a , ())))))
+                                  (frmRgtZro (cnv (sin :: TFG.Typ a , ())))))
 
 translate :: forall a.
              (Type a , FO a) =>
              Qt a -> Dp a
-translate f = frmRgt (cnv (wrp f , etTFG , esTH))
+translate f = frmRgtZro (cnv (wrp f , etTFG , esTH))
 
 translateF :: forall a b.
              (Type a , Type b) =>
              Qt (a -> b) -> Dp a -> Dp b
 translateF f x = FMWS.absVar
-                 (frmRgt
+                 (frmRgtZro
                  (cnv (wrp
                  ([|| $$f $$dummy ||])
                  , (sin :: TFG.Typ a) <:> etTFG
@@ -91,16 +91,16 @@ compileF :: forall a b.
 compileF b1 b2 = CDSL.compileF b1 b2 . translateF . wrp
 
 dbg :: Type a => Qt a -> FAUN.Exp TH.Name
-dbg e = frmRgt (cnv(wrp e,etTFG , esTH))
+dbg e = frmRgtZro (cnv(wrp e,etTFG , esTH))
 
 dbgF :: (Type a , Type b) => Qt (a -> b) -> FAUN.Exp TH.Name
-dbgF e = frmRgt (cnv(wrp e,etTFG , esTH))
+dbgF e = frmRgtZro (cnv(wrp e,etTFG , esTH))
 
 gho :: Type a => Qt a -> FGHO.Exp Prelude a
-gho e = frmRgt (cnv({-wrp-} e,etTFG , esTH))
+gho e = frmRgtZro (cnv({-wrp-} e,etTFG , esTH))
 
 ghoF :: (Type a , Type b) => Qt (a -> b) -> FGHO.Exp Prelude (a -> b)
-ghoF e = frmRgt (cnv(wrp e,etTFG , esTH))
+ghoF e = frmRgtZro (cnv(wrp e,etTFG , esTH))
 
 nghoF :: (Type a , Type b) => Qt (a -> b) -> FGHO.Exp Prelude (a -> b)
 nghoF e = nrm (ghoF e)

@@ -40,9 +40,9 @@ instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb
              (FGV.Exp (Arr ta' tb')) where
   cnv (f , r)  =  let ?r = r in
     pure (FGV.Exp ( FGV.getTrm
-                  . frmRgt . cnvImp
+                  . frmRgtZro . cnvImp
                   . f
-                  . frmRgt . cnvImp
+                  . frmRgtZro . cnvImp
                   . FGV.Exp ))
 
 instance (HasSin TFG.Typ t , r ~ r' , t ~ t') =>
@@ -74,4 +74,4 @@ instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb , r ~ r' , ta ~ ta' , tb ~ tb')=
          Cnv (FGV.Exp (Arr ta' tb') , Env FGV.Exp r') (Exp r ta -> Exp r tb)
          where
   cnv (FGV.Exp f , r) = let ?r = r in
-    pure (frmRgt . cnvImp . (fmap f :: FGV.Exp ta -> FGV.Exp tb) . frmRgt . cnvImp)
+    pure (frmRgtZro . cnvImp . (fmap f :: FGV.Exp ta -> FGV.Exp tb) . frmRgtZro . cnvImp)
