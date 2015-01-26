@@ -8,6 +8,7 @@ import qualified QFeldspar.Nat.ADT             as NA
 import QFeldspar.Singleton
 import QFeldspar.Conversion
 import QFeldspar.Environment.Conversion ()
+import QFeldspar.Expression.Utils.TemplateHaskell
 
 type Prelude = [Cmx -> Flt         ,
                Cmx -> Flt          ,

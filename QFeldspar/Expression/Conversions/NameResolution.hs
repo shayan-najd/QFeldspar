@@ -16,22 +16,27 @@ instance Eq x =>
 
 instance Eq x =>
          Cnv (FAUN.Exp x , EM.Env x Var) FAUD.Exp where
-  cnv (ee , r) = let ?r = r in
-                 $(biRecAppMQ 'ee ''FAUN.Exp "FAUD")
+  cnv (ee , r) = let ?r = r in case ee of
+    FAUN.Var v -> FAUD.Var <$> EM.get v r
+    _          -> $(biGenOverloadedM 'ee ''FAUN.Exp "FAUD" ['FAUN.Var]
+     (\ _tt -> [| flip (curry cnv) r |]))
+
 
 instance Eq x =>
          Cnv ((x , FAUN.Exp x) , EM.Env x Var)
          FAUD.Fun where
   cnv ((x , e) , r) = fmap FAUD.Fun
                       (cnv (e , (x , Zro) : fmap (fmap Suc) r))
-
+{-
 instance Cnv (Var, (EP.Env x', EM.Env Var x')) x' where
-  cnv (v , r) = cnv (v , snd r)
+  cnv (v , r) = EM.get v (snd r)
 
 instance (x ~ x') =>
          Cnv (FAUD.Exp , (EP.Env x , EM.Env Var x)) (FAUN.Exp x') where
-  cnv (ee , r) = let ?r = r in
-                 $(biRecAppMQ 'ee ''FAUD.Exp "FAUN")
+  cnv (ee , r) = let ?r = r in case ee of
+    FAUD.Var v ->
+    _          -> $(biRecAppMQW 'ee ''FAUD.Exp "FAUN" ['FAUD.Var]
+                                    (const id))
 
 instance (x ~ x') =>
          Cnv (FAUD.Fun , (EP.Env x , EM.Env Var x)) (x' , FAUN.Exp x')
@@ -42,3 +47,4 @@ instance (x ~ x') =>
                                     fmap (\(v , n) -> (Suc v , n)) r'))
                          pure (x , e')
      _             -> fail "Bad Name Pool!"
+-}

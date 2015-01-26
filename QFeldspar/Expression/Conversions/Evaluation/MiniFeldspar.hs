@@ -21,12 +21,13 @@ instance (HasSin TFG.Typ t, r' ~ r , t' ~ t) =>
                      TFG.Int -> FGV.mul  <$@> er <*@> ei
                      TFG.Flt -> FGV.mul  <$@> er <*@> ei
                      _       -> fail "Type Error in Mul"
-    AppV (v :: Var rv tv) es -> appV (T :: T tv) <$@> v <*@>
+    AppV (v :: Var rv tv) es -> appV (T :: T tv) (get v r) <$@>
                                 (T :: T tv , es)
     Tag _  e                 -> cnvImp e
     Let el eb                -> FGV.leT  <$@> el <*@> eb
-    _  -> $(biRecAppMQS 'ee ''Exp "FGV" ['Tmp,'Mul,'AppV,'Tag,'Let]
-            (trvWrp 't))
+    _  -> $(biGenOverloadedMWL 'ee ''Exp "FGV" ['Tmp,'Mul,'AppV,'Tag,'Let]
+            (trvWrp 't)
+            (\ _tt ->  [| flip (curry cnv) r |]))
 
 instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb , ta' ~ ta , tb' ~ tb) =>
          Cnv (Exp r ta -> Exp r tb , Env FGV.Exp r) (FGV.Exp (Arr ta' tb'))

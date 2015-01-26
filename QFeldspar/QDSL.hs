@@ -97,7 +97,7 @@ dbgF :: (Type a , Type b) => Qt (a -> b) -> FAUN.Exp TH.Name
 dbgF e = frmRgtZro (cnv(wrp e,etTFG , esTH))
 
 gho :: Type a => Qt a -> FGHO.Exp Prelude a
-gho e = frmRgtZro (cnv({-wrp-} e,etTFG , esTH))
+gho e = frmRgtZro (cnv(wrp e,etTFG , esTH))
 
 ghoF :: (Type a , Type b) => Qt (a -> b) -> FGHO.Exp Prelude (a -> b)
 ghoF e = frmRgtZro (cnv(wrp e,etTFG , esTH))

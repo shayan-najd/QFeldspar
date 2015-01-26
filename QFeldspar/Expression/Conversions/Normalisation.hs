@@ -42,9 +42,9 @@ instance (HasSin TFG.Typ t , t ~ t' , r ~ r') =>
                                     TFG.EqlOut <- lift (TFG.eqlOut t tv)
                                     TFG.EqlArg <- lift (TFG.eqlArg tys tv)
                                     pure (FMWS.AppV v es)
-    _                         -> $(biRecAppMQW 'ee ''FGHO.Exp "FMWS"
+    _                         -> $(biGenOverloadedMW 'ee ''FGHO.Exp "FMWS"
      ['FGHO.Var,'FGHO.Abs,'FGHO.App,'FGHO.Non,'FGHO.Som,'FGHO.May
-     ,'FGHO.AryV,'FGHO.LenV,'FGHO.IndV,'FGHO.Int] (trvWrp 't))
+     ,'FGHO.AryV,'FGHO.LenV,'FGHO.IndV,'FGHO.Int] (trvWrp 't) (const [| cnvImp |]))
 
 instance (HasSin TFG.Typ a , HasSin TFG.Typ b, a ~ a' , b ~ b' , r ~ r') =>
     Cnv (FGHO.Exp r' (Arr a' b') , rr) (FMWS.Exp r a -> FMWS.Exp r b)  where
@@ -76,7 +76,8 @@ instance (HasSin TFG.Typ t , t' ~ t , r' ~ r) =>
       (TFG.May _   , Emp)     -> pure (FGHO.Var v)
     FMWS.Tag _  e             -> cnvImp e
     _                         ->
-      $(biRecAppMQW 'ee ''FMWS.Exp "FGHO" ['FMWS.AppV,'FMWS.Tag] (trvWrp 't))
+      $(biGenOverloadedMW 'ee ''FMWS.Exp "FGHO" ['FMWS.AppV,'FMWS.Tag]
+                              (trvWrp 't) (const [| cnvImp |]))
 
 instance (HasSin TFG.Typ a , HasSin TFG.Typ b, a ~ a' , b ~ b' , r ~ r') =>
     Cnv (FMWS.Exp r a -> FMWS.Exp r b , rr) (FGHO.Exp r' (Arr a' b')) where

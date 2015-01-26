@@ -2,6 +2,7 @@ module QFeldspar.Expression.Utils.Common where
 import QFeldspar.MyPrelude
 import QFeldspar.Type.GADT
 import QFeldspar.Singleton
+import QFeldspar.Expression.Utils.TemplateHaskell
 import qualified Language.Haskell.TH as TH
 
 trvWrp :: TH.Name -> TH.Name -> TH.ExpQ -> TH.ExpQ

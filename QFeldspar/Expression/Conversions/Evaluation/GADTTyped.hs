@@ -11,6 +11,7 @@ import QFeldspar.Variable.Conversion ()
 
 instance Cnv (Exp n t , Env n FAV.Exp) FAV.Exp where
   cnv (ee , r) = let ?r = r in join (case ee of
+    Var v        -> pure (pure (get v r))
     App _  ef ea -> FAV.app  <$@> ef <*@> ea
     Fst _  e     -> FAV.fst  <$@> e
     Snd _  e     -> FAV.snd  <$@> e
@@ -24,9 +25,9 @@ instance Cnv (Exp n t , Env n FAV.Exp) FAV.Exp where
     Som _        -> impossibleM
     May _ _ _ _  -> impossibleM
     Mul _ _      -> impossibleM
-    _ -> $(biRecAppMQS 'ee ''Exp "FAV"
-     ['App,'Fst,'Snd,'Len,'Let,'Typ,'AryV,'LenV,'IndV,
-      'Non,'Som,'May,'Mul] (const id)))
+    _ -> $(biGenOverloadedML 'ee ''Exp "FAV"
+     ['Var,'App,'Fst,'Snd,'Len,'Let,'Typ,'AryV,'LenV,'IndV,
+      'Non,'Som,'May,'Mul] (const [| cnvImp |])))
 
 instance Cnv (Exp (Suc n) t , Env n FAV.Exp) (FAV.Exp -> FAV.Exp) where
   cnv (e , r) = pure (frmRgtZro . curry cnv e . (flip Ext r))

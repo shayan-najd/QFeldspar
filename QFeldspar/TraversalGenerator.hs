@@ -1,21 +1,15 @@
 module QFeldspar.TraversalGenerator where
 
 import Prelude
-import Control.Applicative (pure)
 import Language.Haskell.TH.Syntax hiding (unQ)
 import Language.Haskell.TH hiding (match)
-import QFeldspar.ErrorMonad
-import QFeldspar.Expression.TemplateHaskell ()
+import QFeldspar.Expression.Utils.TemplateHaskell
 import Data.Char
+import Control.Applicative
 
-stripNameSpace :: Name -> Name
-stripNameSpace (Name x _) = Name x NameS
-
-(===) :: Name -> Name -> Bool
-n1 === n2 = stripNameSpace n1 == stripNameSpace n2
-
-unQ :: Q a -> a
-unQ = frmRgt . runQ
+lowerFirst :: String -> String
+lowerFirst []        = []
+lowerFirst (x : xs)  = toLower x : xs
 
 getNameCount :: Con -> (Name, [Type])
 getNameCount (NormalC n ts)   = (n , map snd ts)
@@ -49,64 +43,206 @@ match (TupleT n)            (TupleT n')           = n == n'
 match (PromotedT n)         (PromotedT n')        = n == n'
 match _                     _                     = False
 
+{-
 gen :: Name -> Name -> [Name] -> Q Exp -> Q Exp
 gen ee n ns e = recAppQ ee n (return . ConE)
              ns (\ _ -> id) (const e)
+-}
 
-genOverloaded :: Name -> Name -> [Name] -> (Type -> Q Exp) -> Q Exp
-genOverloaded e n ns f = recAppQ e n (return . ConE)
-                         ns (\ _ -> id) f
+genOverloaded :: Name -> Name -> [Name] ->
+                 (Type -> Q Exp) -> Q Exp
+genOverloaded e t ns f = recAppMQ e t
+                         (return . ConE)
+                         ns
+                         [| id |]
+                         [| ($) |]
+                         [| ($) |]
+                         (const id)
+                         f
 
 genOverloadedW :: Name -> Name -> [Name] -> (Name -> Q Exp -> Q Exp) ->
                   (Type -> Q Exp) -> Q Exp
-genOverloadedW e n ns wf f = recAppQ e n (return . ConE)
-                           ns wf f
+genOverloadedW e t ns wf f = recAppMQ e t
+                             (return . ConE)
+                             ns
+                             [| id |]
+                             [| ($) |]
+                             [| ($) |]
+                             wf
+                             f
 
-recAppQ :: Name -> Name -> (Name -> Q Exp) -> [Name] ->
-           (Name -> Q Exp -> Q Exp) -> (Type -> Q Exp) -> Q Exp
-recAppQ e dn g ns wf fn = recApp e dn (unQ . g) ns
-                        (\ n -> unQ . wf n . return)
-                        (unQ . fn)
+genOverloadedM :: Name -> Name -> [Name] ->
+                  (Type -> Q Exp) -> Q Exp
+genOverloadedM e t ns f = recAppMQ e t
+                          (return . ConE)
+                          ns
+                          [| pure |]
+                          [| (<$>) |]
+                          [| (<*>) |]
+                          (const id)
+                          f
 
-recApp :: Name -> Name -> (Name -> Exp) -> [Name] -> (Name -> Exp -> Exp) ->
-          (Type -> Exp) -> Q Exp
-recApp e dn g ns wf fn = recAppM e dn g ns
-                         (unQ [| id |]) (unQ [| ($) |]) (unQ [| ($) |])
-                                        wf fn
+genOverloadedMW :: Name -> Name -> [Name] -> (Name -> Q Exp -> Q Exp) ->
+                  (Type -> Q Exp) -> Q Exp
+genOverloadedMW e t ns wf f = recAppMQ e t
+                              (return . ConE)
+                              ns
+                              [| pure |]
+                              [| (<$>) |]
+                              [| (<*>) |]
+                              wf
+                              f
 
-lowerFirst :: String -> String
-lowerFirst []        = []
-lowerFirst (x : xs)  = toLower x : xs
+biGenOverloaded :: Name -> Name -> String -> [Name] ->
+                   (Type -> Q Exp) -> Q Exp
+biGenOverloaded e t g ns f = recAppMQ e t
+                           (\ n -> conE (mkName (g ++ "." ++ ( (nameBase n)))))
+                           ns
+                           [| id |]
+                           [| ($) |]
+                           [| ($) |]
+                           (const id)
+                           f
 
+biGenOverloadedW :: Name -> Name -> String -> [Name] -> (Name -> Q Exp -> Q Exp) ->
+                  (Type -> Q Exp) -> Q Exp
+biGenOverloadedW e t g ns wf f = recAppMQ e t
+                               (\ n -> conE (mkName (g ++ "." ++ ( (nameBase n)))))
+                               ns
+                               [| id |]
+                               [| ($) |]
+                               [| ($) |]
+                               wf
+                               f
 
+biGenOverloadedM :: Name -> Name -> String -> [Name] ->
+                  (Type -> Q Exp) -> Q Exp
+biGenOverloadedM e t g ns f = recAppMQ e t
+                               (\ n -> conE (mkName (g ++ "." ++ ( (nameBase n)))))
+                               ns
+                               [| pure |]
+                               [| (<$>) |]
+                               [| (<*>) |]
+                               (const id)
+                               f
+
+biGenOverloadedMW :: Name -> Name -> String -> [Name] -> (Name -> Q Exp -> Q Exp) ->
+                  (Type -> Q Exp) -> Q Exp
+biGenOverloadedMW e t g ns wf f = recAppMQ e t
+                                (\ n -> conE (mkName (g ++ "." ++ ( (nameBase n)))))
+                                ns
+                                [| pure |]
+                                [| (<$>) |]
+                                [| (<*>) |]
+                                wf
+                                f
+
+biGenOverloadedL :: Name -> Name -> String -> [Name] ->
+                   (Type -> Q Exp) -> Q Exp
+biGenOverloadedL e t g ns f = recAppMQ e t
+                           (\ n -> varE (mkName (g ++ "." ++ (lowerFirst(nameBase n)))))
+                           ns
+                           [| id |]
+                           [| ($) |]
+                           [| ($) |]
+                           (const id)
+                           f
+
+biGenOverloadedWL :: Name -> Name -> String -> [Name] -> (Name -> Q Exp -> Q Exp) ->
+                  (Type -> Q Exp) -> Q Exp
+biGenOverloadedWL e t g ns wf f = recAppMQ e t
+                               (\ n -> varE (mkName (g ++ "." ++ (lowerFirst(nameBase n)))))
+                               ns
+                               [| id |]
+                               [| ($) |]
+                               [| ($) |]
+                               wf
+                               f
+
+biGenOverloadedML :: Name -> Name -> String -> [Name] ->
+                  (Type -> Q Exp) -> Q Exp
+biGenOverloadedML e t g ns f = recAppMQ e t
+                               (\ n -> varE (mkName (g ++ "." ++ (lowerFirst(nameBase n)))))
+                               ns
+                               [| pure |]
+                               [| (<$>) |]
+                               [| (<*>) |]
+                               (const id)
+                               f
+
+biGenOverloadedMWL :: Name -> Name -> String -> [Name] -> (Name -> Q Exp -> Q Exp) ->
+                  (Type -> Q Exp) -> Q Exp
+biGenOverloadedMWL e t g ns wf f = recAppMQ e t
+                                (\ n -> varE (mkName (g ++ "." ++ (lowerFirst(nameBase n)))))
+                                ns
+                                [| pure |]
+                                [| (<$>) |]
+                                [| (<*>) |]
+                                wf
+                                f
+
+{-
 biRecAppMQS :: Name -> Name -> String -> [Name] ->
                (Name -> Q Exp -> Q Exp) -> Q Exp
 biRecAppMQS e dn g ns wf = recAppMQ e dn
-   (\ n -> varE (mkName (g ++ "." ++ (lowerFirst (nameBase n)))))
-   ns [| pure |]
-   (varE $ stripNameSpace $ mkName "<$@>")
-   (varE $ stripNameSpace $ mkName "<*@>")
-   wf
-   (const [| id |])
+                           (\ n -> varE (mkName (g ++ "." ++ (lowerFirst (nameBase n)))))
+                           ns
+                           [| pure |]
+                           (varE $ stripNameSpace $ mkName "<$@>")
+                           (varE $ stripNameSpace $ mkName "<*@>")
+                           wf
+                           (const [| id |])
 
-biRecAppMQ :: Name -> Name -> String -> Q Exp
-biRecAppMQ e dn g =  biRecAppMQW e dn g [] (const id)
+--biRecAppMQ :: Name -> Name -> String -> Q Exp
+-- biRecAppMQ e dn g =  biRecAppMQW e dn g [] (const id)
 
+
+biRecAppQW :: Name -> Name -> String -> [Name] ->
+               (Name -> Q Exp -> Q Exp) -> Q Exp
+biRecAppQW e dn g ns wf = recAppMQ e dn
+                          (\ n -> conE (mkName (g ++ "." ++ nameBase n)))
+                          ns
+                          [| pure |]
+                          (varE $ stripNameSpace $ mkName "<$@>")
+                          (varE $ stripNameSpace $ mkName "<*@>")
+                          wf
+                          (const [| id |])
+-}
+{-
 biRecAppMQW :: Name -> Name -> String -> [Name] ->
                (Name -> Q Exp -> Q Exp) -> Q Exp
 biRecAppMQW e dn g ns wf = recAppMQ e dn
    (\ n -> conE (mkName (g ++ "." ++ nameBase n)))
-   ns [| pure |]
-   (varE $ stripNameSpace $ mkName "<$@>")
-   (varE $ stripNameSpace $ mkName "<*@>")
+   ns [| id |]
+   [| ($) |]
+   [| ($) |]
    wf
    (const [| id |])
+
+
+biOverloadedW :: Name -> Name -> String -> [Name] -> (Name -> Q Exp -> Q Exp) ->
+                  (Type -> Q Exp) -> Q Exp
+biOverloadedW e dn g = recAppQ e dn (\ n -> conE (mkName (g ++ "." ++ nameBase n)))
+
+
+recAppQ :: Name -> Name -> (Name -> Q Exp) -> [Name] ->
+           (Name -> Q Exp -> Q Exp) -> (Type -> Q Exp) -> Q Exp
+recAppQ e dn g ns wf fn = recApp e dn (unQ . g) ns
+                          (\ n -> unQ . wf n . return)
+                          (unQ . fn)
+
+recApp :: Name -> Name -> (Name -> Exp) -> [Name] -> (Name -> Exp -> Exp) ->
+          (Type -> Exp) -> Q Exp
+recApp e dn g ns = recAppM e dn g ns
+                   (unQ [| id |]) (unQ [| ($) |]) (unQ [| ($) |])
+-}
 
 recAppMQ :: Name -> Name -> (Name -> Q Exp) -> [Name] -> Q Exp -> Q Exp ->
             Q Exp -> (Name -> Q Exp -> Q Exp) -> (Type -> Q Exp) ->
             Q Exp
 recAppMQ e dn g ns o0 o1 o2 wf fn = recAppM e dn (unQ . g) ns
-  (unQ o0) (unQ o1) (unQ o2) (\ n -> unQ . wf n . return) (unQ . fn)
+                                    (unQ o0) (unQ o1) (unQ o2)
+                                    (\ n -> unQ . wf n . return) (unQ . fn)
 
 recAppM :: Name -> Name -> (Name -> Exp) -> [Name] -> Exp -> Exp -> Exp ->
            (Name -> Exp -> Exp) ->

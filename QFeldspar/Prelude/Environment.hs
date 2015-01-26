@@ -18,7 +18,7 @@ import QFeldspar.Conversion
 import QFeldspar.Environment.Conversion ()
 import QFeldspar.Variable.Typed
 import QFeldspar.Singleton
-
+import QFeldspar.Expression.Utils.TemplateHaskell
 import QFeldspar.Prelude.HaskellEnvironment
 
 infixr 5 <:>

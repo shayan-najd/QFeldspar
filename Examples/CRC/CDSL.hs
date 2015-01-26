@@ -10,13 +10,13 @@ updCrc = \ ccc -> \ ch ->
          share ccc (\ cc ->
           bitXor
           (bitXor
-           (tblV
+           (tbl
             (bitAnd (bitXor (bitXor cc 0xFFFFFFFF) ch) 0xff))
            (shfRgt (bitXor cc 0xFFFFFFFF) 8))
           0xFFFFFFFF)
 
-tblV :: Data Int -> Data Int
-tblV = \ i -> case frmExp hashTable of (Vec _ f) -> f i
+tbl :: Data Int -> Data Int
+tbl = \ i -> case frmExp hashTable of (Vec _ f) -> f i
 
 crc :: Data (Ary Int) -> Data Int
 crc = toExpF crcVec

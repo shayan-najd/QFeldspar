@@ -11,7 +11,6 @@ import qualified QFeldspar.Expression.GADTHigherOrder     as FGHO
 import qualified QFeldspar.Expression.MiniFeldspar      as FMWS
 import qualified QFeldspar.Expression.ADTValue            as FAV
 import qualified QFeldspar.Expression.GADTValue           as FGV
-
 import qualified Tests.TemplateHaskell     as TH
 import qualified Tests.ADTUntypedNamed     as FAUN
 import qualified Tests.ADTUntypedDebruijn  as FAUD
@@ -19,26 +18,21 @@ import qualified Tests.GADTTyped           as FGTD
 import qualified Tests.GADTFirstOrder      as FGFO
 import qualified Tests.GADTHigherOrder     as FGHO
 import qualified Tests.MiniFeldspar      as FMWS ()
-
 import qualified QFeldspar.Type.ADT                       as TFA
 import qualified QFeldspar.Type.GADT                      as TFG
-
 import qualified QFeldspar.Environment.Map                         as EM
 import qualified QFeldspar.Environment.Plain                       as EP
 import qualified QFeldspar.Environment.Scoped                      as ES
 import qualified QFeldspar.Environment.Typed                       as ET
-
 import QFeldspar.Normalisation
 import QFeldspar.Normalisation.GADTHigherOrder  ()
-
 import QFeldspar.Conversion
 import QFeldspar.Variable.Conversion                     ()
 import QFeldspar.Environment.Conversion                  ()
 import QFeldspar.Type.Conversion                ()
-import QFeldspar.Expression.TemplateHaskell     ()
 import QFeldspar.Expression.Conversion          ()
-
 import qualified QFeldspar.Nat.ADT as NA
+import QFeldspar.Expression.Utils.TemplateHaskell
 
 type One    = NA.Suc NA.Zro
 type Add    = Arr Int (Arr Int Int)

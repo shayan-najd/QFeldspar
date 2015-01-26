@@ -4,7 +4,7 @@ import QFeldspar.MyPrelude
 
 import qualified QFeldspar.Expression.ADTUntypedNamed as FAUN
 import qualified Language.Haskell.TH.Syntax          as TH
-
+import QFeldspar.Expression.Utils.TemplateHaskell
 import QFeldspar.Conversion
 import QFeldspar.Type.Conversion ()
 
