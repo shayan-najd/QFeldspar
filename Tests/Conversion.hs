@@ -25,7 +25,7 @@ import qualified QFeldspar.Environment.Plain                       as EP
 import qualified QFeldspar.Environment.Scoped                      as ES
 import qualified QFeldspar.Environment.Typed                       as ET
 import QFeldspar.Normalisation
-import QFeldspar.Normalisation.GADTHigherOrder  ()
+import QFeldspar.Normalisation.GADTFirstOrder  ()
 import QFeldspar.Conversion
 import QFeldspar.Variable.Conversion                     ()
 import QFeldspar.Environment.Conversion                  ()
@@ -62,9 +62,9 @@ envAddValM :: EM.Env TH.Name FAV.Exp
 envAddValM = (stripNameSpace '(+) , FAV.lft ((+) :: Int -> Int -> Int)) : []
 
 cnvFMWS :: Cnv (e , ET.Env TFG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
-               (FGHO.Exp EnvAdd Int) => e -> Int -> Bool
+               (FGFO.Exp EnvAdd Int) => e -> Int -> Bool
 cnvFMWS e j = case runNamM
-              (do e'   :: FGHO.Exp EnvAdd Int <- cnv (e , envAddTypG
+              (do e'   :: FGFO.Exp EnvAdd Int <- cnv (e , envAddTypG
                                                      , vec)
                   let e'' = nrm e'
                   e''' :: FMWS.Exp EnvAdd Int <- cnv (e'' , envAddTypG

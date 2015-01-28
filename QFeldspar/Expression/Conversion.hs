@@ -25,8 +25,10 @@ import QFeldspar.Expression.Conversions.TypeWithnessing  ()
 import QFeldspar.Expression.Conversions.Lifting          ()
 import QFeldspar.Expression.Conversions.Normalisation    ()
 import QFeldspar.Normalisation
-import QFeldspar.Normalisation.GADTHigherOrder ()
-import QFeldspar.Eta
+-- import QFeldspar.Normalisation.GADTHigherOrder ()
+import QFeldspar.Normalisation.GADTFirstOrder ()
+
+-- import QFeldspar.Eta
 import QFeldspar.Singleton
 
 ---------------------------------------------------------------------------------
@@ -261,7 +263,7 @@ instance (r ~ r' , t ~ t' , n ~ Len r , HasSin TFG.Typ t') =>
          Cnv (FGFO.Exp r t , ET.Env TFG.Typ r , ES.Env n TH.Name)
              (FGHO.Exp r' t')
          where
-  cnv (e , r , _) = cnv (e , r)
+  cnv (e , r , _) = cnv (nrm e , r)
 
 instance (r ~ r' , t ~ t' , n ~ Len r , HasSin TFG.Typ t') =>
          Cnv (FGFO.Exp r  t , ET.Env TFG.Typ r , ES.Env n TH.Name)
@@ -276,7 +278,7 @@ instance (r ~ r' , t ~ t' , n ~ Len r , HasSin TFG.Typ t') =>
          Cnv (FGHO.Exp r t , ET.Env TFG.Typ r , ES.Env n TH.Name)
              (FMWS.Exp r' t')
          where
-  cnv (e , _ , _) = cnv (nrm (eta e) , ())
+  cnv (e , _ , _) = cnv ({-nrm (eta e)-} e , ())
 
 instance (r ~ r' , t ~ t' , n ~ Len r , HasSin TFG.Typ t') =>
          Cnv (FGHO.Exp r  t , ET.Env TFG.Typ r , ES.Env n TH.Name)

@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-unused-binds -fno-warn-name-shadowing #-}
 module QFeldspar.QDSL (module TH,dbg,dbgF
                       ,Qt,translate,translateF,evaluate,compile,compileF,wrp
-                      ,ghoF,nghoF,gho,ngho,qdsl,trmEql)
+                      ,ghoF{-,nghoF-},gho{-,ngho-},qdsl,trmEql)
     where
 import Prelude(Float,Bool(..),Maybe,String,(.))
 import QFeldspar.CDSL (Dp)
@@ -27,7 +27,7 @@ import qualified QFeldspar.Type.GADT                  as TFG
 import QFeldspar.Type.Conversion ()
 
 import qualified Language.Haskell.TH.Syntax as TH
-import QFeldspar.Normalisation
+-- import QFeldspar.Normalisation
 import QFeldspar.Prelude.HaskellEnvironment
 import QFeldspar.Prelude.Environment
 
@@ -102,11 +102,11 @@ gho e = frmRgtZro (cnv(wrp e,etTFG , esTH))
 ghoF :: (Type a , Type b) => Qt (a -> b) -> FGHO.Exp Prelude (a -> b)
 ghoF e = frmRgtZro (cnv(wrp e,etTFG , esTH))
 
-nghoF :: (Type a , Type b) => Qt (a -> b) -> FGHO.Exp Prelude (a -> b)
-nghoF e = nrm (ghoF e)
+-- nghoF :: (Type a , Type b) => Qt (a -> b) -> FGHO.Exp Prelude (a -> b)
+-- nghoF e = nrm (ghoF e)
 
-ngho :: Type a => Qt a -> FGHO.Exp Prelude a
-ngho e = nrm (gho e)
+-- ngho :: Type a => Qt a -> FGHO.Exp Prelude a
+-- ngho e = nrm (gho e)
 
 qdsl :: (FO a , Type a , Type b) => Qt (a -> b) -> C
 qdsl = compileF True True

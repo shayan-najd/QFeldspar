@@ -18,7 +18,7 @@ import QFeldspar.Compiler(scompile)
 import QFeldspar.Normalisation
 import QFeldspar.Normalisation.MiniFeldspar ()
 import QFeldspar.CSE
-import QFeldspar.ChangeMonad
+-- import QFeldspar.ChangeMonad
 import QFeldspar.Simplify
 
 type C    = String
