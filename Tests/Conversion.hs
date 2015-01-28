@@ -122,7 +122,7 @@ test = cnvFAUN TH.four   4 && cnvFAUN FAUN.four 4 &&
        cnvFGTD FGTD.four 4 &&
 
        cnvFGFO TH.four   4 && cnvFGFO FAUN.four 4 && cnvFGFO FAUD.four 4 &&
-       cnvFGFO FGTD.four 4 && cnvFGFO FGFO.four 4 &&
+       cnvFGFO FGTD.four 4 && cnvFGFO FGFO.four 4 && cnvFGFO FGHO.four 4 &&
 
        cnvFGHO TH.four   4 && cnvFGHO FAUN.four 4 && cnvFGHO FAUD.four 4 &&
        cnvFGHO FGTD.four 4 && cnvFGHO FGFO.four 4 &&

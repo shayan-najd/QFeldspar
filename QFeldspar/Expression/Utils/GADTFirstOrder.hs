@@ -21,3 +21,5 @@ mapVar f ee = case ee of
       | matchQ t [t| Exp (t ': t) t |] -> [| mapVar (inc f) |]
       | matchQ t [t| Exp t t |]        -> [| mapVar f  |]
       | otherwise                      -> [| id |]))
+
+deriving instance Show (Exp r t)

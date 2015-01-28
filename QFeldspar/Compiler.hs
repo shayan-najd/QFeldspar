@@ -112,10 +112,10 @@ instance (HasSin TFG.Typ t, n ~ Len r) =>
       FMWS.ConB False    -> pure (fls   , [])
       FMWS.ConF f        -> pure (Flt f , [])
       FMWS.AppV v ET.Emp -> do v' :: VS.Var n <- cnvImpLft v
-                               ve             <- cnvImpLft v'
+                               let ve = ES.get v' r
                                pure (Var ve , [])
       FMWS.AppV v es     -> do v' :: VS.Var n <- cnvImpLft v
-                               ve             <- cnvImpLft v'
+                               let ve         = ES.get v' r
                                (es' , ss)     <- cnvETEnv (sinTypOf v t) es
                                pure (App ve es' ,concat ss)
       FMWS.Cnd ec et ef  -> do v <- newName

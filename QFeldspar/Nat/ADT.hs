@@ -1,6 +1,5 @@
 module QFeldspar.Nat.ADT
-  (Nat(..),prd,inc) where
-
+  (Nat(..),prd,inc,sub,nat,natStr) where
 
 import QFeldspar.MyPrelude
 
@@ -18,10 +17,22 @@ int (Suc x) = 1 + int x
 instance Show Nat where
   show v = show (int v)
 
+nat :: Int -> Nat
+nat 0 = Zro
+nat n = Suc (nat (n - 1))
+
+natStr :: String -> Nat
+natStr = nat . read
+
 prd :: Nat -> Nat
 prd (Suc n) = n
-prd _       = badUse "Prd"
+prd _       = badUse "prd"
 
 inc :: (Nat -> Nat) -> Nat -> Nat
 inc _ Zro     = Zro
 inc f (Suc x) = Suc (f x)
+
+sub :: Nat -> Nat -> Nat
+sub n       Zro     = n
+sub Zro     _       = badUse "sub"
+sub (Suc n) (Suc m) = sub n m

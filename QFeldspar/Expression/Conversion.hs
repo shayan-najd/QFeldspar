@@ -284,6 +284,12 @@ instance (r ~ r' , t ~ t' , n ~ Len r , HasSin TFG.Typ t') =>
          where
   cnv (e , _ , _) = pure e
 
+instance (r ~ r' , t ~ t' , n ~ Len r , HasSin TFG.Typ t') =>
+         Cnv (FGHO.Exp r  t , ET.Env TFG.Typ r , ES.Env n TH.Name)
+             (FGFO.Exp r' t')
+         where
+  cnv (e , r , _) = cnv (e , r)
+
 ---------------------------------------------------------------------------------
 -- Conversion from FMWS
 ---------------------------------------------------------------------------------

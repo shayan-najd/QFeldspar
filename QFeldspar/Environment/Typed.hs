@@ -1,5 +1,5 @@
 module QFeldspar.Environment.Typed
-    (Env(Emp,Ext),fmap,foldMap,foldl,traverse,len,get,add,Get) where
+    (Env(Emp,Ext),fmap,foldMap,foldl,traverse,len,lenNat,get,add,Get) where
 
 import QFeldspar.MyPrelude hiding (mapM,fmap,traverse,foldMap,foldl)
 
@@ -34,6 +34,10 @@ traverse f (Ext x xs) = Ext <$> f x <*> traverse f xs
 len :: Env ef r -> NG.Nat (Len r)
 len Emp        = NG.Zro
 len (Ext _ xs) = NG.Suc (len xs)
+
+lenNat :: Env ef r -> NA.Nat
+lenNat Emp        = NA.Zro
+lenNat (Ext _ xs) = NA.Suc (lenNat xs)
 
 get :: Var r t -> Env tf r -> tf t
 get Zro     (Ext x  _ ) = x

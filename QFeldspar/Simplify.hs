@@ -1,13 +1,19 @@
+{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 module QFeldspar.Simplify  where
 
 import QFeldspar.MyPrelude hiding (foldl,fmap)
-
-import QFeldspar.Expression.MiniFeldspar
-import QFeldspar.Expression.Utils.MiniFeldspar(eql,hasOneOrZro,absTmp,pattern TF)
+import qualified QFeldspar.Expression.MiniFeldspar          as MF
+import qualified QFeldspar.Expression.Utils.MiniFeldspar    as MF
+-- import qualified QFeldspar.Expression.GADTHigherOrder       as GHO
+-- import qualified QFeldspar.Expression.Utils.GADTHigherOrder as GHO
 
 import QFeldspar.Singleton
 import qualified QFeldspar.Type.GADT as TFG
+import QFeldspar.Expression.Utils.Common
 import QFeldspar.ChangeMonad
+
+smp :: SmpOne a => a -> a
+smp = tilNotChg smpOne
 
 class SmpOne a where
   smpOne :: a -> Chg a
@@ -21,45 +27,34 @@ infixl 4 <*@>
 el <*@> er = el <*> smpOne er
 
 instance (HasSin TFG.Typ t) =>
-         SmpOne (Exp n t) where
+         SmpOne (MF.Exp n t) where
   smpOne ee = let t = sin :: TFG.Typ t in case ee of
-    ConI i                       -> pure (ConI i)
-    ConB b                       -> pure (ConB b)
-    ConF f                       -> pure (ConF f)
-    AppV x             es        -> AppV x <$> TFG.mapMC (sinTypOf x t) smpOne es
-    Cnd ec           et ef       -> Cnd  <$@> ec <*@> et <*@> ef
-    Whl ec eb ei                 -> Whl  <$@> ec <*@> eb <*@> ei
-    Tpl ef      es               -> case TFG.getPrfHasSinTpl t of
-      (PrfHasSin , PrfHasSin)    -> Tpl  <$@> ef <*@> es
-    Fst e                        -> Fst  <$@> e
-    Snd e                        -> Snd  <$@> e
-    Ary el      ef               -> case TFG.getPrfHasSinAry t of
-      PrfHasSin                  -> case el of
-        TF (Len (e :: Exp n (Ary te)))->
-              let v = genNewNam "__smpOneAry__"
-                  {-# NOINLINE v #-}
-              in deepseq v $ case ef (Tmp v) of
-          TF (Ind (e' :: Exp n (Ary te')) (Tmp m))
+    MF.AppV x es -> MF.AppV x <$> TFG.mapMC (sinTyp x) smpOne es
+    MF.Let ea   eb
+      | MF.hasOneOrZro eb -> chg (eb ea)
+    MF.Ary el ef -> case TFG.getPrfHasSinAry t of
+      PrfHasSin -> case el of
+        MF.TF (MF.Len (e :: MF.Exp n (Ary te))) -> let v = genNewNam "__smpOneAry__"
+                                                       {-# NOINLINE v #-}
+                                                   in deepseq v $ case ef (MF.Tmp v) of
+           MF.TF (MF.Ind (e' :: MF.Exp n (Ary te')) (MF.Tmp m))
             | m == v -> case eqlSin (sin :: TFG.Typ te) (sin :: TFG.Typ te') of
-               Rgt Rfl
-                   | eql e e'    -> chg e
-               _                 -> Ary  <$@> el <*@> ef
-          _                      -> Ary  <$@> el <*@> ef
-        _                        -> Ary  <$@> el <*@> ef
-    Len e                        -> Len  <$@> e
-    Ind ea             ei        -> Ind  <$@> ea <*@> ei
-    Cmx er ei                    -> Cmx  <$@> er <*@> ei
-
-    Let ea         eb
-      | hasOneOrZro eb           -> chg (eb ea)
-    Let el             eb        -> Let  <$@> el <*@> eb
-    Tmp x                        -> pure (Tmp x)
-    Tag x e                      -> Tag x <$@> e
-    Mul er ei                    -> Mul   <$@> er <*@> ei
+               Rgt Rfl -> do if MF.eql e e'
+                             then chg e
+                             else MF.Ary <$@> el <*@> ef
+               _       -> MF.Ary <$@> el <*@> ef
+           _           -> MF.Ary <$@> el <*@> ef
+        _              -> MF.Ary <$@> el <*@> ef
+    _ -> $(genOverloadedMW 'ee ''MF.Exp  ['MF.AppV,'MF.Ary]
+                               (trvWrp 't)
+           (\ tt -> if
+                | matchQ tt [t| MF.Exp t t -> MF.Exp t t |] -> [| smpOne |]
+                | matchQ tt [t| MF.Exp t t |]               -> [| smpOne |]
+                | otherwise                                 -> [| pure   |]))
 
 instance (HasSin TFG.Typ tb, HasSin TFG.Typ ta) =>
-         SmpOne (Exp n ta -> Exp n tb) where
+         SmpOne (MF.Exp n ta -> MF.Exp n tb) where
   smpOne f = let v = genNewNam "__SmpOneF__"
                  {-# NOINLINE v #-}
-             in deepseq v $ do eb <- smpOne (f (Tmp v))
-                               return (\ x -> absTmp x v eb)
+             in deepseq v $ do f' <- smpOne (f (MF.Tmp v))
+                               return (\ x -> MF.absTmp x v f')

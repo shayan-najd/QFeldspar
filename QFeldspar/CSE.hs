@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
+{-# OPTIONS_GHC -fno-warn-incomplete-patterns -fno-max-relevant-binds #-}
 module QFeldspar.CSE where
 
 import QFeldspar.Expression.MiniFeldspar
@@ -16,8 +16,8 @@ import QFeldspar.Variable.Typed
 import Data.Constraint
 import Data.Constraint.Unsafe
 
-cse :: forall r t. HasSin TFG.Typ t => Exp r t -> Exp r t
-cse e = tilNotChg cseOne e
+cse :: HasSin TFG.Typ t => Exp r t -> Exp r t
+cse = tilNotChg cseOne
 
 cseF :: forall r a b. (HasSin TFG.Typ a , HasSin TFG.Typ b) =>
            (Exp r a -> Exp r b) -> (Exp r a -> Exp r b)

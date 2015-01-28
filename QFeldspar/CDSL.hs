@@ -50,15 +50,15 @@ normalise c ee = let e = toExp ee
 
 normaliseF :: (Syn a , Syn b) => Bool -> (a -> b) -> a -> b
 normaliseF c ff = let f = toExpF ff
-                  in  frmExpF (nrm (if c then cseF f else remTag . f))
+                  in  frmExpF (nrm (remTag . (if c then cse . f else f)))
 
 simplify :: Syn a => a -> a
-simplify = frmExpF (tilNotChg smpOne)
+simplify = frmExpF smp
 
 simplifyF :: (Syn a , Syn b) =>
              (a -> b) -> a -> b
 simplifyF ff = let f = toExpF ff
-               in  frmExpF (tilNotChg smpOne f)
+               in  frmExpF (smp f)
 
 cdsl :: (Type a , Type b) => (Dp a -> Dp b) -> C
 cdsl = compileF MP.True MP.True
