@@ -64,3 +64,9 @@ instance EqlSin tf => EqlSin (Env tf) where
                                     Rfl <- eqlSin t t'
                                     return Rfl
   eqlSin  _           _        = fail "Scope Error!"
+
+instance GetPrfHasSin tf => GetPrfHasSin (Env tf) where
+  getPrfHasSin Emp        = PrfHasSin
+  getPrfHasSin (Ext t ts) = case getPrfHasSin ts of
+    PrfHasSin   -> case getPrfHasSin t of
+      PrfHasSin -> PrfHasSin

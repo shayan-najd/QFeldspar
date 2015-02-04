@@ -1,5 +1,5 @@
 module QFeldspar.Nat.ADT
-  (Nat(..),prd,inc,sub,nat,natStr) where
+  (Nat(..),prd,inc,add,sub,nat,natStr) where
 
 import QFeldspar.MyPrelude
 
@@ -36,3 +36,7 @@ sub :: Nat -> Nat -> Nat
 sub n       Zro     = n
 sub Zro     _       = badUse "sub"
 sub (Suc n) (Suc m) = sub n m
+
+add :: Nat -> Nat -> Nat
+add Zro     m = m
+add (Suc n) m = Suc (add n m)
