@@ -1,15 +1,28 @@
-module QFeldspar.Normalisation.GADTFirstOrder () where
+module QFeldspar.Normalisation.GADTFirstOrder (nrm) where
 
 import QFeldspar.MyPrelude
 
 import QFeldspar.Expression.GADTFirstOrder
 import QFeldspar.Expression.Utils.GADTFirstOrder
-    (sucAll,sbs,replaceOne,isFresh)
-
+    (sucAll,sbs,replaceOne,cntVar)
 import QFeldspar.Variable.Typed
-import QFeldspar.Normalisation
 import QFeldspar.Singleton
+import QFeldspar.ChangeMonad
 import qualified QFeldspar.Type.GADT as TFG
+
+class NrmOne a where
+  nrmOne :: a -> Chg a
+
+nrm :: NrmOne a => a -> a
+nrm = tilNotChg nrmOne
+
+infixl 4 <$@>
+(<$@>) :: NrmOne a => (a -> b) -> a -> Chg b
+el <$@> er = el <$> nrmOne er
+
+infixl 4 <*@>
+(<*@>) :: NrmOne a => Chg (a -> b) -> a -> Chg b
+el <*@> er = el <*> nrmOne er
 
 isVal :: Exp n t -> Bool
 isVal ee = case ee of
@@ -121,7 +134,7 @@ instance HasSin TFG.Typ t => NrmOne (Exp n t) where
     Let (Cnd ec et ef)      eb   -> chg (Cnd ec (Let et eb) (Let ef eb))
     Let (V v)               eb   -> chg (sbs v eb)
     Let (NV v)         eb
-      | isFresh eb               -> chg (sbs v eb)
+      | cntVar Zro eb == 0       -> chg (sbs v eb)
     Let el             eb        -> Let  <$@> el <*@> eb
 
     Non                          -> pure Non

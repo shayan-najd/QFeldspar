@@ -15,11 +15,10 @@ import QFeldspar.Expression.Conversion ()
 import qualified QFeldspar.Type.GADT                  as TFG
 import qualified QFeldspar.Expression.GADTValue       as FGV
 import QFeldspar.Compiler(scompile)
-import QFeldspar.Normalisation
 import qualified QFeldspar.Normalisation.MiniFeldspar as MF
 import QFeldspar.CSE
 -- import QFeldspar.ChangeMonad
-import QFeldspar.Simplify
+import QFeldspar.Simplification.MiniFeldspar
 
 type C    = String
 type Dp a = Data a
@@ -58,7 +57,7 @@ simplify = frmExpF smp
 simplifyF :: (Syn a , Syn b) =>
              (a -> b) -> a -> b
 simplifyF ff = let f = toExpF ff
-               in  frmExpF (smp f)
+               in  frmExpF (smpF f)
 
 cdsl :: (Type a , Type b) => (Dp a -> Dp b) -> C
 cdsl = compileF MP.True MP.True
