@@ -16,7 +16,7 @@ import qualified QFeldspar.Type.GADT                  as TFG
 import qualified QFeldspar.Expression.GADTValue       as FGV
 import QFeldspar.Compiler(scompile)
 import QFeldspar.Normalisation
-import QFeldspar.Normalisation.MiniFeldspar ()
+import qualified QFeldspar.Normalisation.MiniFeldspar as MF
 import QFeldspar.CSE
 -- import QFeldspar.ChangeMonad
 import QFeldspar.Simplify
@@ -46,11 +46,11 @@ compileF cSmp cCSE ff = let f = toExpF ff
 
 normalise :: Syn a => Bool -> a -> a
 normalise c ee = let e = toExp ee
-                 in  frmExp (nrm (if c then cse e else remTag e))
+                 in  frmExp (MF.nrm (if c then cse e else remTag e))
 
 normaliseF :: (Syn a , Syn b) => Bool -> (a -> b) -> a -> b
 normaliseF c ff = let f = toExpF ff
-                  in  frmExpF (nrm (remTag . (if c then cse . f else f)))
+                  in  frmExpF (MF.nrmF (remTag . (if c then cse . f else f)))
 
 simplify :: Syn a => a -> a
 simplify = frmExpF smp

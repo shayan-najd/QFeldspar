@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
-module QFeldspar.Expression.Conversions.Lifting () where
+module QFeldspar.Expression.Conversions.Lifting (cnvHOFOF,cnvFOHOF) where
 
 import QFeldspar.MyPrelude
 import QFeldspar.Conversion
@@ -27,9 +27,17 @@ instance (HasSin TFG.Typ t , t ~ t' , r ~ r') =>
 cnvFOHO :: Env tf r -> FGFO.Exp r t -> FGHO.Exp r t
 cnvFOHO r e = cnvFOHO' ((ET.fmap FGHO.Var . cnvGEnvtoGVar) r) e
 
+cnvFOHOF :: Env tf g -> FGFO.Exp (a ': g) b ->
+         (FGHO.Exp g a -> FGHO.Exp g b)
+cnvFOHOF r e = cnvFOHO'F ((ET.fmap FGHO.Var . cnvGEnvtoGVar) r) e
+
 cnvHOFO :: (HasSin TFG.Typ t) =>
            Env TFG.Typ r -> FGHO.Exp r t -> FGFO.Exp r t
 cnvHOFO r e = cnvHOFO' (genEnv r) r e
+
+cnvHOFOF :: (HasSin TFG.Typ a, HasSin TFG.Typ b) =>
+            Env TFG.Typ r' -> (FGHO.Exp r' a -> FGHO.Exp r' b) -> FGFO.Exp (a ': r') b
+cnvHOFOF r f = cnvHOFO'F (genEnv r) r f
 
 fmapVarEnv :: (forall a. Var r a -> Var r' a) -> VarEnv r -> VarEnv r'
 fmapVarEnv _ EP.Emp                 = EP.Emp

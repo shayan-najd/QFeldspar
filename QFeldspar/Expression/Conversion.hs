@@ -1,35 +1,37 @@
 module QFeldspar.Expression.Conversion () where
 
 import QFeldspar.MyPrelude
-import qualified Language.Haskell.TH.Syntax                        as TH
-import qualified QFeldspar.Expression.ADTUntypedNamed     as FAUN
-import qualified QFeldspar.Expression.ADTUntypedDebruijn  as FAUD
-import qualified QFeldspar.Expression.GADTTyped           as FGTD
-import qualified QFeldspar.Expression.GADTFirstOrder      as FGFO
-import qualified QFeldspar.Expression.GADTHigherOrder     as FGHO
-import qualified QFeldspar.Expression.MiniFeldspar        as FMWS
-import qualified QFeldspar.Type.ADT  as TFA
-import qualified QFeldspar.Type.GADT as TFG
-import qualified QFeldspar.Environment.Plain  as EP
-import qualified QFeldspar.Environment.Scoped as ES
-import qualified QFeldspar.Environment.Typed  as ET
+
 import QFeldspar.Conversion
-import QFeldspar.Variable.Conversion                              ()
-import QFeldspar.Environment.Conversion                           ()
-import QFeldspar.Type.Conversion                         ()
-import QFeldspar.Expression.Conversions.Unquoting        ()
-import QFeldspar.Expression.Conversions.NameResolution   ()
+import QFeldspar.Singleton
+-- import QFeldspar.Normalisation
+-- import QFeldspar.Eta
+import qualified Language.Haskell.TH.Syntax              as TH
+import qualified QFeldspar.Expression.ADTUntypedNamed    as FAUN
+import qualified QFeldspar.Expression.ADTUntypedDebruijn as FAUD
+import qualified QFeldspar.Expression.GADTTyped          as FGTD
+import qualified QFeldspar.Expression.GADTFirstOrder     as FGFO
+import qualified QFeldspar.Expression.GADTHigherOrder    as FGHO
+import qualified QFeldspar.Expression.MiniFeldspar       as FMWS
+import qualified QFeldspar.Type.ADT                      as TFA
+import qualified QFeldspar.Type.GADT                     as TFG
+import qualified QFeldspar.Environment.Plain             as EP
+import qualified QFeldspar.Environment.Scoped            as ES
+import qualified QFeldspar.Environment.Typed             as ET
+import QFeldspar.Variable.Conversion ()
+import qualified QFeldspar.Normalisation.GADTHigherOrder as GHO
+import QFeldspar.Environment.Conversion ()
+import QFeldspar.Type.Conversion ()
+import QFeldspar.Expression.Conversions.Unquoting ()
+import QFeldspar.Expression.Conversions.NameResolution ()
 import QFeldspar.Expression.Conversions.ScopeWithnessing ()
-import QFeldspar.Expression.Conversions.TypeInference    ()
-import QFeldspar.Expression.Conversions.TypeWithnessing  ()
-import QFeldspar.Expression.Conversions.Lifting          ()
-import QFeldspar.Expression.Conversions.Normalisation    ()
-import QFeldspar.Normalisation
-import QFeldspar.Normalisation.GADTHigherOrder ()
+import QFeldspar.Expression.Conversions.TypeInference ()
+import QFeldspar.Expression.Conversions.TypeWithnessing ()
+import QFeldspar.Expression.Conversions.Lifting ()
+import QFeldspar.Expression.Conversions.Normalisation ()
+-- import QFeldspar.Normalisation.GADTHigherOrder ()
 --import QFeldspar.Normalisation.GADTFirstOrder ()
 
--- import QFeldspar.Eta
-import QFeldspar.Singleton
 
 ---------------------------------------------------------------------------------
 -- Conversion from TH.TExp
@@ -253,14 +255,14 @@ instance (n ~ n' , r ~ r' , n ~ Len r) =>
 -- Conversion from FGFO
 ---------------------------------------------------------------------------------
 instance (r ~ r' , t ~ t' , n ~ Len r , HasSin TFG.Typ t') =>
-         Cnv (FGFO.Exp r t , ET.Env TFG.Typ r , ES.Env n TH.Name)
+         Cnv (FGFO.Exp r t , ET.Env TFG.Typ r , en)
              (FMWS.Exp r' t')
          where
-  cnv (e , r , v) = do e' :: FGHO.Exp r t <- cnv (e , r , v)
-                       cnv (e' , r , v)
+  cnv (e , r , _) = do e' :: FGHO.Exp r t <- cnv (e , r , ())
+                       cnv (e' , r , ())
 
 instance (r ~ r' , t ~ t' , n ~ Len r , HasSin TFG.Typ t') =>
-         Cnv (FGFO.Exp r t , ET.Env TFG.Typ r , ES.Env n TH.Name)
+         Cnv (FGFO.Exp r t , ET.Env TFG.Typ r , en)
              (FGHO.Exp r' t')
          where
   cnv (e , r , _) = cnv ({- nrm -} e , r)
@@ -275,11 +277,11 @@ instance (r ~ r' , t ~ t' , n ~ Len r , HasSin TFG.Typ t') =>
 -- Conversion from FGHO
 ---------------------------------------------------------------------------------
 instance (r ~ r' , t ~ t' , n ~ Len r , HasSin TFG.Typ t') =>
-         Cnv (FGHO.Exp r t , ET.Env TFG.Typ r , ES.Env n TH.Name)
+         Cnv (FGHO.Exp r t , ET.Env TFG.Typ r , en)
              (FMWS.Exp r' t')
          where
   cnv (e , g , _) = case getPrfHasSin g of
-    PrfHasSin -> cnv ({-nrm (eta e)-} nrm e , ())
+    PrfHasSin -> cnv ({-nrm (eta e)-} GHO.nrm e , ())
 
 instance (r ~ r' , t ~ t' , n ~ Len r , HasSin TFG.Typ t') =>
          Cnv (FGHO.Exp r  t , ET.Env TFG.Typ r , ES.Env n TH.Name)
@@ -288,7 +290,7 @@ instance (r ~ r' , t ~ t' , n ~ Len r , HasSin TFG.Typ t') =>
   cnv (e , _ , _) = pure e
 
 instance (r ~ r' , t ~ t' , n ~ Len r , HasSin TFG.Typ t') =>
-         Cnv (FGHO.Exp r  t , ET.Env TFG.Typ r , ES.Env n TH.Name)
+         Cnv (FGHO.Exp r  t , ET.Env TFG.Typ r , ev)
              (FGFO.Exp r' t')
          where
   cnv (e , r , _) = cnv (e , r)
@@ -301,3 +303,16 @@ instance (r ~ r' , t ~ t' , n ~ Len r , HasSin TFG.Typ t') =>
              (FMWS.Exp r' t')
          where
   cnv (e , _ , _) = pure e
+
+instance (r ~ r' , t ~ t' , n ~ Len r , HasSin TFG.Typ t') =>
+         Cnv (FMWS.Exp r  t , er , en)
+             (FGHO.Exp r' t')
+         where
+  cnv (e , _ , _) = cnv (e , ())
+
+instance (r ~ r' , t ~ t' , n ~ Len r , HasSin TFG.Typ t') =>
+         Cnv (FMWS.Exp r  t , ET.Env TFG.Typ r , v)
+             (FGFO.Exp r' t')
+         where
+  cnv (e , r , _) = do e' :: FGHO.Exp r t <- cnv (e , ())
+                       cnv (e' , r)
