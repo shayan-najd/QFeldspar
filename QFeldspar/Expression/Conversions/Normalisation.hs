@@ -74,9 +74,8 @@ instance (HasSin TFG.Typ t , t' ~ t , r' ~ r) =>
       (TFG.Vct _   , Emp)     -> pure (FGHO.Var v)
       (TFG.Cmx     , Emp)     -> pure (FGHO.Var v)
       (TFG.May _   , Emp)     -> pure (FGHO.Var v)
-    FMWS.Tag _  e             -> cnvImp e
     _                         ->
-      $(biGenOverloadedMW 'ee ''FMWS.Exp "FGHO" ['FMWS.AppV,'FMWS.Tag]
+      $(biGenOverloadedMW 'ee ''FMWS.Exp "FGHO" ['FMWS.AppV]
                               (trvWrp 't) (const [| cnvImp |]))
 
 instance (HasSin TFG.Typ a , HasSin TFG.Typ b, a ~ a' , b ~ b' , r ~ r') =>

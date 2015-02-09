@@ -36,3 +36,4 @@ data Exp :: [*] -> * -> * where
           Exp r (May a) -> Exp r b -> Exp r (Arr a b) -> Exp r b
   Mul  :: Exp r a  -> Exp r a -> Exp r a
   Int  :: Int      -> Exp r a
+  Tag  :: String   -> Exp r a -> Exp r a

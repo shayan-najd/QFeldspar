@@ -30,8 +30,9 @@ instance (HasSin TFG.Typ t , t' ~ t) =>
       TFG.Flt                -> pure (FGV.conF (fromIntegral i))
       _                      -> fail "Type Error in Int"
     Let el eb                -> FGV.leT <$@> el <*@> eb
+    Tag s e                  -> FGV.tag s <$@> e
     _  -> $(biGenOverloadedMWL 'ee ''Exp "FGV"
-     ['Var,'AryV,'LenV,'IndV,'Non,'Som,'May,'Mul,'Let,'Int]
+     ['Var,'AryV,'LenV,'IndV,'Non,'Som,'May,'Mul,'Let,'Int,'Tag]
      (trvWrp 't) (const [| cnvImp |]))
 
 instance (ta' ~ ta , tb' ~ tb , HasSin TFG.Typ ta , HasSin TFG.Typ tb) =>

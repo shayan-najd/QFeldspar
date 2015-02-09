@@ -35,6 +35,7 @@ data Exp :: [*] -> * -> * where
   Mul  :: Exp r a  -> Exp r a -> Exp r a
   Tmp  :: String -> Exp r a
   Int  :: Int -> Exp r a
+  Tag  :: String -> Exp r t -> Exp r t
 
 deriving instance Show (Exp r t)
 
