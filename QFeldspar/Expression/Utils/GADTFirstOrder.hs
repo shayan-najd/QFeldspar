@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 module QFeldspar.Expression.Utils.GADTFirstOrder
-       (sucAll,prdAll,mapVar,sbs,replaceOne,cntVar,eql) where
+       (sucAll,prdAll,mapVar,sbs,replaceOne,cntVar,eql,pattern TF) where
 
 import QFeldspar.MyPrelude
 import QFeldspar.Expression.GADTFirstOrder as FGFO
@@ -8,6 +8,12 @@ import QFeldspar.Variable.Typed
 import QFeldspar.Expression.Utils.Common
 import QFeldspar.Singleton
 import QFeldspar.Type.GADT hiding (Int,May,Cmx,Ary,Tpl)
+
+tagFree :: Exp r t -> Exp r t
+tagFree (Tag _ e) = tagFree e
+tagFree e         = e
+
+pattern TF e <- (tagFree -> e)
 
 sucAll :: Exp r t' -> Exp (t ': r) t'
 sucAll = mapVar Suc
@@ -38,29 +44,6 @@ rp v = case v of
 
 replaceOne :: Exp (tl ': n) t -> Exp (tl ': tl1 ': n) t
 replaceOne = mapVar rp
-{-
-isFresh :: (HasSin Typ a , HasSin Typ b) =>
-           Exp (a ': g) b -> Bool
-isFresh = (not . hasVar Zro)
-
-hasOneOrZero :: (HasSin Typ a , HasSin Typ b) =>
-                Exp (a ': g) b -> Bool
-hasOneOrZero = hasOneOrZero
-
-hasVar :: forall r t t'.
-          (HasSin Typ t' , HasSin Typ t) =>
-          Var r t' -> Exp r t -> Bool
-hasVar v ee = let t = sin :: Typ t in case ee of
-  Var x -> case eqlSin t (sinTyp v) of
-     Rgt Rfl -> x == v
-     _       -> False
-  _             -> $(recAppMQ 'ee ''Exp (const [| False |]) ['Var]
-    [| \ _x -> False |] [| (||) |] [| (||) |] (trvWrp 't)
-   (\ tt -> if
-    | matchQ tt [t| Exp (t ': t) t |] -> [| hasVar (Suc v) |]
-    | matchQ tt [t| Exp t t |]        -> [| hasVar v       |]
-    | otherwise                       -> [| const False |]))
--}
 
 cntVar :: forall r t t'. (HasSin Typ t' , HasSin Typ t) =>
           Var r t' -> Exp r t -> Int
