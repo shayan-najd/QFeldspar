@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 module QFeldspar.Expression.Utils.GADTFirstOrder
-       (sucAll,prdAll,mapVar,sbs,replaceOne,cntVar,eql,pattern TF) where
+       (sucAll,prdAll,prdAllM,mapVar,sbs,replaceOne,cntVar,eql,pattern TF) where
 
 import QFeldspar.MyPrelude
 import QFeldspar.Expression.GADTFirstOrder as FGFO
@@ -20,6 +20,23 @@ sucAll = mapVar Suc
 
 prdAll :: Exp (t ': r) t' -> Exp r t'
 prdAll = mapVar (\(Suc x) -> x)
+
+prdAllM :: Exp (t ': r) t' -> Maybe (Exp r t')
+prdAllM = mapVarM (\ v -> case v of
+                            Zro -> Nothing
+                            Suc x -> Just x)
+
+
+mapVarM :: forall r r' t m. (Applicative m , Monad m) =>
+          (forall t'. Var r t' -> m (Var r' t')) -> Exp r t -> m (Exp r' t)
+mapVarM f ee = case ee of
+ Var v -> Var <$> f v
+ _     -> $(genOverloadedM 'ee ''Exp  ['Var]
+  (\ t -> if
+      | matchQ t [t| Exp (t ': t) t |] -> [| mapVarM (incM f) |]
+      | matchQ t [t| Exp t t |]        -> [| mapVarM f  |]
+      | otherwise                      -> [| pure |]))
+
 
 mapVar :: forall r r' t.
           (forall t'. Var r t' -> Var r' t') -> Exp r t -> Exp r' t

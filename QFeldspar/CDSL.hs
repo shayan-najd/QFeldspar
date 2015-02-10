@@ -16,7 +16,7 @@ import qualified QFeldspar.Type.GADT                  as TFG
 import qualified QFeldspar.Expression.GADTValue       as FGV
 import QFeldspar.Compiler(scompile)
 import qualified QFeldspar.Normalisation.MiniFeldspar as MF
-import QFeldspar.CSE
+import QFeldspar.CSE.MiniFeldspar
 -- import QFeldspar.ChangeMonad
 import QFeldspar.Simplification.MiniFeldspar
 

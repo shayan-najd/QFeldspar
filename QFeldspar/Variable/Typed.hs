@@ -1,5 +1,5 @@
 module QFeldspar.Variable.Typed
-  (Var(..),prd,inc) where
+  (Var(..),prd,inc,incM) where
 
 import QFeldspar.MyPrelude
 
@@ -25,3 +25,9 @@ inc :: (forall t'. Var r t' -> Var r' t') ->
        Var (ta ': r) t -> Var (ta ': r') t
 inc _ Zro     = Zro
 inc f (Suc x) = Suc (f x)
+
+incM :: (Applicative m , Monad m) =>
+       (forall t'. Var r t' -> m (Var r' t')) ->
+       Var (ta ': r) t -> m (Var (ta ': r') t)
+incM _ Zro     = pure Zro
+incM f (Suc x) = Suc <$> f x
