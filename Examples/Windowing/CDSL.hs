@@ -3,7 +3,7 @@ import Prelude hiding (Int,pi,div,foldl,map,replicate,zipWith)
 import QFeldspar.CDSL
 
 windowingVec :: Vec (Data Cmx) -> Vec (Data Cmx)
-windowingVec = \ (Vec ll f) -> let l = shared ll in
+windowingVec = \ (Vec ll f) -> let l = $shared ll in
                       zipWith mul
                        (append
                         (replicate (sub l (div l 4)) (cmx 1.0 0.0))

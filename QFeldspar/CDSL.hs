@@ -19,6 +19,7 @@ import qualified QFeldspar.Normalisation.MiniFeldspar as MF
 import QFeldspar.CSE.MiniFeldspar
 -- import QFeldspar.ChangeMonad
 import QFeldspar.Simplification.MiniFeldspar
+import QFeldspar.Expression.Utils.MiniFeldspar(remTag)
 
 type C    = String
 type Dp a = Data a
@@ -49,7 +50,7 @@ normalise c ee = let e = toExp ee
 
 normaliseF :: (Syn a , Syn b) => Bool -> (a -> b) -> a -> b
 normaliseF c ff = let f = toExpF ff
-                  in  frmExpF (MF.nrmF (remTag . (if c then cse . f else f)))
+                  in  frmExpF (MF.nrmF (remTag . (if c then cseF f else f)))
 
 simplify :: Syn a => a -> a
 simplify = frmExpF smp

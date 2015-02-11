@@ -5,9 +5,11 @@ import QFeldspar.MyPrelude hiding (foldl)
 import QFeldspar.Expression.Utils.Common
 import QFeldspar.Expression.MiniFeldspar
 import QFeldspar.Variable.Typed
-import QFeldspar.Environment.Typed as ET
+import QFeldspar.Environment.Typed as ET hiding (fmap)
+import qualified QFeldspar.Environment.Typed as ET
 import qualified QFeldspar.Type.GADT as TFG
 import QFeldspar.Singleton
+import qualified Language.Haskell.TH as TH
 
 tagFree :: Exp r t -> Exp r t
 tagFree (Tag _ e) = tagFree e
@@ -164,3 +166,20 @@ isFresh :: (Exp r ta -> Exp r tb) -> Bool
 isFresh f = let v = genNewNam "isFreshMWS"
                 {-# NOINLINE v #-}
             in  deepseq v $ not (hasTmp v (f (Tmp v)))
+
+remTag :: forall r t. Exp r t -> Exp r t
+remTag ee = case ee of
+  AppV v es -> AppV v (TFG.mapC (sinTyp v) remTag es)
+  Tag _  e  -> remTag e
+  _         -> $(genOverloaded 'ee ''Exp  ['AppV,'Tag]
+   (\ tt -> if
+    | matchQ tt [t| Exp t t -> Exp t t |] -> [| remTagF |]
+    | matchQ tt [t| Exp t t |]            -> [| remTag  |]
+    | otherwise                           -> [| id |]))
+
+remTagF :: (Exp r a -> Exp r b) -> (Exp r a -> Exp r b)
+remTagF = (remTag .)
+
+shared :: TH.Q TH.Exp
+shared = [| Tag $(do s <- fmap show (TH.newName "v")
+                     [|s|]) |]

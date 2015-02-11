@@ -23,8 +23,8 @@ module QFeldspar.Prelude.MiniFeldspar
        ) where
 
 import QFeldspar.MyPrelude (Int,Flt,Cmx,Ary,Bol,Num(..)
-  ,Functor(..),Monad(..),fst,snd,Fractional(..),impossible,genNewNam
-  ,deepseq,($),(.))
+  ,Functor(..),Monad(..),fst,snd,Fractional(..),impossible -- ,genNewNam
+  {-,deepseq,($) -},(.))
 import qualified QFeldspar.MyPrelude as MP
 
 import QFeldspar.Expression.MiniFeldspar
@@ -36,6 +36,7 @@ import QFeldspar.Environment.Typed (Env(Emp,Ext))
 import QFeldspar.Prelude.Environment
 import QFeldspar.Prelude.HaskellEnvironment
 import qualified QFeldspar.Variable.Typed as VT
+import QFeldspar.Expression.Utils.MiniFeldspar (shared)
 
 type Data t = Exp Prelude t
 
@@ -95,7 +96,7 @@ false = ConB MP.False
 instance (Syn a , Syn b) => Syn (a , b) where
     type InT (a , b) = (InT a , InT b)
     toExp (x , y)    = Tpl (toExp x) (toExp y)
-    frmExp ee        = let e = shared ee in
+    frmExp ee        = let e = $shared ee in
                        (frmExp (Fst e) , frmExp (Snd e))
 
 -----------------------------------------------------------------------
@@ -120,7 +121,7 @@ data Vec t = Vec (Data Int) (Data Int -> t)
 instance Syn a => Syn (Vec a) where
   type InT (Vec a)  = Ary (InT a)
   toExp  (Vec l f)  = Ary l (\ i -> toExp (f i))
-  frmExp aa         = let a = shared aa in
+  frmExp aa         = let a = $shared aa in
                       Vec (Len a) (\ i -> frmExp (Ind a i))
 
 instance Functor Vec where
@@ -131,8 +132,8 @@ instance Functor Vec where
 -----------------------------------------------------------------------
 
 frmTo :: Data Int -> Data Int -> Vec (Data Int)
-frmTo = \ mm -> \ nn -> let n = shared nn in
-                        let m = shared mm in
+frmTo = \ mm -> \ nn -> let n = $shared nn in
+                        let m = $shared mm in
                         Vec
                         ((lt n m) ?
                          (0 ,
@@ -141,7 +142,7 @@ frmTo = \ mm -> \ nn -> let n = shared nn in
 
 permute :: (Data Int -> Data Int -> Data Int)
            -> Vec t -> Vec t
-permute = \ f -> \ (Vec l g) -> let lv = shared l in
+permute = \ f -> \ (Vec l g) -> let lv = $shared l in
                                 Vec lv (\ i -> g (f lv i))
 
 reverse :: Vec t -> Vec t
@@ -170,7 +171,7 @@ replicate = \ n -> \ x -> Vec n (\ _i -> x)
 
 append :: Syn a => Vec a -> Vec a -> Vec a
 append  = \ (Vec l1 f1) -> \ (Vec l2 f2) ->
-          let lv1 = shared l1 in
+          let lv1 = $shared l1 in
           Vec (add lv1 l2)
               (\ ii -> share ii (\ i ->
                        (lt i lv1) ?
@@ -185,11 +186,13 @@ share :: (Type (InT tl) , Syn tl , Syn tb) =>
          tl -> (tl -> tb) -> tb
 share e f = frmExp (Let (toExp e) (toExp . f . frmExp))
 
+{-
 {-# NOINLINE shared #-}
 shared :: Exp r t -> Exp r t
 shared e = let v = genNewNam "shared"
                {-# NOINLINE v #-}
            in  deepseq v $ Tag v e
+-}
 
 (?) :: Syn a => Data Bol -> (a , a) -> a
 c ? (t , e) = frmExp (Cnd c (toExp t) (toExp e))
@@ -396,7 +399,7 @@ data Opt_R a = Opt_R { def :: Data Bol, val :: a }
 instance Syn a => Syn (Opt_R a) where
   type InT (Opt_R a) =  (Bol, InT a)
   toExp (Opt_R b x)  =  Tpl b (toExp x)
-  frmExp pp          =  let p = shared pp in
+  frmExp pp          =  let p = $shared pp in
                         Opt_R (Fst p) (frmExp (Snd p))
 
 some_R            ::  a -> Opt_R a

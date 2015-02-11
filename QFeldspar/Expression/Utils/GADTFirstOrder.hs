@@ -148,4 +148,5 @@ eql (May (em  :: Exp r (May tm )) en  es )
     _       -> False
 eql (Mul ei er) (Mul ei' er') = eql ei ei' && eql er er'
 eql (Int i)     (Int j)       = i == j
+eql (Tag _ e)   (Tag _ e')    = eql e e' -- ignore tags
 eql _           _             = False

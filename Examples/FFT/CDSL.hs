@@ -4,8 +4,8 @@ import QFeldspar.CDSL
 
 fftVec :: Vec (Data Cmx) -> Vec (Data Cmx)
 fftVec = \ (Vec ll f) ->
-         let l     = shared ll in
-         let steps = shared (sub (ilog2 l) 1) in
+         let l     = $shared ll in
+         let steps = $shared (sub (ilog2 l) 1) in
          bitRev steps (fftCore steps (Vec l (\ i -> f i)))
 
 fftCore :: Data Int -> Vec (Data Cmx) -> Vec (Data Cmx)
