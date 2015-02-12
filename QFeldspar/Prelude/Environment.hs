@@ -43,27 +43,27 @@ esString = fmap (init . init . init . TH.nameBase) esTH
 -- Var
 -----------------------------------------------------------------------
 
-$(sequence $ join
+$(sequence (join
  [[do t <- [t| Var Prelude (ET.Get Prelude $(natT i "NA.")) |]
       return (TH.SigD n t)
  , do e <- nat i ""
       return (TH.ValD (TH.VarP n) (TH.NormalB e) [])]
   | (i , nHsk) <- zip [0..] epTH ,
     let nB = (init . init . init) (TH.nameBase nHsk),
-    let n  = stripNameSpace (TH.mkName (nB ++ "Var"))]
+    let n  = stripNameSpace (TH.mkName (nB ++ "Var"))])
  )
 
 -----------------------------------------------------------------------
 -- FAV
 -----------------------------------------------------------------------
 
-$(sequence $ join
+$(sequence (join
  [[TH.SigD n <$> [t| FAV.Exp |]
  , do e <- [| FAV.lft $(TH.varE nHsk) |]
       return (TH.ValD (TH.VarP n) (TH.NormalB e) [])]
   | nHsk <- epTH ,
     let nB = (init . init . init) (TH.nameBase nHsk),
-    let n  = stripNameSpace (TH.mkName (nB ++ "FAV"))]
+    let n  = stripNameSpace (TH.mkName (nB ++ "FAV"))])
  )
 
 -----------------------------------------------------------------------

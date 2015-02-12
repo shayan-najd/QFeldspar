@@ -2,7 +2,8 @@
 module QFeldspar.CSE.GADTFirstOrder where
 
 import QFeldspar.Expression.GADTFirstOrder
-import QFeldspar.Expression.Utils.GADTFirstOrder(eql,prdAllM,sucAll)
+import QFeldspar.Expression.Utils.Equality.GADTFirstOrder
+import QFeldspar.Expression.Utils.GADTFirstOrder(prdAllM,sucAll)
 import QFeldspar.Expression.Utils.Common
 
 import QFeldspar.MyPrelude hiding (foldl)

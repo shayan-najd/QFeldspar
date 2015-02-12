@@ -26,9 +26,9 @@ four :: Exp EnvAdd Int
 four = (dbl . dbl) (ConI 1)
 
 test :: Bool
-test = case runNamM $ cnv (four
+test = case runNamM (cnv (four
                 , Ext (FGV.Exp (+)
                        :: FGV.Exp (Arr Int (Arr Int Int)))
-                  Emp) of
+                  Emp)) of
   Rgt (FGV.Exp x) -> x == (4 :: Int)
   Lft _           -> False

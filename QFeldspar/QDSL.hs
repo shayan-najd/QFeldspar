@@ -17,17 +17,16 @@ import QFeldspar.Expression.Utils.TemplateHaskell(trmEql)
 import QFeldspar.Conversion
 import QFeldspar.Expression.Conversions.Evaluation.MiniFeldspar ()
 import QFeldspar.Expression.Conversion ()
-
+import QFeldspar.Expression.Conversions.Lifting(cnvFOHOF)
 
 import qualified QFeldspar.Expression.ADTUntypedNamed as FAUN
 import qualified QFeldspar.Expression.GADTHigherOrder as FGHO
-import qualified QFeldspar.Expression.Utils.MiniFeldspar as FMWS (absVar)
+import qualified QFeldspar.Expression.GADTFirstOrder as GFO
 import qualified QFeldspar.Type.GADT                  as TFG
 
 import QFeldspar.Type.Conversion ()
-
+import qualified QFeldspar.Normalisation.GADTFirstOrder as GFO
 import qualified Language.Haskell.TH.Syntax as TH
--- import QFeldspar.Normalisation
 import QFeldspar.Prelude.HaskellEnvironment
 import QFeldspar.Prelude.Environment
 
@@ -68,12 +67,11 @@ translate f = frmRgtZro (cnv (wrp f , etTFG , esTH))
 translateF :: forall a b.
              (Type a , Type b) =>
              Qt (a -> b) -> Dp a -> Dp b
-translateF f x = FMWS.absVar
-                 (frmRgtZro
-                 (cnv (wrp
-                 ([|| $$f $$dummy ||])
-                 , (sin :: TFG.Typ a) <:> etTFG
-                 , dn <+> esTH))) x
+translateF f = let e :: GFO.Exp (a ': Prelude) b =
+                        frmRgtZro (cnv (wrp
+                                        ([|| $$f $$dummy ||])
+                                       , (sin :: TFG.Typ a) <:> etTFG, dn <+> esTH))
+               in frmRgtZro (cnv (cnvFOHOF etTFG (GFO.nrm e) , ()))
 
 evaluate ::  forall a.
              (Type a , FO a) =>

@@ -28,7 +28,7 @@ import QFeldspar.MyPrelude (Int,Flt,Cmx,Ary,Bol,Num(..)
 import qualified QFeldspar.MyPrelude as MP
 
 import QFeldspar.Expression.MiniFeldspar
-import qualified QFeldspar.Expression.Utils.MiniFeldspar as FMWS (eql,eqlF)
+import qualified QFeldspar.Expression.Utils.Equality.MiniFeldspar as FMWS
 import qualified QFeldspar.Type.GADT    as TFG
 
 import QFeldspar.Singleton
@@ -54,10 +54,10 @@ prm2 :: (Type t, TFG.Arg t ~ '[t1, t2]) =>
         VT.Var Prelude t -> Data t1 -> Data t2 -> Data (TFG.Out t)
 prm2 v e1 e2 = AppV v (Ext e1 (Ext e2 Emp))
 
-trmEql :: Data t -> Data t -> MP.Bool
+trmEql ::  HasSin TFG.Typ a => Data a -> Data a -> MP.Bool
 trmEql  = FMWS.eql
 
-trmEqlF :: (Data a -> Data b) -> (Data a -> Data b) -> MP.Bool
+trmEqlF :: (HasSin TFG.Typ a , HasSin TFG.Typ b) => (Data a -> Data b) -> (Data a -> Data b) -> MP.Bool
 trmEqlF = FMWS.eqlF
 -----------------------------------------------------------------------
 -- Syntactic Typeclass

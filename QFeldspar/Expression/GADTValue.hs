@@ -51,7 +51,7 @@ abs :: Exp (Arr ta tb) -> Exp (Arr ta tb)
 abs = id
 
 app :: Exp (Arr ta tb) -> Exp ta -> Exp tb
-app = prm2 ($)
+app = prm2 (\ f x -> f x)
 
 cnd :: Exp Bol -> Exp a -> Exp a -> Exp a
 cnd = prm3 MP.cnd
@@ -78,7 +78,7 @@ ind :: Exp (Ary a) -> Exp Int -> Exp a
 ind = prm2 MP.arrIx
 
 leT :: Exp tl -> Exp (Arr tl tb) -> Exp tb
-leT = prm2 (flip ($))
+leT = prm2 (\ x f -> f x)
 
 cmx :: Exp Flt -> Exp Flt -> Exp Cmx
 cmx = prm2 MP.cmx

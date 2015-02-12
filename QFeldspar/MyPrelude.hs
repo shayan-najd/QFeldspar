@@ -25,7 +25,6 @@ module QFeldspar.MyPrelude
         lookup,
         State,getState,put,modify,runState,execState,evalState,StateT
              ,lift,runStateT,evalStateT,
-        genNewNam,deepseq,($),
         module QFeldspar.ErrorMonad,
         module QFeldspar.NameMonad,
         module QFeldspar.Existential,
@@ -40,7 +39,6 @@ module QFeldspar.MyPrelude
         Bol,Ary,May,Cmx,Flt,Int,Arr,Tpl,Vec(..),
         cnd,while,whileM,tpl,arr,arrLen,arrIx,cmx,non,som,may)
        where
-import Control.DeepSeq
 import Prelude hiding (Int,mapM,sequence)
 import QFeldspar.Existential
 import Data.Maybe
@@ -61,8 +59,6 @@ import Data.Word
 import Data.Bits
 import Data.Char(ord)
 import System.Environment
-import Data.Unique
-import System.IO.Unsafe
 import QFeldspar.TraversalGenerator
 
 frmRgtZro :: NamM ErrM a -> a
@@ -95,11 +91,6 @@ type Cmx     = Complex Flt
 type Arr a b = a -> b
 type Tpl a b = (a , b)
 data Vec a   = Vec Int (Int -> a)
-
-{-# NOINLINE genNewNam #-}
-genNewNam :: String -> String
-genNewNam x = unsafePerformIO (fmap (x ++)
-                               (fmap (show . hashUnique) newUnique))
 
 cnd :: Bool -> s -> s -> s
 cnd c t f = if c then t else f

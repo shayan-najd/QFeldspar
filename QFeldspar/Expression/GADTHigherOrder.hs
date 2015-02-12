@@ -36,13 +36,3 @@ data Exp :: [*] -> * -> * where
   Tmp  :: String -> Exp r a
   Int  :: Int -> Exp r a
   Tag  :: String -> Exp r t -> Exp r t
-
-deriving instance Show (Exp r t)
-
-instance Show (Exp r ta -> Exp r tb) where
-  show f =
-    let v = genNewNam "x"
-        {-# NOINLINE v #-}
-    in deepseq v $ ("(\\ "++ v ++ " -> (" ++
-        show (f (Tmp v))
-        ++ "))")

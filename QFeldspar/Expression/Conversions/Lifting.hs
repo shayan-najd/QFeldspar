@@ -78,7 +78,7 @@ cnvFOHO'F r f = (\ x ->
 cnvHOFO' :: forall r r' t. (HasSin TFG.Typ t) =>
            VarEnv r -> Env TFG.Typ r' -> FGHO.Exp r' t -> FGFO.Exp r t
 cnvHOFO' r r' ee  = let t = sin :: TFG.Typ t in case ee of
-  FGHO.Var v -> case frmRgt (EP.get (let n :: NA.Nat = (frmRgtZro $ cnv (v,()))
+  FGHO.Var v -> case frmRgt (EP.get (let n :: NA.Nat = (frmRgtZro (cnv (v,())))
                                      in  ((EP.len r) `NA.sub` (ET.lenNat r')) `NA.add` n) r) of
                   Exs1 v' t' -> case frmRgt (eqlSin t t') of
                     Rfl      -> FGFO.Var v'

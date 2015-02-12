@@ -3,8 +3,9 @@ module QFeldspar.Simplification.GADTFirstOrder (smp) where
 import QFeldspar.MyPrelude
 
 import QFeldspar.Expression.GADTFirstOrder
+import QFeldspar.Expression.Utils.Equality.GADTFirstOrder
 import QFeldspar.Expression.Utils.GADTFirstOrder
-    (sucAll,sbs,cntVar,eql)
+    (sucAll,sbs,cntVar)
 import QFeldspar.Variable.Typed
 import QFeldspar.Singleton
 import QFeldspar.ChangeMonad
