@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-unused-binds -fno-warn-name-shadowing #-}
-module QFeldspar.QDSL (module TH,dbg,dbgF
+module QFeldspar.QDSL (module TH,dbg,dbgF,Type
                       ,Qt,translate,translateF,evaluate,compile,compileF,wrp
                       ,ghoF{-,nghoF-},gho{-,ngho-},qdsl,trmEql)
     where
