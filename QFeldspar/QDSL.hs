@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-unused-binds -fno-warn-name-shadowing #-}
-module QFeldspar.QDSL (module TH,dbg,dbgF,Type
+module QFeldspar.QDSL (module TH,dbg,dbgF,Type,testQt,testNrmQt,testDpF,toDp
                       ,Qt,translate,translateF,evaluate,compile,compileF,wrp
                       ,ghoF{-,nghoF-},gho{-,ngho-},qdsl,trmEql)
     where
@@ -108,3 +108,17 @@ ghoF e = frmRgtZro (cnv(wrp e,etTFG , esTH))
 
 qdsl :: (FO a , Type a , Type b) => Qt (a -> b) -> C
 qdsl = compileF True True
+
+
+-- For paper
+testQt :: Qt a -> Qt a -> Bool
+testQt = trmEql
+
+toDp :: (Type a , Type b) => Qt (a -> b) -> Dp a -> Dp b
+toDp = (CDSL.simplifyF . translateF)
+
+testNrmQt :: (Type a , Type b) => Qt (a -> b) -> Qt (a -> b) -> Bool
+testNrmQt x y = testDpF (toDp x) (toDp y)
+
+testDpF :: (Type a , Type b) => (Dp a -> Dp b) -> (Dp a -> Dp b) -> Bool
+testDpF = CDSL.trmEqlF
