@@ -1,7 +1,40 @@
 {-# OPTIONS_GHC -fno-warn-unused-binds -fno-warn-name-shadowing #-}
-module QFeldspar.QDSL (module TH,dbg,dbgF,Type,testQt,testNrmQt,testDpF,toDp
-                      ,Qt,translate,translateF,evaluate,compile,compileF,wrp
-                      ,ghoF{-,nghoF-},gho{-,ngho-},qdsl,trmEql)
+module QFeldspar.QDSL
+    (module TH,dbg,dbgF,Type,testQt,testNrmQt,testDpF,toDp
+    ,Qt,translate,translateF,evaluate,compile,compileF,wrp
+    ,ghoF{-,nghoF-},gho{-,ngho-},qdsl,trmEql
+    ,realPartHsk
+    ,imagPartHsk
+    ,eqlBolHsk
+    ,eqlIntHsk
+    ,eqlFltHsk
+    ,ltdBolHsk
+    ,ltdIntHsk
+    ,ltdFltHsk
+    ,addIntHsk
+    ,subIntHsk
+    ,mulIntHsk
+    ,divIntHsk
+    ,addFltHsk
+    ,subFltHsk
+    ,mulFltHsk
+    ,divFltHsk
+    ,addCmxHsk
+    ,subCmxHsk
+    ,mulCmxHsk
+    ,divCmxHsk
+    ,andIntHsk
+    ,orIntHsk
+    ,xorIntHsk
+    ,shrIntHsk
+    ,shlIntHsk
+    ,cmpIntHsk
+    ,i2fHsk
+    ,cisHsk
+    ,ilog2Hsk
+    ,sqrtFltHsk
+    ,memHsk
+    ,hshTblHsk)
     where
 import Prelude(Float,Bool(..),Maybe,String,(.))
 import QFeldspar.CDSL (Dp)
