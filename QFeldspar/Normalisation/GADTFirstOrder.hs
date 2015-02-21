@@ -39,6 +39,7 @@ isVal ee = case ee of
     Som  e        -> isVal e
     May  _ _  _   -> False
     Mul _ _       -> False
+    Add _ _       -> False
     Int _         -> True -- shouldn't matter
     Tag _ e       -> isVal e
 
@@ -116,6 +117,9 @@ nrmOne ee = let t = sin :: TFG.Typ a in case ee of
 
     Mul er  (NV ei)              -> chg (Let ei (Mul (sucAll er) (Var Zro)))
     Mul (NV er) (V ei)           -> chg (Let er (Mul (Var Zro)   (sucAll ei)))
+
+    Add er  (NV ei)              -> chg (Let ei (Add (sucAll er) (Var Zro)))
+    Add (NV er) (V ei)           -> chg (Let er (Add (Var Zro)   (sucAll ei)))
 
     Int i                        -> case t of
       TFG.Int                    -> chg (ConI i)

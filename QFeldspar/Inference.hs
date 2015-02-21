@@ -162,4 +162,8 @@ collect ee r = case ee of
                          tr <- collect er r
                          addC (tl :~: tr)
                          return tl
+    Add el er      -> do tl <- collect el r
+                         tr <- collect er r
+                         addC (tl :~: tr)
+                         return tl
     Int _          -> newMT

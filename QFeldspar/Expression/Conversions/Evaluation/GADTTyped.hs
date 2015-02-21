@@ -24,10 +24,9 @@ instance Cnv (Exp n t , Env n FAV.Exp) FAV.Exp where
     Non          -> impossibleM
     Som _        -> impossibleM
     May _ _ _ _  -> impossibleM
-    Mul _ _      -> impossibleM
     _ -> $(biGenOverloadedML 'ee ''Exp "FAV"
      ['Var,'App,'Fst,'Snd,'Len,'Let,'Typ,'AryV,'LenV,'IndV,
-      'Non,'Som,'May,'Mul] (const [| cnvImp |])))
+      'Non,'Som,'May] (const [| cnvImp |])))
 
 instance Cnv (Exp (Suc n) t , Env n FAV.Exp) (FAV.Exp -> FAV.Exp) where
   cnv (e , r) = pure (frmRgtZro . curry cnv e . (flip Ext r))

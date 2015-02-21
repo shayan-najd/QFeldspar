@@ -44,7 +44,7 @@ envAddTypG :: ET.Env TFG.Typ EnvAdd
 envAddTypG =  ET.Ext typAddG ET.Emp
 
 vec :: ES.Env One TH.Name
-vec = ES.Ext (stripNameSpace '(+)) ES.Emp
+vec = ES.Ext (stripNameSpace 'TH.add) ES.Emp
 
 envAddValG :: ET.Env FGV.Exp EnvAdd
 envAddValG = ET.Ext (FGV.Exp (+)
@@ -58,7 +58,7 @@ envAddValA :: EP.Env FAV.Exp
 envAddValA = (FAV.lft ((+) :: Int -> Int -> Int)) : []
 
 envAddValM :: EM.Env TH.Name FAV.Exp
-envAddValM = (stripNameSpace '(+) , FAV.lft ((+) :: Int -> Int -> Int)) : []
+envAddValM = (stripNameSpace 'TH.add , FAV.lft ((+) :: Int -> Int -> Int)) : []
 
 cnvFMWS :: Cnv (e , ET.Env TFG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
                (FGFO.Exp EnvAdd Int) => e -> Int -> Bool

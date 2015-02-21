@@ -4,8 +4,11 @@ import QFeldspar.MyPrelude
 
 import Language.Haskell.TH.Syntax
 
+add :: Int -> Int -> Int
+add = (+)
+
 dbl     :: Q (TExp (Int -> Int))
-dbl     = [||\ x -> x + x ||]
+dbl     = [||\ x -> add x x ||]
 
 compose :: Q (TExp ((tb -> tc) -> (ta -> tb) -> ta -> tc))
 compose = [|| \ x2 -> \ x1 -> \ x0 -> x2 (x1 x0) ||]

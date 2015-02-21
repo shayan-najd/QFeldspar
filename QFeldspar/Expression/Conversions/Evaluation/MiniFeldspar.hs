@@ -21,11 +21,15 @@ instance (HasSin TFG.Typ t, r' ~ r , t' ~ t) =>
                      TFG.Int -> FGV.mul  <$@> er <*@> ei
                      TFG.Flt -> FGV.mul  <$@> er <*@> ei
                      _       -> fail "Type Error in Mul"
+    Add er ei                -> case t of
+                     TFG.Int -> FGV.add  <$@> er <*@> ei
+                     TFG.Flt -> FGV.add  <$@> er <*@> ei
+                     _       -> fail "Type Error in Add"
     AppV (v :: Var rv tv) es -> appV (T :: T tv) (get v r) <$@>
                                 (T :: T tv , es)
     Tag _  e                 -> cnvImp e
     Let el eb                -> FGV.leT  <$@> el <*@> eb
-    _  -> $(biGenOverloadedMWL 'ee ''Exp "FGV" ['Tmp,'Mul,'AppV,'Tag,'Let]
+    _  -> $(biGenOverloadedMWL 'ee ''Exp "FGV" ['Tmp,'Mul,'Add,'AppV,'Tag,'Let]
             (trvWrp 't)
             (\ _tt ->  [| flip (curry cnv) r |]))
 

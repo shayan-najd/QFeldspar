@@ -67,6 +67,12 @@ instance (r ~ r' , n ~ Len r , HasSin TFG.Typ t) =>
       TFG.Int         -> FGFO.Mul <$@> er <*@> ei
       TFG.Flt         -> FGFO.Mul <$@> er <*@> ei
       _               -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
+
+    FGTD.Add er ei    -> case t of
+      TFG.Int         -> FGFO.Add <$@> er <*@> ei
+      TFG.Flt         -> FGFO.Add <$@> er <*@> ei
+      _               -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
+
     FGTD.Non          -> case t of
      TFG.May _        -> case TFG.getPrfHasSinMay t of
       PrfHasSin       -> pure FGFO.Non

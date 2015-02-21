@@ -30,6 +30,7 @@ data Exp :: NA.Nat -> * -> * where
   May  :: t -> Exp n t -> Exp n t -> Exp n t -> Exp n t
   Typ  :: t -> Exp n t -> Exp n t
   Mul  :: Exp n t -> Exp n t -> Exp n t
+  Add  :: Exp n t -> Exp n t -> Exp n t
   Int  :: Int -> Exp n t
 
 deriving instance Eq t   => Eq   (Exp n t)

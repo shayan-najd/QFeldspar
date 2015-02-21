@@ -33,3 +33,4 @@ data Exp :: [*] -> * -> * where
   Tmp   :: String -> Exp r t  -- dummy constructor
   Tag   :: String -> Exp r t -> Exp r t
   Mul   :: Exp r t -> Exp r t -> Exp r t
+  Add   :: Exp r t -> Exp r t -> Exp r t

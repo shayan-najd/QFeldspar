@@ -27,13 +27,17 @@ instance (HasSin TFG.Typ t , t' ~ t) =>
       TFG.Int                -> FGV.mul  <$@> er <*@> ei
       TFG.Flt                -> FGV.mul  <$@> er <*@> ei
       _                      -> fail "Type Error in Mul"
+    Add er ei                -> case t of
+      TFG.Int                -> FGV.add  <$@> er <*@> ei
+      TFG.Flt                -> FGV.add  <$@> er <*@> ei
+      _                      -> fail "Type Error in Add"
     Int i                    -> case t of
       TFG.Int                -> pure (FGV.conI i)
       TFG.Flt                -> pure (FGV.conF (fromIntegral i))
       _                      -> fail "Type Error in Int"
     Tag s e                  -> FGV.tag s <$@> e
     _  -> $(biGenOverloadedMWL 'ee ''Exp "FGV"
-            ['Var,'AryV,'LenV,'IndV,'Non,'Som,'May,'Mul,'Let,'Tmp,'Int,'Tag]
+            ['Var,'AryV,'LenV,'IndV,'Non,'Som,'May,'Mul,'Add,'Let,'Tmp,'Int,'Tag]
             (trvWrp 't) (const [| cnvImp |]))
 
 instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb

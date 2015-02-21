@@ -28,6 +28,7 @@ data Exp x = ConI Int
            | May (Exp x) (Exp x) (Exp x)
            | Typ TFA.Typ (Exp x)
            | Mul (Exp x) (Exp x)
+           | Add (Exp x) (Exp x)
            | Int Int
 
 deriving instance Eq x   => Eq   (Exp x)

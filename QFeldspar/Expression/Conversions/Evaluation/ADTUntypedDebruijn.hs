@@ -21,10 +21,9 @@ instance Cnv (Exp , Env FAV.Exp) FAV.Exp where
     Non          -> impossibleM
     Som _        -> impossibleM
     May _ _ _    -> impossibleM
-    Mul _ _      -> impossibleM
     Let el eb    -> FAV.leT  <$@> el <*@> eb
     _ -> $(biGenOverloadedML 'ee ''Exp "FAV"
-     ['Var,'AryV,'LenV,'IndV,'Non,'Som,'May,'Mul,'Let]
+     ['Var,'AryV,'LenV,'IndV,'Non,'Som,'May,'Let]
      (const [| cnvImp |])))
 
 instance Cnv (Fun , Env FAV.Exp)  (FAV.Exp -> FAV.Exp) where
