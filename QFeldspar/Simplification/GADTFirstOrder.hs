@@ -20,6 +20,8 @@ smpOne :: forall g a. HasSin TFG.Typ a =>
 smpOne ee = let t = sin :: TFG.Typ a in case ee of
     Let m n
       | cntVar Zro n <= 1 -> chg (sbs m n)
+    Cnd _ m n
+      | eql m n     -> chg m
     Ary el ef       -> case TFG.getPrfHasSinAry t of
       PrfHasSin     -> case el of
         Len (e :: Exp g (Ary te)) -> case ef of
