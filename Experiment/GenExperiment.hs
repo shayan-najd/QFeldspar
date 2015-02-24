@@ -22,7 +22,7 @@ main = sequence_ $
             "import Examples." ++e++ "." ++ show f ++ "\n" ++
             "main :: IO ()\n" ++
             "main = writeFile \"Experiment/" ++ e ++ show f ++ show s ++".c\""
-                   ++ " (header++(compileF False "++show s++" "++lower e
+                   ++ " (header++(compileF True "++show s++" "++lower e
                           ++")++loader"++e++")"
    in writeFile ("Experiment/run"++e++show f++show s++".hs") ff
   )
