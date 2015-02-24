@@ -3,8 +3,9 @@ QFeldspar, an experimental QDSL front-end for Feldspar
 
 To be able to load project files in GHCi:
 
-* copy the customized GHCi configuartion file ".ghci" to the your home directory.
-  (or set the access permissions right, so ghci loads the local .ghci files)
+* execute "setpermissions", or
+  set the access permissions right so ghci loads the local .ghci files, or
+  copy the customized GHCi configuartion file ".ghci" to the your home directory
 
 To get started with some examples:
 
@@ -12,7 +13,7 @@ To get started with some examples:
 
 To redo the experiment:
 
-*  run "Script"
+*  execute "runexperiment"
 
 To compile the project:
 
