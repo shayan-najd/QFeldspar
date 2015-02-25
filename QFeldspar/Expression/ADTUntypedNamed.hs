@@ -30,6 +30,7 @@ data Exp x = ConI Int
            | Mul (Exp x) (Exp x)
            | Add (Exp x) (Exp x)
            | Int Int
+           | Mem (Exp x)
 
 deriving instance Eq x   => Eq   (Exp x)
 deriving instance Show x => Show (Exp x)

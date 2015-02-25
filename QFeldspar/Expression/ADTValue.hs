@@ -1,10 +1,10 @@
 module QFeldspar.Expression.ADTValue
     (Exp
     ,conI,conB,conF,var,abs,app,cnd,whl,tpl,fst,snd,ary,len,ind,leT
-    ,cmx,typ,mul,add,int
+    ,cmx,typ,mul,add,int,mem
     ,Lft(..),CoLft(..)) where
 
-import QFeldspar.MyPrelude hiding (abs,fst,snd,may,som,non,cmx,tpl,cnd)
+import QFeldspar.MyPrelude hiding (abs,fst,snd,may,som,non,cmx,tpl,cnd,mem)
 import qualified QFeldspar.MyPrelude as MP
 import qualified QFeldspar.Type.ADT as TFA
 
@@ -193,3 +193,6 @@ add _        _         = badTypValM
 
 int :: Int -> NamM ErrM Exp
 int = lift . prm0
+
+mem :: Exp -> NamM ErrM Exp
+mem = return

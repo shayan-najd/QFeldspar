@@ -34,3 +34,4 @@ data Exp :: [*] -> * -> * where
   Tag   :: String -> Exp r t -> Exp r t
   Mul   :: Exp r t -> Exp r t -> Exp r t
   Add   :: Exp r t -> Exp r t -> Exp r t
+  Mem   :: Exp r t -> Exp r t

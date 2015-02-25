@@ -106,6 +106,7 @@ instance (HasSin TFG.Typ t, n ~ Len r) =>
     t'  <- cnvImpLft t
     case ee of
       FMWS.Tag _ e       -> cmpImp e
+      FMWS.Mem e         -> cmpImp e
       FMWS.Tmp  x        -> pure (Var x , [])
       FMWS.ConI i        -> pure (Num i , [])
       FMWS.ConB True     -> pure (tru   , [])

@@ -36,6 +36,7 @@ data Exp = ConI Int
          | Mul  Exp Exp
          | Add  Exp Exp
          | Int  Int
+         | Mem  Exp
 
 deriving instance Eq   Exp
 deriving instance Show Exp

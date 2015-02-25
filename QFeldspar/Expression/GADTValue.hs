@@ -1,10 +1,10 @@
 module QFeldspar.Expression.GADTValue
     (Exp(..)
     ,conI,conB,conF,var,abs,app,cnd,whl,tpl,fst,snd,ary,len,ind,leT
-    ,cmx,tag,mul,add,int
+    ,cmx,tag,mul,add,int,mem
     ,getTrm) where
 
-import QFeldspar.MyPrelude hiding (abs,fst,snd,may,som,non,cmx,tpl,cnd)
+import QFeldspar.MyPrelude hiding (abs,fst,snd,may,som,non,cmx,tpl,cnd,mem)
 import qualified QFeldspar.MyPrelude as MP
 import QFeldspar.Type.GADT ()
 
@@ -94,3 +94,6 @@ tag = const id
 
 int :: Num a => Int -> Exp a
 int = Exp . fromIntegral
+
+mem :: Exp a -> Exp a
+mem = id

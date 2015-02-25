@@ -42,6 +42,7 @@ isVal ee = case ee of
     Add _ _       -> False
     Int _         -> True -- shouldn't matter
     Tag _ e       -> isVal e
+    Mem _         -> False
 
 val :: Exp n t -> (Bool,Exp n t)
 val ee = (isVal ee , ee)
@@ -125,6 +126,9 @@ nrmOne ee = let t = sin :: TFG.Typ a in case ee of
       TFG.Int                    -> chg (ConI i)
       TFG.Flt                    -> chg (ConF (fromIntegral i))
       _                          -> fail "Type Error3!"
+
+    Mem (NV e)                   -> chg (Let e (Mem (Var Zro)))
+
     _                            -> $(genOverloadedMW 'ee ''Exp  [] (trvWrp 't)
      (\ tt -> if
       | matchQ tt [t| Exp a a |] -> [| nrmOne |]

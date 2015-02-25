@@ -96,6 +96,7 @@ cseOne ee = let t = sin :: TFG.Typ a in case ee of
   LenV n                    -> LenV <$> cseOne n
   IndV m n                  -> cseOne2 IndV m n
   Int  i                    -> pure (Int i)
+  Mem  m                    -> Mem <$> cseOne m
 
 remTag :: forall r t. Exp r t -> Exp r t
 remTag ee = case ee of

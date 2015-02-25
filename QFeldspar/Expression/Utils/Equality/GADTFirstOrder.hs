@@ -59,4 +59,5 @@ eql (Mul ei er) (Mul ei' er') = eql ei ei' && eql er er'
 eql (Add ei er) (Add ei' er') = eql ei ei' && eql er er'
 eql (Int i)     (Int j)       = i == j
 eql (Tag _ e)   (Tag _ e')    = eql e e' -- ignore tags
+eql (Mem e)     (Mem e')      = eql e e'
 eql _           _             = False

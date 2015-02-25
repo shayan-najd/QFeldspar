@@ -37,3 +37,4 @@ data Exp :: [*] -> * -> * where
   Tmp  :: String -> Exp r a
   Int  :: Int -> Exp r a
   Tag  :: String -> Exp r t -> Exp r t
+  Mem  :: Exp r a -> Exp r a

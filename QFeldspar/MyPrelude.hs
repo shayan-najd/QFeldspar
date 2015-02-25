@@ -37,7 +37,7 @@ module QFeldspar.MyPrelude
         module Control.Monad,
         module Data.Array,
         Bol,Ary,May,Cmx,Flt,Int,Arr,Tpl,Vec(..),
-        cnd,while,whileM,tpl,arr,arrLen,arrIx,cmx,non,som,may)
+        cnd,while,whileM,tpl,arr,arrLen,arrIx,cmx,non,som,may,mem)
        where
 import Prelude hiding (Int,mapM,sequence)
 import QFeldspar.Existential
@@ -128,3 +128,6 @@ som = Just
 
 may :: Maybe a -> b -> (a -> b) -> b
 may em en es = maybe en es em
+
+mem :: a -> a
+mem = id

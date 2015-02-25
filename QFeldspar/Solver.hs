@@ -1,6 +1,6 @@
 module QFeldspar.Solver where
 
-import QFeldspar.MyPrelude
+import QFeldspar.MyPrelude hiding (mem)
 
 import QFeldspar.Singleton
 import QFeldspar.Environment.Scoped

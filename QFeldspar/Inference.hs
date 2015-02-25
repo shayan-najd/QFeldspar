@@ -167,3 +167,4 @@ collect ee r = case ee of
                          addC (tl :~: tr)
                          return tl
     Int _          -> newMT
+    Mem e          -> collect e r
