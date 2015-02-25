@@ -15,7 +15,7 @@ module QFeldspar.Prelude.TemplateHaskell
        ,bitXor,bitAnd,bitOr,shfRgt,shfLft,complement,testBit,lsbs
        ,oneBits,hashTable
        ,i2f,cis
-       ,ret,bnd,may
+       ,ret,bnd,may,mem
        ) where
 
 import Prelude (toRational)
@@ -200,8 +200,11 @@ for = [|| \ l -> \ init -> \ step ->
                          (0 , init))
           ||]
 
-memorize :: Data (Ary Flt -> Ary Flt)
-memorize = [|| memHsk ||]
+memorize :: FO a => Data (a -> a)
+memorize = [|| mem ||]
+
+mem :: FO a => a -> a
+mem = MP.mem
 
 ------------------------------------------------------------------------
 -- Boolean Operators
