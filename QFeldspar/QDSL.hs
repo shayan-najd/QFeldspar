@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-unused-binds -fno-warn-name-shadowing #-}
 module QFeldspar.QDSL
-    (module TH,dbg,dbgF,Type,testQt,testNrmQt,testDpF,toDp
+    (module TH,dbg,dbgF,Type,testQt,testNrmQt,testNrmSmpQt,testDpF,toDp
     ,Qt,translate,translateF,evaluate,compile,compileF,wrp
     ,ghoF{-,nghoF-},gho{-,ngho-},qdsl,trmEql
     ,realPartHsk
@@ -134,10 +134,14 @@ testQt :: Qt a -> Qt a -> Bool
 testQt = trmEql
 
 toDp :: (Type a , Type b) => Qt (a -> b) -> Dp a -> Dp b
-toDp = (CDSL.simplifyF . translateF)
+toDp = translateF
 
 testNrmQt :: (Type a , Type b) => Qt (a -> b) -> Qt (a -> b) -> Bool
 testNrmQt x y = testDpF (toDp x) (toDp y)
+
+testNrmSmpQt :: (Type a , Type b) => Qt (a -> b) -> Qt (a -> b) -> Bool
+testNrmSmpQt x y = testDpF (CDSL.simplifyF (toDp x)) (CDSL.simplifyF (toDp y))
+
 
 testDpF :: (Type a , Type b) => (Dp a -> Dp b) -> (Dp a -> Dp b) -> Bool
 testDpF = CDSL.trmEqlF
