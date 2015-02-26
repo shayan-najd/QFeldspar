@@ -87,6 +87,9 @@ cseOne ee = let t = sin :: TFG.Typ a in case ee of
   Tag x e                   -> Tag x <$> cseOne e
   Mul er ei                 -> cseOne2 Mul er ei
   Add er ei                 -> cseOne2 Add er ei
+  Sub er ei                 -> cseOne2 Sub er ei
+  Eql er ei                 -> cseOne2 Eql er ei
+  Ltd er ei                 -> cseOne2 Ltd er ei
   Non                       -> pure Non
   Som eb                    -> case TFG.getPrfHasSinMay t of
     PrfHasSin               -> Som <$> cseOne eb

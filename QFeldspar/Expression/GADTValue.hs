@@ -1,7 +1,7 @@
 module QFeldspar.Expression.GADTValue
     (Exp(..)
     ,conI,conB,conF,var,abs,app,cnd,whl,tpl,fst,snd,ary,len,ind,leT
-    ,cmx,tag,mul,add,int,mem
+    ,cmx,tag,mul,add,sub,eql,ltd,int,mem
     ,getTrm) where
 
 import QFeldspar.MyPrelude hiding (abs,fst,snd,may,som,non,cmx,tpl,cnd,mem)
@@ -88,6 +88,15 @@ mul = prm2 (*)
 
 add :: Num a => Exp a -> Exp a -> Exp a
 add = prm2 (+)
+
+sub :: Num a => Exp a -> Exp a -> Exp a
+sub = prm2 (-)
+
+eql :: Eq a => Exp a -> Exp a -> Exp Bool
+eql = prm2 (==)
+
+ltd :: Ord a => Exp a -> Exp a -> Exp Bool
+ltd = prm2 (<)
 
 tag :: String -> Exp a -> Exp a
 tag = const id

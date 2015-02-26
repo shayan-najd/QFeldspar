@@ -6,58 +6,123 @@ import QFeldspar.Expression.GADTFirstOrder
 import QFeldspar.Singleton
 import qualified QFeldspar.Type.GADT as TFG
 
+tt :: TFG.Typ a
+tt = tt
+
 eql :: forall r t .  Exp r t -> Exp r t -> Bool
 eql (ConI i)    (ConI i')     = i == i'
+eql (ConI _)    _             = False
+
 eql (ConB b)    (ConB b')     = b == b'
+eql (ConB _)    _             = False
+
 eql (ConF f)    (ConF f')     = f == f'
+eql (ConF _)    _             = False
+
 eql (Var  v)    (Var  v')     = v == v'
+eql (Var  _)    _             = False
+
 eql (Abs  f)    (Abs  f')     = eql f f'
-eql (App ef (ea :: Exp r ta)) (App ef' (ea' :: Exp r ta')) =
-  case eqlSin (sin :: TFG.Typ ta) (sin :: TFG.Typ ta') of
+eql (Abs  _)    _             = False
+
+eql (App ef ea) (App ef' ea') =
+  case eqlSin (sinTypOf ea tt) (sinTypOf ea' tt) of
     Rgt Rfl -> eql ef ef' && eql ea ea'
     _       -> False
+eql (App _ _)   _             = False
+
 eql (Cnd ec et ef) (Cnd ec' et' ef') = eql ec ec' && eql et et'
                                        && eql ef ef'
+eql (Cnd _  _  _ ) _                 = False
+
 eql (Whl ec eb ei) (Whl ec' eb' ei') = eql ec ec' && eql eb eb'
                                        && eql ei ei'
+eql (Whl _  _  _ ) _                 = False
+
 eql (Tpl ef es)    (Tpl ef' es')     = eql ef ef' && eql es es'
+eql (Tpl _  _ )    _                 = False
+
 eql (Fst (e :: Exp r (Tpl t ts))) (Fst (e' :: Exp r (Tpl t ts'))) =
   case eqlSin (sin :: TFG.Typ ts) (sin :: TFG.Typ ts') of
     Rgt Rfl -> eql e e'
     _       -> False
+eql (Fst _)     _               = False
+
 eql (Snd (e :: Exp r (Tpl tf t))) (Snd (e' :: Exp r (Tpl tf' t))) =
   case eqlSin (sin :: TFG.Typ tf) (sin :: TFG.Typ tf') of
     Rgt Rfl -> eql e e'
     _       -> False
-eql (Ary ei ef) (Ary ei' ef') = eql ei ei' && eql ef ef'
-eql (Len (e :: Exp r (Ary ta))) (Len (e' :: Exp r (Ary ta'))) =
-  case eqlSin (sin :: TFG.Typ ta) (sin :: TFG.Typ ta') of
+eql (Snd _)     _               = False
+
+eql (Ary ei ef) (Ary ei' ef')   = eql ei ei' && eql ef ef'
+eql (Ary _  _)  _               = False
+
+eql (Len e) (Len e') =
+  case eqlSin (sinTypOf e tt) (sinTypOf e' tt) of
     Rgt Rfl -> eql e e'
     _       -> False
-eql (Ind (e :: Exp r (Ary t)) ei) (Ind (e' :: Exp r (Ary t)) ei') =
-    eql e e' && eql ei ei'
+eql (Len _)     _               = False
+
+eql (Ind e ei) (Ind e' ei')     = eql e e' && eql ei ei'
+eql (Ind _ _)    _              = False
+
 eql (AryV ei ef) (AryV ei' ef') = eql ei ei' && eql ef ef'
-eql (LenV (e :: Exp r (Vec ta))) (LenV (e' :: Exp r (Vec ta'))) =
-  case eqlSin (sin :: TFG.Typ ta) (sin :: TFG.Typ ta') of
+eql (AryV _ _)   _              = False
+
+eql (LenV e) (LenV e') =
+  case eqlSin (sinTypOf e tt) (sinTypOf e' tt) of
     Rgt Rfl -> eql e e'
     _       -> False
-eql (IndV (e :: Exp r (Vec t)) ei) (IndV (e' :: Exp r (Vec t)) ei') =
-    eql e e' && eql ei ei'
-eql (Let (el :: Exp r ta) eb) (Let (el' :: Exp r ta') eb') =
-  case eqlSin (sin :: TFG.Typ ta) (sin :: TFG.Typ ta') of
+eql (LenV _)   _              = False
+
+eql (IndV e ei) (IndV e' ei') = eql e e' && eql ei ei'
+eql (IndV _ _) _              = False
+
+eql (Let el eb) (Let el' eb') =
+  case eqlSin (sinTypOf el tt) (sinTypOf el' tt) of
     Rgt Rfl -> eql el el' && eql eb eb'
     _       -> False
+eql (Let _ _)   _             = False
+
 eql (Cmx ei er) (Cmx ei' er') = eql ei ei' && eql er er'
+eql (Cmx _  _)  _             = False
+
 eql Non         Non           = True
+eql Non         _             = False
+
 eql (Som e)     (Som e')      = eql e e'
-eql (May (em  :: Exp r (May tm )) en  es )
-    (May (em' :: Exp r (May tm')) en' es') =
-  case eqlSin (sin :: TFG.Typ tm) (sin :: TFG.Typ tm') of
+eql (Som _)     _             = False
+
+eql (May em  en  es ) (May em' en' es') =
+  case eqlSin (sinTypOf em tt) (sinTypOf em' tt) of
     Rgt Rfl -> eql em em' && eql en en' && eql es es'
     _       -> False
+eql (May _ _ _) _             = False
+
 eql (Mul ei er) (Mul ei' er') = eql ei ei' && eql er er'
+eql (Mul _  _ ) _             = False
+
 eql (Add ei er) (Add ei' er') = eql ei ei' && eql er er'
+eql (Add _  _ ) _             = False
+
+eql (Sub ei er) (Sub ei' er') = eql ei ei' && eql er er'
+eql (Sub _  _ ) _             = False
+
+eql (Eql ei er) (Eql ei' er') = case eqlSin (sinTypOf ei tt) (sinTyp ei') of
+    Rgt Rfl -> eql ei ei' && eql er er'
+    _       -> False
+eql (Eql _  _ ) _             = False
+
+eql (Ltd ei er) (Ltd ei' er') = case eqlSin (sinTypOf ei tt) (sinTyp ei') of
+    Rgt Rfl -> eql ei ei' && eql er er'
+    _       -> False
+eql (Ltd _  _ ) _             = False
+
 eql (Int i)     (Int j)       = i == j
+eql (Int _)     _             = False
+
 eql (Tag _ e)   (Tag _ e')    = eql e e' -- ignore tags
+eql (Tag _ _)   _             = False
+
 eql (Mem e)     (Mem e')      = eql e e'
-eql _           _             = False
+eql (Mem _)     _             = False

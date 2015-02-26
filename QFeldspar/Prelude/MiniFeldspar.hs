@@ -229,13 +229,13 @@ class Equality t where
   eql :: Data t -> Data t -> Data Bol
 
 instance Equality Bol where
-  eql = prm2 eqlBolVar
+  eql = Eql
 
 instance Equality Int where
-  eql = prm2 eqlIntVar
+  eql = Eql
 
 instance Equality Flt where
-  eql = prm2 eqlFltVar
+  eql = Eql
 
 notEql :: Equality t => Data t -> Data t -> Data Bol
 notEql = \ x -> \ y -> not (eql x y)
@@ -248,13 +248,13 @@ class Ordering t where
   lt :: Data t -> Data t -> Data Bol
 
 instance Ordering Bol where
-  lt = prm2 ltdBolVar
+  lt = Ltd
 
 instance Ordering Int where
-  lt = prm2 ltdIntVar
+  lt = Ltd
 
 instance Ordering Flt where
-  lt = prm2 ltdFltVar
+  lt = Ltd
 
 gt :: (Equality t , Ordering t , Type t) =>
       Data t -> Data t -> Data Bol
@@ -280,25 +280,25 @@ min xx yy = share xx (\ x ->
 -- Numeric
 -----------------------------------------------------------------------
 instance Num (Data Flt) where
-  (+) = prm2 addFltVar
-  (-) = prm2 subFltVar
+  (+) = Add
+  (-) = Sub
   (*) = Mul
   fromInteger x = ConF (MP.fromInteger x)
   abs    = impossible
   signum = impossible
 
 instance Num (Data Int) where
-  (+) = prm2 addIntVar
-  (-) = prm2 subIntVar
+  (+) = Add
+  (-) = Sub
   (*) = Mul
   fromInteger x = ConI (MP.fromInteger x)
   abs    = impossible
   signum = impossible
 
 instance Num (Data Cmx) where
-  (+) = prm2 addCmxVar
-  (-) = prm2 subCmxVar
-  (*) = prm2 mulCmxVar
+  (+) = Add
+  (-) = Sub
+  (*) = Mul
   fromInteger x = Cmx (ConF (MP.fromInteger x)) 0.0
   abs    = impossible
   signum = impossible

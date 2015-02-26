@@ -21,7 +21,7 @@ module QFeldspar.Prelude.TemplateHaskell
 import Prelude (toRational)
 
 import QFeldspar.MyPrelude (Ary,Flt,Bol,Bool(True,False),Int
-  ,Cmx,Maybe(..),fst,snd,Vec(..))
+  ,Cmx,Maybe(..),fst,snd,Vec(..),(+),(-),(*),(==),(<))
 import qualified QFeldspar.MyPrelude as MP
 
 import Language.Haskell.TH.Syntax (Lift(lift),Q,Exp(LitE),TExp
@@ -227,13 +227,13 @@ class Equality t where
   eql :: Data (t -> t -> Bol)
 
 instance Equality Bol where
-  eql = [|| eqlBolHsk ||]
+  eql = [|| (==) ||]
 
 instance Equality Int where
-  eql = [|| eqlIntHsk ||]
+  eql = [|| (==) ||]
 
 instance Equality Flt where
-  eql = [|| eqlFltHsk ||]
+  eql = [|| (==) ||]
 
 notEql :: Equality t => Data (t -> t -> Bol)
 notEql= [|| \ x -> \ y -> $$not ($$eql x y) ||]
@@ -246,13 +246,13 @@ class Ordering t where
   lt :: Data (t -> t -> Bol)
 
 instance Ordering Bol where
-  lt = [|| ltdBolHsk ||]
+  lt = [|| (<) ||]
 
 instance Ordering Int where
-  lt = [|| ltdIntHsk ||]
+  lt = [|| (<) ||]
 
 instance Ordering Flt where
-  lt = [|| ltdFltHsk ||]
+  lt = [|| (<) ||]
 
 gt :: (Equality t , Ordering t) => Data (t -> t -> Bol)
 gt = [|| \ xx -> \ yy -> let x = xx in
@@ -283,21 +283,21 @@ class Numeric t where
   div :: Data (t -> t -> t)
 
 instance Numeric Int where
-  add = [|| addIntHsk ||]
-  sub = [|| subIntHsk ||]
-  mul = [|| mulIntHsk ||]
+  add = [|| (+) ||]
+  sub = [|| (-) ||]
+  mul = [|| (*) ||]
   div = [|| divIntHsk ||]
 
 instance Numeric Flt where
-  add = [|| addFltHsk ||]
-  sub = [|| subFltHsk ||]
-  mul = [|| mulFltHsk ||]
+  add = [|| (+) ||]
+  sub = [|| (-) ||]
+  mul = [|| (*) ||]
   div = [|| divFltHsk ||]
 
 instance Numeric (Cmx) where
-  add = [|| addCmxHsk ||]
-  sub = [|| subCmxHsk ||]
-  mul = [|| mulCmxHsk ||]
+  add = [|| (+) ||]
+  sub = [|| (-) ||]
+  mul = [|| (*) ||]
   div = [|| divCmxHsk ||]
 
 ilog2 :: Data (Int -> Int)

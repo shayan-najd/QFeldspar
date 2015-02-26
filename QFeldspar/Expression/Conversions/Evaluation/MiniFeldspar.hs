@@ -18,18 +18,35 @@ instance (HasSin TFG.Typ t, r' ~ r , t' ~ t) =>
   cnv (ee , r) = let ?r = r in let t = sin :: TFG.Typ t in case ee of
     Tmp _                    -> fail "Not Supported!"
     Mul er ei                -> case t of
-                     TFG.Int -> FGV.mul  <$@> er <*@> ei
-                     TFG.Flt -> FGV.mul  <$@> er <*@> ei
-                     _       -> fail "Type Error in Mul"
+      TFG.Int                -> FGV.mul  <$@> er <*@> ei
+      TFG.Flt                -> FGV.mul  <$@> er <*@> ei
+      TFG.Cmx                -> FGV.mul  <$@> er <*@> ei
+      _                      -> fail "Type Error in Mul"
     Add er ei                -> case t of
-                     TFG.Int -> FGV.add  <$@> er <*@> ei
-                     TFG.Flt -> FGV.add  <$@> er <*@> ei
-                     _       -> fail "Type Error in Add"
+      TFG.Int                -> FGV.add  <$@> er <*@> ei
+      TFG.Flt                -> FGV.add  <$@> er <*@> ei
+      TFG.Cmx                -> FGV.add  <$@> er <*@> ei
+      _                      -> fail "Type Error in Add"
+    Sub er ei                -> case t of
+      TFG.Int                -> FGV.sub  <$@> er <*@> ei
+      TFG.Flt                -> FGV.sub  <$@> er <*@> ei
+      TFG.Cmx                -> FGV.sub  <$@> er <*@> ei
+      _                      -> fail "Type Error in Sub"
+    Eql er ei                -> case sinTyp er of
+      TFG.Int                -> FGV.eql  <$@> er <*@> ei
+      TFG.Flt                -> FGV.eql  <$@> er <*@> ei
+      TFG.Bol                -> FGV.eql  <$@> er <*@> ei
+      _                      -> fail "Type Error in Eql"
+    Ltd er ei                -> case sinTyp er of
+      TFG.Int                -> FGV.ltd  <$@> er <*@> ei
+      TFG.Flt                -> FGV.ltd  <$@> er <*@> ei
+      TFG.Bol                -> FGV.ltd  <$@> er <*@> ei
+      _                      -> fail "Type Error in Ltd"
     AppV (v :: Var rv tv) es -> appV (T :: T tv) (get v r) <$@>
                                 (T :: T tv , es)
     Tag _  e                 -> cnvImp e
     Let el eb                -> FGV.leT  <$@> el <*@> eb
-    _  -> $(biGenOverloadedMWL 'ee ''Exp "FGV" ['Tmp,'Mul,'Add,'AppV,'Tag,'Let]
+    _  -> $(biGenOverloadedMWL 'ee ''Exp "FGV" ['Tmp,'Mul,'Add,'Sub,'Eql,'Ltd,'AppV,'Tag,'Let]
             (trvWrp 't)
             (\ _tt ->  [| flip (curry cnv) r |]))
 

@@ -66,13 +66,19 @@ instance (r ~ r' , n ~ Len r , HasSin TFG.Typ t) =>
     FGTD.Mul er ei    -> case t of
       TFG.Int         -> FGFO.Mul <$@> er <*@> ei
       TFG.Flt         -> FGFO.Mul <$@> er <*@> ei
+      TFG.Cmx         -> FGFO.Mul <$@> er <*@> ei
       _               -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
 
     FGTD.Add er ei    -> case t of
       TFG.Int         -> FGFO.Add <$@> er <*@> ei
       TFG.Flt         -> FGFO.Add <$@> er <*@> ei
+      TFG.Cmx         -> FGFO.Add <$@> er <*@> ei
       _               -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
-
+    FGTD.Sub er ei    -> case t of
+      TFG.Int         -> FGFO.Sub <$@> er <*@> ei
+      TFG.Flt         -> FGFO.Sub <$@> er <*@> ei
+      TFG.Cmx         -> FGFO.Sub <$@> er <*@> ei
+      _               -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
     FGTD.Non          -> case t of
      TFG.May _        -> case TFG.getPrfHasSinMay t of
       PrfHasSin       -> pure FGFO.Non
@@ -104,6 +110,30 @@ instance (r ~ r' , n ~ Len r , HasSin TFG.Typ t) =>
     FGTD.Let tl el eb -> do ExsSin tl' :: ExsTyp <- cnv tl
                             PrfHasSin <- getPrfHasSinM tl'
                             FGFO.Let <$@> el <*@> (tl' , eb)
+    FGTD.Eql tl el eb -> case t of
+      TFG.Bol         -> do ExsSin tl' :: ExsTyp <- cnv tl
+                            PrfHasSin <- getPrfHasSinM tl'
+                            case tl' of
+                              TFG.Bol -> do el' <- cnvImp el
+                                            FGFO.Eql <$> pure (samTyp tl' el') <*@> eb
+                              TFG.Int -> do el' <- cnvImp el
+                                            FGFO.Eql <$> pure (samTyp tl' el') <*@> eb
+                              TFG.Flt -> do el' <- cnvImp el
+                                            FGFO.Eql <$> pure (samTyp tl' el') <*@> eb
+                              _       -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
+      _               -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
+    FGTD.Ltd tl el eb -> case t of
+      TFG.Bol         -> do ExsSin tl' :: ExsTyp <- cnv tl
+                            PrfHasSin <- getPrfHasSinM tl'
+                            case tl' of
+                              TFG.Bol -> do el' <- cnvImp el
+                                            FGFO.Ltd <$> pure (samTyp tl' el') <*@> eb
+                              TFG.Int -> do el' <- cnvImp el
+                                            FGFO.Ltd <$> pure (samTyp tl' el') <*@> eb
+                              TFG.Flt -> do el' <- cnvImp el
+                                            FGFO.Ltd <$> pure (samTyp tl' el') <*@> eb
+                              _       -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
+      _               -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
     FGTD.May tm em en es -> do ExsSin t' :: ExsTyp <- cnv tm
                                PrfHasSin <- getPrfHasSinM t'
                                em' <- cnvImp em

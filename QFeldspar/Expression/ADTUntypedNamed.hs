@@ -29,6 +29,9 @@ data Exp x = ConI Int
            | Typ TFA.Typ (Exp x)
            | Mul (Exp x) (Exp x)
            | Add (Exp x) (Exp x)
+           | Sub (Exp x) (Exp x)
+           | Eql (Exp x) (Exp x)
+           | Ltd (Exp x) (Exp x)
            | Int Int
            | Mem (Exp x)
 

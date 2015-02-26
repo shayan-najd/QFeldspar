@@ -34,4 +34,7 @@ data Exp :: [*] -> * -> * where
   Tag   :: String -> Exp r t -> Exp r t
   Mul   :: Exp r t -> Exp r t -> Exp r t
   Add   :: Exp r t -> Exp r t -> Exp r t
+  Sub   :: Exp r t -> Exp r t -> Exp r t
+  Eql   :: HasSin TFG.Typ t => Exp r t -> Exp r t -> Exp r Bool
+  Ltd   :: HasSin TFG.Typ t => Exp r t -> Exp r t -> Exp r Bool
   Mem   :: Exp r t -> Exp r t

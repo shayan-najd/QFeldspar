@@ -166,5 +166,19 @@ collect ee r = case ee of
                          tr <- collect er r
                          addC (tl :~: tr)
                          return tl
+    Sub el er      -> do tl <- collect el r
+                         tr <- collect er r
+                         addC (tl :~: tr)
+                         return tl
+    Eql t el er    -> do tl <- collect el r
+                         tr <- collect er r
+                         addC (tl :~: tr)
+                         addC (t  :~: tr)
+                         return Bol
+    Ltd t el er    -> do tl <- collect el r
+                         tr <- collect er r
+                         addC (tl :~: tr)
+                         addC (t  :~: tr)
+                         return Bol
     Int _          -> newMT
     Mem e          -> collect e r

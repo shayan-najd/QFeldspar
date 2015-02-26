@@ -40,6 +40,9 @@ isVal ee = case ee of
     May  _ _  _   -> False
     Mul _ _       -> False
     Add _ _       -> False
+    Sub _ _       -> False
+    Eql _ _       -> False
+    Ltd _ _       -> False
     Int _         -> True -- shouldn't matter
     Tag _ e       -> isVal e
     Mem _         -> False
@@ -121,6 +124,15 @@ nrmOne ee = let t = sin :: TFG.Typ a in case ee of
 
     Add er  (NV ei)              -> chg (Let ei (Add (sucAll er) (Var Zro)))
     Add (NV er) (V ei)           -> chg (Let er (Add (Var Zro)   (sucAll ei)))
+
+    Sub er  (NV ei)              -> chg (Let ei (Sub (sucAll er) (Var Zro)))
+    Sub (NV er) (V ei)           -> chg (Let er (Sub (Var Zro)   (sucAll ei)))
+
+    Eql er  (NV ei)              -> chg (Let ei (Eql (sucAll er) (Var Zro)))
+    Eql (NV er) (V ei)           -> chg (Let er (Eql (Var Zro)   (sucAll ei)))
+
+    Ltd er  (NV ei)              -> chg (Let ei (Ltd (sucAll er) (Var Zro)))
+    Ltd (NV er) (V ei)           -> chg (Let er (Ltd (Var Zro)   (sucAll ei)))
 
     Int i                        -> case t of
       TFG.Int                    -> chg (ConI i)

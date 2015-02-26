@@ -196,13 +196,39 @@ instance (HasSin TFG.Typ t, n ~ Len r) =>
                                      case t of
                                        TFG.Int -> return (App "mulInt" [er' , ei'] , sr ++ si)
                                        TFG.Flt -> return (App "mulFlt" [er' , ei'] , sr ++ si)
+                                       TFG.Cmx -> return (App "mulCmx" [er' , ei'] , sr ++ si)
                                        _       -> fail "Type Error in Mul"
       FMWS.Add er ei           -> do (er' , sr) <- cmpImp er
                                      (ei' , si) <- cmpImp ei
                                      case t of
                                        TFG.Int -> return (App "addInt" [er' , ei'] , sr ++ si)
                                        TFG.Flt -> return (App "addFlt" [er' , ei'] , sr ++ si)
+                                       TFG.Cmx -> return (App "addCmx" [er' , ei'] , sr ++ si)
                                        _       -> fail "Type Error in Add"
+      FMWS.Sub er ei           -> do (er' , sr) <- cmpImp er
+                                     (ei' , si) <- cmpImp ei
+                                     case t of
+                                       TFG.Int -> return (App "subInt" [er' , ei'] , sr ++ si)
+                                       TFG.Flt -> return (App "subFlt" [er' , ei'] , sr ++ si)
+                                       TFG.Cmx -> return (App "subCmx" [er' , ei'] , sr ++ si)
+                                       _       -> fail "Type Error in Sub"
+
+      FMWS.Eql er ei           -> do (er' , sr) <- cmpImp er
+                                     (ei' , si) <- cmpImp ei
+                                     case sinTyp er of
+                                       TFG.Int -> return (App "eqlInt" [er' , ei'] , sr ++ si)
+                                       TFG.Flt -> return (App "eqlFlt" [er' , ei'] , sr ++ si)
+                                       TFG.Bol -> return (App "eqlBol" [er' , ei'] , sr ++ si)
+                                       _       -> fail "Type Error in Eql"
+
+      FMWS.Ltd er ei           -> do (er' , sr) <- cmpImp er
+                                     (ei' , si) <- cmpImp ei
+                                     case sinTyp er of
+                                       TFG.Int -> return (App "ltdInt" [er' , ei'] , sr ++ si)
+                                       TFG.Flt -> return (App "ltdFlt" [er' , ei'] , sr ++ si)
+                                       TFG.Bol -> return (App "ltdBol" [er' , ei'] , sr ++ si)
+                                       _       -> fail "Type Error in Ltd"
+
 
 instance (n ~ Len r , HasSin TFG.Typ t , Compilable (b , ES.Env n String)) =>
          Compilable (FMWS.Exp r t -> b , ES.Env n String) where

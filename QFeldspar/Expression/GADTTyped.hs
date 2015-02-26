@@ -31,6 +31,9 @@ data Exp :: NA.Nat -> * -> * where
   Typ  :: t -> Exp n t -> Exp n t
   Mul  :: Exp n t -> Exp n t -> Exp n t
   Add  :: Exp n t -> Exp n t -> Exp n t
+  Sub  :: Exp n t  -> Exp n t -> Exp n t
+  Eql  :: t -> Exp n t -> Exp n t -> Exp n t
+  Ltd  :: t -> Exp n t -> Exp n t -> Exp n t
   Int  :: Int -> Exp n t
   Mem  :: Exp n t -> Exp n t
 

@@ -12,23 +12,8 @@ import QFeldspar.Expression.Utils.TemplateHaskell
 
 type Prelude = [Cmx -> Flt         ,
                Cmx -> Flt          ,
-               Bol -> (Bol -> Bol) ,
-               Int -> (Int -> Bol) ,
-               Flt -> (Flt -> Bol) ,
-               Bol -> (Bol -> Bol) ,
-               Int -> (Int -> Bol) ,
-               Flt -> (Flt -> Bol) ,
-               Int -> (Int -> Int) ,
-               Int -> (Int -> Int) ,
-               Int -> (Int -> Int) ,
                Int -> (Int -> Int) ,
                Flt -> (Flt -> Flt) ,
-               Flt -> (Flt -> Flt) ,
-               Flt -> (Flt -> Flt) ,
-               Flt -> (Flt -> Flt) ,
-               Cmx -> (Cmx -> Cmx) ,
-               Cmx -> (Cmx -> Cmx) ,
-               Cmx -> (Cmx -> Cmx) ,
                Cmx -> (Cmx -> Cmx) ,
                Int -> (Int -> Int) ,
                Int -> (Int -> Int) ,
@@ -40,7 +25,6 @@ type Prelude = [Cmx -> Flt         ,
                Flt -> Cmx          ,
                Int -> Int          ,
                Flt -> Flt          ,
-               Ary Flt -> Ary Flt  ,
                Ary Int             ]
 
 infixr 5 <+>
@@ -56,23 +40,8 @@ esTH = fmap stripNameSpace esTH'
 esTH' :: ES.Env (Len Prelude) TH.Name
 esTH' = 'realPartHsk
     <+> 'imagPartHsk
-    <+> 'eqlBolHsk
-    <+> 'eqlIntHsk
-    <+> 'eqlFltHsk
-    <+> 'ltdBolHsk
-    <+> 'ltdIntHsk
-    <+> 'ltdFltHsk
-    <+> 'addIntHsk
-    <+> 'subIntHsk
-    <+> 'mulIntHsk
     <+> 'divIntHsk
-    <+> 'addFltHsk
-    <+> 'subFltHsk
-    <+> 'mulFltHsk
     <+> 'divFltHsk
-    <+> 'addCmxHsk
-    <+> 'subCmxHsk
-    <+> 'mulCmxHsk
     <+> 'divCmxHsk
     <+> 'andIntHsk
     <+> 'orIntHsk
@@ -84,7 +53,6 @@ esTH' = 'realPartHsk
     <+> 'cisHsk
     <+> 'ilog2Hsk
     <+> 'sqrtFltHsk
-    <+> 'memHsk
     <+> 'hshTblHsk
     <+> ES.Emp
 
@@ -101,56 +69,11 @@ realPartHsk = realPart
 imagPartHsk :: Cmx -> Flt
 imagPartHsk = imagPart
 
-eqlBolHsk :: Bol -> Bol -> Bol
-eqlBolHsk = (==)
-
-eqlIntHsk :: Int -> (Int -> Bol)
-eqlIntHsk = (==)
-
-eqlFltHsk :: Flt -> (Flt -> Bol)
-eqlFltHsk = (==)
-
-ltdBolHsk :: Bol -> (Bol -> Bol)
-ltdBolHsk = (<)
-
-ltdIntHsk :: Int -> (Int -> Bol)
-ltdIntHsk = (<)
-
-ltdFltHsk :: Flt -> (Flt -> Bol)
-ltdFltHsk = (<)
-
-addIntHsk :: Int -> (Int -> Int)
-addIntHsk = (+)
-
-subIntHsk :: Int -> (Int -> Int)
-subIntHsk = (-)
-
-mulIntHsk :: Int -> (Int -> Int)
-mulIntHsk = (*)
-
 divIntHsk :: Int -> (Int -> Int)
 divIntHsk =  div
 
-addFltHsk :: Flt -> (Flt -> Flt)
-addFltHsk = (+)
-
-subFltHsk :: Flt -> (Flt -> Flt)
-subFltHsk = (-)
-
-mulFltHsk :: Flt -> (Flt -> Flt)
-mulFltHsk = (*)
-
 divFltHsk :: Flt -> (Flt -> Flt)
 divFltHsk = (/)
-
-addCmxHsk :: Cmx -> (Cmx -> Cmx)
-addCmxHsk = (+)
-
-subCmxHsk :: Cmx -> (Cmx -> Cmx)
-subCmxHsk = (-)
-
-mulCmxHsk :: Cmx -> (Cmx -> Cmx)
-mulCmxHsk = (*)
 
 divCmxHsk :: Cmx -> (Cmx -> Cmx)
 divCmxHsk = (/)
@@ -184,9 +107,6 @@ ilog2Hsk = \ x -> floor (log (fromIntegral x) / log (2 :: Float))
 
 sqrtFltHsk :: Flt -> Flt
 sqrtFltHsk = sqrt
-
-memHsk :: Ary Flt -> Ary Flt
-memHsk = id
 
 hshTblHsk :: Array Int Int
 hshTblHsk = listArray (0,255) [

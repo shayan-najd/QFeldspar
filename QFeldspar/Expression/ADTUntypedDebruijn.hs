@@ -35,6 +35,9 @@ data Exp = ConI Int
          | Typ  TFA.Typ Exp
          | Mul  Exp Exp
          | Add  Exp Exp
+         | Sub  Exp Exp
+         | Eql  Exp Exp
+         | Ltd  Exp Exp
          | Int  Int
          | Mem  Exp
 

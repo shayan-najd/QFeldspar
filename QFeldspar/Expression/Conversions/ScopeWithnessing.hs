@@ -19,12 +19,14 @@ instance n ~ n' => Cnv (FAUD.Exp , Nat n) (FGTD.Exp n' (Maybe TFA.Typ)) where
     FAUD.Snd e        -> FGTD.Snd  <$> pure Nothing  <*@> e
     FAUD.Len e        -> FGTD.Len  <$> pure Nothing  <*@> e
     FAUD.LenV e       -> FGTD.LenV <$> pure Nothing  <*@> e
+    FAUD.Eql el eb    -> FGTD.Eql  <$> pure Nothing  <*@> el <*@> eb
+    FAUD.Ltd el eb    -> FGTD.Ltd  <$> pure Nothing  <*@> el <*@> eb
     FAUD.Let el eb    -> FGTD.Let  <$> pure Nothing  <*@> el <*@> eb
     FAUD.May em en es -> FGTD.May  <$> pure Nothing  <*@> em <*@> en <*@> es
     FAUD.Typ t  e     -> FGTD.Typ  <$> pure (Just t) <*@> e
     _                 -> $(biGenOverloadedM 'ee ''FAUD.Exp "FGTD"
-     ['FAUD.App,'FAUD.Fst,'FAUD.Snd,'FAUD.Len,'FAUD.LenV
-     ,'FAUD.Let,'FAUD.May,'FAUD.Typ] (const [| cnvImp |]))
+     ['FAUD.App,'FAUD.Fst,'FAUD.Snd,'FAUD.Len,'FAUD.LenV,'FAUD.Eql,'FAUD.Ltd,
+      'FAUD.Let,'FAUD.May,'FAUD.Typ] (const [| cnvImp |]))
 
 instance n ~ n' => Cnv (FAUD.Fun , Nat n) (FGTD.Exp (NA.Suc n') (Maybe TFA.Typ)) where
   cnv (FAUD.Fun e , n) = cnv (e , Suc n)

@@ -5,23 +5,8 @@ module QFeldspar.QDSL
     ,ghoF{-,nghoF-},gho{-,ngho-},qdsl,trmEql
     ,realPartHsk
     ,imagPartHsk
-    ,eqlBolHsk
-    ,eqlIntHsk
-    ,eqlFltHsk
-    ,ltdBolHsk
-    ,ltdIntHsk
-    ,ltdFltHsk
-    ,addIntHsk
-    ,subIntHsk
-    ,mulIntHsk
     ,divIntHsk
-    ,addFltHsk
-    ,subFltHsk
-    ,mulFltHsk
     ,divFltHsk
-    ,addCmxHsk
-    ,subCmxHsk
-    ,mulCmxHsk
     ,divCmxHsk
     ,andIntHsk
     ,orIntHsk
@@ -33,7 +18,6 @@ module QFeldspar.QDSL
     ,cisHsk
     ,ilog2Hsk
     ,sqrtFltHsk
-    ,memHsk
     ,hshTblHsk)
     where
 import Prelude(Float,Bool(..),Maybe,String,(.))
@@ -74,9 +58,8 @@ dummy :: Data a
 dummy = MP.return (TH.TExp (TH.VarE dn))
 
 wrp :: Type a => Data a -> Data a
-wrp f = wrpTyp [|| let (<)    = (\ x -> \ y -> ltdIntHsk x y)       in
-                   let (==)   = (\ x -> \ y -> eqlFltHsk x y)       in
-                   let (/)    = (\ x -> \ y -> divFltHsk x y)       in
+wrp f = wrpTyp [|| let (/)    = (\ x -> \ y -> divFltHsk x y)       in
+                   let sqrt   = (\ x -> sqrtFltHsk x)               in
                    let return = $$(ret) :: (Float -> Maybe Float)   in
                    let _bnd   = ($$bnd)
                           :: (Maybe Float -> (Float -> Maybe Float) ->

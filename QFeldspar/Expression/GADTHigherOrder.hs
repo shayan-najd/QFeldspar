@@ -34,6 +34,9 @@ data Exp :: [*] -> * -> * where
           Exp r (May a) -> Exp r b -> Exp r (Arr a b) -> Exp r b
   Mul  :: Exp r a  -> Exp r a -> Exp r a
   Add  :: Exp r a  -> Exp r a -> Exp r a
+  Sub  :: Exp r a  -> Exp r a -> Exp r a
+  Eql  :: HasSin TFG.Typ a => Exp r a  -> Exp r a -> Exp r Bool
+  Ltd  :: HasSin TFG.Typ a => Exp r a  -> Exp r a -> Exp r Bool
   Tmp  :: String -> Exp r a
   Int  :: Int -> Exp r a
   Tag  :: String -> Exp r t -> Exp r t
