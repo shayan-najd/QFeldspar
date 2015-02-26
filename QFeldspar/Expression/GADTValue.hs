@@ -69,13 +69,13 @@ snd :: Exp (Tpl a b) -> Exp b
 snd = prm1 MP.snd
 
 ary :: Exp Int -> Exp (Arr Int a) -> Exp (Ary a)
-ary = prm2 MP.arr
+ary = prm2 MP.mkArr
 
 len :: Exp (Ary a) -> Exp Int
-len = prm1 MP.arrLen
+len = prm1 MP.lnArr
 
 ind :: Exp (Ary a) -> Exp Int -> Exp a
-ind = prm2 MP.arrIx
+ind = prm2 MP.ixArr
 
 leT :: Exp tl -> Exp (Arr tl tb) -> Exp tb
 leT = prm2 (\ x f -> f x)

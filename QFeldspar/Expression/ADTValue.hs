@@ -159,11 +159,11 @@ tpl :: Exp -> Exp -> NamM ErrM Exp
 tpl vf vs = return (lft (vf , vs))
 
 ary :: Exp -> Exp -> NamM ErrM Exp
-ary (ConI l) (Abs vf) = fmap lft (sequence (arr l ((lift . vf) . ConI)))
+ary (ConI l) (Abs vf) = fmap lft (sequence (mkArr l ((lift . vf) . ConI)))
 ary _        _        = badTypValM
 
 len :: Exp -> NamM ErrM Exp
-len (Ary a) = return (lft (arrLen a))
+len (Ary a) = return (lft (lnArr a))
 len _       = badTypValM
 
 ind :: Exp -> Exp -> NamM ErrM Exp

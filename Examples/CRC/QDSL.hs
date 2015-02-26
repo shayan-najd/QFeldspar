@@ -15,7 +15,7 @@ updCrc = [|| \ cc -> \ ch ->
              0xFFFFFFFF ||]
 
 tbl :: Data (Int -> Int)
-tbl = [|| \ i -> arrIx $$hashTable i ||]
+tbl = [|| \ i -> ixArr $$hashTable i ||]
 
 crc :: Data (Ary Int -> Int)
 crc = [|| \ a -> $$crcVec ($$fromArr a) ||]

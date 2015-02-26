@@ -4,7 +4,7 @@ module QFeldspar.Prelude.TemplateHaskell
        {-,true,false-}
        ,Cmx,cmx,real,imag
        ,Vec(..)
-       ,Ary,arr,arrLen,arrIx
+       ,Ary,mkArr,lnArr,ixArr
        ,forVec,frmTo,permute,reverse,foldl,fmap,zipWith,sum,scalarProd
        ,replicate,append
        {-(?)-},while,for,{-share-}memorize
@@ -46,11 +46,11 @@ instance Lift Flt where
   lift f = MP.return (LitE (RationalL (toRational f)))
 
 toArr        ::  Data (Vec a -> Ary a)
-toArr        =   [|| \(Vec l g) -> arr l (\ i -> g i) ||]
+toArr        =   [|| \(Vec l g) -> mkArr l (\ i -> g i) ||]
 
 fromArr      ::  Data (Ary a -> Vec a)
 fromArr      =   [|| \ aa -> let a = aa in
-                             Vec (arrLen a) (\i -> arrIx a i) ||]
+                             Vec (lnArr a) (\i -> ixArr a i) ||]
 
 toArrF ::  Data ((Vec a -> Vec b) -> Ary a -> Ary b)
 toArrF =   [|| \ f a -> $$toArr (f ($$fromArr a)) ||]
@@ -147,24 +147,24 @@ frmTo = [|| \ mm -> \ nn -> let n = nn in
 
 permute :: FO t => Data ((Int -> Int -> Int) -> Ary t -> Ary t)
 permute = [|| \ f -> \ v -> let lv = arrLen v in
-                            arr lv (\ i -> arrIx v (f lv i)) ||]
+                            arr lv (\ i -> ixArr v (f lv i)) ||]
 
 reverse :: FO t => Data (Ary t -> Ary t)
 reverse = [|| $$permute (\ l -> \ i -> $$sub ($$sub l 1) i) ||]
 
 foldl :: (FO a , FO b) => Data ((a -> b -> a) -> a -> Ary b -> a)
 foldl = [|| \ f -> \ acc -> \ v ->
-            $$for (arrLen v) acc (\ i -> \ a -> f a (arrIx v i)) ||]
+            $$for (arrLen v) acc (\ i -> \ a -> f a (ixArr v i)) ||]
 
 fmap :: (FO a , FO b) => Data ((a -> b) -> Ary a -> Ary b)
-fmap = [|| \ f -> \ v -> arr (arrLen v) (\ i -> f (arrIx v i)) ||]
+fmap = [|| \ f -> \ v -> arr (arrLen v) (\ i -> f (ixArr v i)) ||]
 
 zipWith :: (FO a , FO b , FO c) =>
            Data ((a -> b -> c) -> Ary a -> Ary b -> Ary c)
 zipWith = [|| \ f -> \ v1 -> \ v2 ->
                 arr ($$min (arrLen v1) (arrLen v2))
                     (\ ii -> let i = ii in
-                             f (arrIx v1 i) (arrIx v2 i)) ||]
+                             f (ixArr v1 i) (ixArr v2 i)) ||]
 
 sum :: Data (Ary Int -> Int)
 sum = [|| $$foldl $$add 0 ||]
@@ -180,8 +180,8 @@ append = [|| \ a1 -> \ a2 -> let la1 = arrLen a1 in
                              arr ($$add la1 (arrLen a2))
                                  (\ ii -> let i = ii in
                                           if $$lt i la1
-                                          then arrIx a1 i
-                                          else arrIx a2 i) ||]
+                                          then ixArr a1 i
+                                          else ixArr a2 i) ||]
 -}
 -----------------------------------------------------------------------
 -- Control Flow
@@ -370,11 +370,11 @@ may = [|| \ x -> \ g -> \ m -> case m of {Nothing -> x ; Just y  -> g y} ||]
 -- Ary
 ------------------------------------------------------------------------
 
-arr :: Int -> (Int -> a) -> Ary a
-arr = MP.arr
+mkArr :: Int -> (Int -> a) -> Ary a
+mkArr = MP.mkArr
 
-arrLen :: Ary a -> Int
-arrLen = MP.arrLen
+lnArr :: Ary a -> Int
+lnArr = MP.lnArr
 
-arrIx :: Ary a -> Int -> a
-arrIx = MP.arrIx
+ixArr :: Ary a -> Int -> a
+ixArr = MP.ixArr

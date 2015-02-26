@@ -59,10 +59,10 @@ instance Cnv (TH.Exp , ()) (FAUN.Exp TH.Name) where
       | n === 'snd          -> do v1 <- newTHVar
                                   pure (FAUN.Abs (v1 ,
                                                   FAUN.Snd (FAUN.Var v1)))
-      | n === 'arrLen       -> do v1 <- newTHVar
+      | n === 'lnArr        -> do v1 <- newTHVar
                                   pure (FAUN.Abs (v1 ,
                                                   FAUN.Len (FAUN.Var v1)))
-      | n === 'arrIx        -> do v1 <- newTHVar
+      | n === 'ixArr        -> do v1 <- newTHVar
                                   v2 <- newTHVar
                                   pure (FAUN.Abs (v1 ,
                                      FAUN.Abs (v2 ,
@@ -82,7 +82,7 @@ instance Cnv (TH.Exp , ()) (FAUN.Exp TH.Name) where
                                   pure (FAUN.Abs (v1 ,
                                      FAUN.Abs (v2 ,
                                      FAUN.Add (FAUN.Var v1) (FAUN.Var v2))))
-      | n === 'arr          -> do v1 <- newTHVar
+      | n === 'mkArr        -> do v1 <- newTHVar
                                   v2 <- newTHVar
                                   pure (FAUN.Abs (v1 ,
                                      FAUN.Abs (v2 ,
@@ -112,14 +112,14 @@ instance Cnv (TH.Exp , ()) (FAUN.Exp TH.Name) where
       | n === 'mem           -> FAUN.Mem  <$@> ea
       | n === 'fst           -> FAUN.Fst  <$@> ea
       | n === 'snd           -> FAUN.Snd  <$@> ea
-      | n === 'arrLen        -> FAUN.Len  <$@> ea
+      | n === 'lnArr         -> FAUN.Len  <$@> ea
     TH.AppE (TH.AppE
         (TH.VarE n) el) er
-      | n === 'arrIx         -> FAUN.Ind  <$@> el <*@> er
+      | n === 'ixArr         -> FAUN.Ind  <$@> el <*@> er
       | n === 'cmx           -> FAUN.Cmx  <$@> el <*@> er
       | n === '(*)           -> FAUN.Mul  <$@> el <*@> er
       | n === '(+)           -> FAUN.Add  <$@> el <*@> er
-      | n === 'arr           -> FAUN.Ary  <$@> el <*@> er
+      | n === 'mkArr         -> FAUN.Ary  <$@> el <*@> er
     TH.AppE (TH.AppE
         (TH.AppE (TH.VarE n)
         l1) l2) ei

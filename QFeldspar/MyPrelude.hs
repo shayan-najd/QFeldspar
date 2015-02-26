@@ -37,7 +37,7 @@ module QFeldspar.MyPrelude
         module Control.Monad,
         module Data.Array,
         Bol,Ary,May,Cmx,Flt,Int,Arr,Tpl,Vec(..),
-        cnd,while,whileM,tpl,arr,arrLen,arrIx,cmx,non,som,may,mem)
+        cnd,while,whileM,tpl,mkArr,lnArr,ixArr,cmx,non,som,may,mem)
        where
 import Prelude hiding (Int,mapM,sequence)
 import QFeldspar.Existential
@@ -108,14 +108,14 @@ whileM fc fb v = do b' <- fc v
 tpl :: a -> b -> (a , b)
 tpl = ((,))
 
-arr :: Int -> (Int -> a) -> Array Int a
-arr  l f = fmap f (listArray (0 , l - 1) [0 .. l - 1])
+mkArr :: Int -> (Int -> a) -> Array Int a
+mkArr  l f = fmap f (listArray (0 , l - 1) [0 .. l - 1])
 
-arrLen :: (Array Int a) -> Int
-arrLen = (1 +) . uncurry (flip (-)) . bounds
+lnArr :: (Array Int a) -> Int
+lnArr = (1 +) . uncurry (flip (-)) . bounds
 
-arrIx :: (Array Int a) -> Int -> a
-arrIx = (!)
+ixArr :: (Array Int a) -> Int -> a
+ixArr = (!)
 
 cmx :: Float -> Float -> Complex Float
 cmx = (:+)
