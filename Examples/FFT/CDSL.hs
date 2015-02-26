@@ -16,13 +16,13 @@ fftCore = \ n -> \ (Vec l f) ->
 
 ixf :: Vec (Data Cmx)
     -> Data Int -> Data Int -> Data Cmx
-ixf = \ (Vec _l f) -> \ kk -> \ i ->
-      share kk (\ k ->
+ixf = \ (Vec _l f) -> \ kk -> \ i -> share kk (\ k ->
       share (shfLft 1 k) (\ k2 ->
       share (cis ((mul pi (i2f (lsbs k i))) / (i2f k2))) (\ twid ->
       share (f i) (\ a ->
       share (f (bitXor i k2)) (\ b ->
-        (testBit i k) ? (mul twid (sub b a) , add a b))))))
+        (testBit i k) ?
+           (mul twid (sub b a) , add a b))))))
 
 bitRev :: Data Int -> Vec (Data Cmx) -> Vec (Data Cmx)
 bitRev = \ n -> \ x ->

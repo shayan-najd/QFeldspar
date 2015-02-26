@@ -17,8 +17,7 @@ rgbToGray = [|| \ r -> \ g -> \ b ->
                ($$add
                 ($$add (r * $$redCoefficient )
                        (g * $$greenCoefficient))
-                (b * $$blueCoefficient )) 100
-            ||]
+                (b * $$blueCoefficient )) 100 ||]
 
 ipgrayVec :: Data (Vec Int -> Vec Int)
 ipgrayVec = [|| \ (Vec l f) ->
@@ -27,8 +26,7 @@ ipgrayVec = [|| \ (Vec l f) ->
                             $$rgbToGray
                             (f j)
                             (f ($$add j 1))
-                            (f ($$add j 2)))
-            ||]
+                            (f ($$add j 2))) ||]
 
 ipgray :: Data (Ary Int -> Ary Int)
 ipgray = [|| \ a -> $$toArr ($$ipgrayVec ($$fromArr a)) ||]

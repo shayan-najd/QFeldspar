@@ -11,8 +11,7 @@ greenCoefficient = 59
 blueCoefficient :: Data Int
 blueCoefficient  = 11
 
-rgbToGray :: Data Int -> Data Int ->
-             Data Int -> Data Int
+rgbToGray :: Data Int -> Data Int -> Data Int -> Data Int
 rgbToGray = \ r -> \ g -> \ b ->
             div
             (add

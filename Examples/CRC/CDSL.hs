@@ -6,8 +6,7 @@ crcVec :: Vec (Data Int) -> Data Int
 crcVec = foldl updCrc 0
 
 updCrc :: Data Int -> Data Int -> Data Int
-updCrc = \ ccc -> \ ch ->
-         share ccc (\ cc ->
+updCrc = \ ccc -> \ ch -> share ccc (\ cc ->
           bitXor
           (bitXor
            (tbl
