@@ -20,6 +20,10 @@ module QFeldspar.QDSL
     ,sqrtFltHsk
     ,hshTblHsk)
     where
+import QFeldspar.Expression.Utils.Show.GADTFirstOrder()
+import QFeldspar.Expression.Utils.Show.GADTHigherOrder()
+import QFeldspar.Expression.Utils.Show.MiniFeldspar()
+
 import Prelude(Float,Bool(..),Maybe,String,(.))
 import QFeldspar.CDSL (Dp)
 import qualified QFeldspar.CDSL as CDSL
