@@ -50,7 +50,7 @@ instance Cnv (TH.Exp , ()) (FAUN.Exp TH.Name) where
                                      FAUN.Som (FAUN.Var v1)))
       | otherwise           -> pure (FAUN.Var (stripNameSpace n))
     TH.VarE n
-      | n === 'mem          -> do v1 <- newTHVar
+      | n === 'save         -> do v1 <- newTHVar
                                   pure (FAUN.Abs (v1 ,
                                                   FAUN.Mem (FAUN.Var v1)))
       | n === 'fst          -> do v1 <- newTHVar
@@ -124,7 +124,7 @@ instance Cnv (TH.Exp , ()) (FAUN.Exp TH.Name) where
     TH.AppE (TH.ConE n) e
       | n === 'Just          -> FAUN.Som  <$@> e
     TH.AppE (TH.VarE n) ea
-      | n === 'mem           -> FAUN.Mem  <$@> ea
+      | n === 'save          -> FAUN.Mem  <$@> ea
       | n === 'fst           -> FAUN.Fst  <$@> ea
       | n === 'snd           -> FAUN.Snd  <$@> ea
       | n === 'lnArr         -> FAUN.Len  <$@> ea

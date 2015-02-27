@@ -15,7 +15,7 @@ module QFeldspar.Prelude.TemplateHaskell
        ,bitXor,bitAnd,bitOr,shfRgt,shfLft,complement,testBit,lsbs
        ,oneBits,hashTable
        ,i2f,cis
-       ,ret,bnd,may,mem
+       ,ret,bnd,may,save
        ) where
 
 import Prelude (toRational)
@@ -201,10 +201,10 @@ for = [|| \ l -> \ init -> \ step ->
           ||]
 
 memorize :: FO a => Data (a -> a)
-memorize = [|| mem ||]
+memorize = [|| save ||]
 
-mem :: FO a => a -> a
-mem = MP.mem
+save :: FO a => a -> a
+save = MP.save
 
 ------------------------------------------------------------------------
 -- Boolean Operators
