@@ -72,7 +72,8 @@ wrp = expand
          'MP.maybe  := may,
          'MP.return := ret,
          '(MP./)    := [|| (\ x -> \ y -> divFltHsk x y) ||],
-         '(MP..)    := [|| (\ f -> \ x -> f x) ||]]
+         '(MP..)    := [|| (\ f -> \ x -> f x) ||],
+         'MP.sqrt   := [|| \x -> sqrtFltHsk x ||]]
         . wrpTyp
 
 wrpTyp :: forall a. Type a => Data a -> Data a
