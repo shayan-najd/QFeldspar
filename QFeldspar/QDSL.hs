@@ -71,8 +71,8 @@ wrp = expand
         ['_bnd      := bnd,
          'MP.maybe  := may,
          'MP.return := ret,
-         '(MP./)    := [|| (\ x -> \ y -> divFltHsk x y) ||],
-         '(MP..)    := [|| (\ f -> \ x -> f x) ||],
+         '(MP./)    := [|| \x -> \y -> divFltHsk x y ||],
+         '(MP..)    := [|| \f -> \g -> \x -> f (g x) ||],
          'MP.sqrt   := [|| \x -> sqrtFltHsk x ||]]
         . wrpTyp
 
