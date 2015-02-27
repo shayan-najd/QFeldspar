@@ -1,4 +1,4 @@
-module QFeldspar.Simplification.GADTFirstOrder (smp) where
+module QFeldspar.Simplification (smp) where
 
 import QFeldspar.MyPrelude
 

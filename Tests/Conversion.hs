@@ -24,7 +24,7 @@ import qualified QFeldspar.Environment.Map                         as EM
 import qualified QFeldspar.Environment.Plain                       as EP
 import qualified QFeldspar.Environment.Scoped                      as ES
 import qualified QFeldspar.Environment.Typed                       as ET
-import qualified QFeldspar.Normalisation.GADTFirstOrder  as NGFO
+import qualified QFeldspar.Normalisation  as NGFO
 import QFeldspar.Conversion
 import QFeldspar.Variable.Conversion                     ()
 import QFeldspar.Environment.Conversion                  ()

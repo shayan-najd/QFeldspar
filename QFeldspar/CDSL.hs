@@ -15,11 +15,11 @@ import QFeldspar.Expression.Conversion ()
 import qualified QFeldspar.Type.GADT                  as TFG
 import qualified QFeldspar.Expression.GADTValue       as FGV
 import QFeldspar.Compiler(scompile)
-import qualified QFeldspar.Normalisation.MiniFeldspar as MF
-import QFeldspar.CSE.MiniFeldspar
+import QFeldspar.Normalisation (nrm)
 -- import QFeldspar.ChangeMonad
-import QFeldspar.Simplification.MiniFeldspar
-import QFeldspar.Expression.Utils.MiniFeldspar(remTag)
+import QFeldspar.Expression.Utils.Reuse.MiniFeldspar
+import QFeldspar.CSE(cse,remTag)
+import QFeldspar.Simplification (smp)
 
 type C    = String
 type Dp a = Data a
@@ -46,19 +46,20 @@ compileF cSmp cCSE ff = let f = toExpF ff
 
 normalise :: Syn a => Bool -> a -> a
 normalise c ee = let e = toExp ee
-                 in  frmExp (MF.nrm (if c then cse e else remTag e))
+                 in  frmExp  (onMF (nrm . remTag . (if c then cse else MP.id)) e)
+
 
 normaliseF :: (Syn a , Syn b) => Bool -> (a -> b) -> a -> b
 normaliseF c ff = let f = toExpF ff
-                  in  frmExpF (MF.nrmF (remTag . (if c then cseF f else f)))
+                  in  frmExpF (onMFF (nrm . remTag . (if c then cse else MP.id)) f)
 
 simplify :: Syn a => a -> a
-simplify = frmExpF smp
+simplify = frmExpF (onMF smp)
 
 simplifyF :: (Syn a , Syn b) =>
              (a -> b) -> a -> b
 simplifyF ff = let f = toExpF ff
-               in  frmExpF (smpF f)
+               in  frmExpF (onMFF smp f)
 
 cdsl :: (Type a , Type b) => (Dp a -> Dp b) -> C
 cdsl = compileF MP.True MP.True

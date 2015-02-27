@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 module QFeldspar.Expression.Utils.GADTFirstOrder
-       (sucAll,prdAll,prdAllM,mapVar,sbs,replaceOne,cntVar,pattern TF) where
+       (sucAll,prdAll,prdAllM,mapVar,sbs,replaceOne,cntVar,pattern TF
+       ,isVal,val,pattern V,pattern NV) where
 
 import QFeldspar.MyPrelude
 import QFeldspar.Expression.GADTFirstOrder as FGFO
@@ -96,3 +97,42 @@ sbs'F :: forall r t t' t''.
         (HasSin Typ t', HasSin Typ t) =>
         Exp r t' -> Var r t' -> Exp (t'' ': r) t -> Exp (t'' ': r) t
 sbs'F e' v' e = sbs' (sucAll e') (Suc v') e
+
+isVal :: Exp n t -> Bool
+isVal ee = case ee of
+    ConI _        -> True
+    ConB _        -> True
+    ConF _        -> True
+    Var  _        -> True
+    Abs  _        -> True
+    App  _  _     -> False
+    Cnd  _  _  _  -> False
+    Whl  _  _  _  -> False
+    Tpl  ef es    -> isVal ef && isVal es
+    Fst  _        -> False
+    Snd  _        -> False
+    Ary  el  _    -> isVal el
+    Len  _        -> False
+    Ind  _  _     -> False
+    AryV el  _    -> isVal el
+    LenV  _       -> False
+    IndV  _  _    -> False
+    Let  _  _     -> False
+    Cmx  _  _     -> True
+    Non           -> True
+    Som  e        -> isVal e
+    May  _ _  _   -> False
+    Mul _ _       -> False
+    Add _ _       -> False
+    Sub _ _       -> False
+    Eql _ _       -> False
+    Ltd _ _       -> False
+    Int _         -> True -- shouldn't matter
+    Tag _ e       -> isVal e
+    Mem _         -> False
+
+val :: Exp n t -> (Bool,Exp n t)
+val ee = (isVal ee , ee)
+
+pattern V  v <- (val -> (True  , v))
+pattern NV v <- (val -> (False , v))

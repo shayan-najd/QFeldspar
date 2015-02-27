@@ -48,7 +48,7 @@ import qualified QFeldspar.Expression.GADTFirstOrder as GFO
 import qualified QFeldspar.Type.GADT                  as TFG
 
 import QFeldspar.Type.Conversion ()
-import qualified QFeldspar.Normalisation.GADTFirstOrder as GFO
+import qualified QFeldspar.Normalisation as GFO
 import qualified Language.Haskell.TH.Syntax as TH
 import QFeldspar.Prelude.HaskellEnvironment
 import QFeldspar.Prelude.Environment

@@ -19,7 +19,8 @@ import qualified QFeldspar.Environment.Plain             as EP
 import qualified QFeldspar.Environment.Scoped            as ES
 import qualified QFeldspar.Environment.Typed             as ET
 import QFeldspar.Variable.Conversion ()
-import qualified QFeldspar.Normalisation.GADTHigherOrder as GHO
+import QFeldspar.Normalisation (nrm)
+import QFeldspar.Expression.Utils.Reuse.GADTHigherOrder(onHOAS)
 import QFeldspar.Environment.Conversion ()
 import QFeldspar.Type.Conversion ()
 import QFeldspar.Expression.Conversions.Unquoting ()
@@ -281,7 +282,7 @@ instance (r ~ r' , t ~ t' , n ~ Len r , HasSin TFG.Typ t') =>
              (FMWS.Exp r' t')
          where
   cnv (e , g , _) = case getPrfHasSin g of
-    PrfHasSin -> cnv ({-nrm (eta e)-} GHO.nrm e , ())
+    PrfHasSin -> cnv ({-nrm (eta e)-} onHOAS nrm e , ())
 
 instance (r ~ r' , t ~ t' , n ~ Len r , HasSin TFG.Typ t') =>
          Cnv (FGHO.Exp r  t , ET.Env TFG.Typ r , ES.Env n TH.Name)

@@ -1,10 +1,10 @@
-module QFeldspar.Normalisation.GADTFirstOrder (nrm) where
+module QFeldspar.Normalisation (nrm) where
 
 import QFeldspar.MyPrelude
 
 import QFeldspar.Expression.GADTFirstOrder
 import QFeldspar.Expression.Utils.GADTFirstOrder
-    (sucAll,sbs,replaceOne,cntVar,pattern TF)
+    (sucAll,sbs,replaceOne,cntVar,pattern TF,pattern V,pattern NV)
 import QFeldspar.Variable.Typed
 import QFeldspar.Singleton
 import QFeldspar.ChangeMonad
@@ -13,45 +13,6 @@ import qualified QFeldspar.Type.GADT as TFG
 
 nrm :: HasSin TFG.Typ a => Exp g a -> Exp g a
 nrm = tilNotChg nrmOne
-
-isVal :: Exp n t -> Bool
-isVal ee = case ee of
-    ConI _        -> True
-    ConB _        -> True
-    ConF _        -> True
-    Var  _        -> True
-    Abs  _        -> True
-    App  _  _     -> False
-    Cnd  _  _  _  -> False
-    Whl  _  _  _  -> False
-    Tpl  ef es    -> isVal ef && isVal es
-    Fst  _        -> False
-    Snd  _        -> False
-    Ary  el  _    -> isVal el
-    Len  _        -> False
-    Ind  _  _     -> False
-    AryV el  _    -> isVal el
-    LenV  _       -> False
-    IndV  _  _    -> False
-    Let  _  _     -> False
-    Cmx  _  _     -> True
-    Non           -> True
-    Som  e        -> isVal e
-    May  _ _  _   -> False
-    Mul _ _       -> False
-    Add _ _       -> False
-    Sub _ _       -> False
-    Eql _ _       -> False
-    Ltd _ _       -> False
-    Int _         -> True -- shouldn't matter
-    Tag _ e       -> isVal e
-    Mem _         -> False
-
-val :: Exp n t -> (Bool,Exp n t)
-val ee = (isVal ee , ee)
-
-pattern V  v <- (val -> (True  , v))
-pattern NV v <- (val -> (False , v))
 
 nrmOne :: forall g a. HasSin TFG.Typ a => Exp g a -> Chg (Exp g a)
 nrmOne ee = let t = sin :: TFG.Typ a in case ee of
