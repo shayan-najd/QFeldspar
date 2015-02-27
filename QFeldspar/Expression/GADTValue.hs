@@ -4,7 +4,7 @@ module QFeldspar.Expression.GADTValue
     ,cmx,tag,mul,add,sub,eql,ltd,int,mem
     ,getTrm) where
 
-import QFeldspar.MyPrelude hiding (abs,fst,snd,may,som,non,cmx,tpl,cnd,mem)
+import QFeldspar.MyPrelude hiding (abs,fst,snd,may,som,non,cmx,tpl,cnd)
 import qualified QFeldspar.MyPrelude as MP
 import QFeldspar.Type.GADT ()
 

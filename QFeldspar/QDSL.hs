@@ -24,7 +24,7 @@ import QFeldspar.Expression.Utils.Show.GADTFirstOrder()
 import QFeldspar.Expression.Utils.Show.GADTHigherOrder()
 import QFeldspar.Expression.Utils.Show.MiniFeldspar()
 
-import Prelude(Float,Bool(..),Maybe,String,(.))
+import Prelude(Bool(..),String,(.))
 import QFeldspar.CDSL (Dp)
 import qualified QFeldspar.CDSL as CDSL
 
@@ -33,7 +33,8 @@ import QFeldspar.Prelude.TemplateHaskell as TH
 import QFeldspar.Singleton
 import QFeldspar.MyPrelude (frmRgtZro)
 import qualified QFeldspar.MyPrelude as MP
-import QFeldspar.Expression.Utils.TemplateHaskell(trmEql)
+import QFeldspar.Expression.Utils.TemplateHaskell
+    (trmEql,stripNameSpace)
 
 import QFeldspar.Conversion
 import QFeldspar.Expression.Conversions.Evaluation.MiniFeldspar ()
@@ -41,6 +42,7 @@ import QFeldspar.Expression.Conversion ()
 import QFeldspar.Expression.Conversions.Lifting(cnvFOHOF)
 
 import qualified QFeldspar.Expression.ADTUntypedNamed as FAUN
+import qualified QFeldspar.Expression.Utils.ADTUntypedNamed as FAUN
 import qualified QFeldspar.Expression.GADTHigherOrder as FGHO
 import qualified QFeldspar.Expression.GADTFirstOrder as GFO
 import qualified QFeldspar.Type.GADT                  as TFG
@@ -61,17 +63,17 @@ dn = (TH.Name (TH.OccName "dummyy") TH.NameS)
 dummy :: Data a
 dummy = MP.return (TH.TExp (TH.VarE dn))
 
-wrp :: Type a => Data a -> Data a
-wrp f = wrpTyp [|| let (/)    = (\ x -> \ y -> divFltHsk x y)       in
-                   let sqrt   = (\ x -> sqrtFltHsk x)               in
-                   let return = $$(ret) :: (Float -> Maybe Float)   in
-                   let _bnd   = ($$bnd)
-                          :: (Maybe Float -> (Float -> Maybe Float) ->
-                              Maybe Float) in
-                   let maybe  = $$(may)
-                          :: (Float -> (Float -> Float) ->
-                              Maybe Float -> Float) in
-                   $$f ||]
+_bnd :: a
+_bnd = _bnd
+
+wrp :: Type a => Data a -> FAUN.Exp TH.Name
+wrp = expand
+        ['_bnd      := bnd,
+         'MP.maybe  := may,
+         'MP.return := ret,
+         '(MP./)    := [|| (\ x -> \ y -> divFltHsk x y) ||],
+         '(MP..)    := [|| (\ f -> \ x -> f x) ||]]
+        . wrpTyp
 
 wrpTyp :: forall a. Type a => Data a -> Data a
 wrpTyp ee = do e <- ee
@@ -95,17 +97,17 @@ translateF f = let e :: GFO.Exp (a ': Prelude) b =
 evaluate ::  forall a.
              (Type a , FO a) =>
              Qt a -> a
-evaluate = CDSL.evaluate . translate . wrp
+evaluate = CDSL.evaluate . translate
 
 compile :: forall a.
              (Type a, FO a) =>
              Bool -> Bool -> Qt a -> C
-compile b1 b2 = CDSL.compile b1 b2 . translate . wrp
+compile b1 b2 = CDSL.compile b1 b2 . translate
 
 compileF :: forall a b.
              (Type a , Type b , FO a) =>
              Bool -> Bool -> Qt (a -> b) -> C
-compileF b1 b2 = CDSL.compileF b1 b2 . translateF . wrp
+compileF b1 b2 = CDSL.compileF b1 b2 . translateF
 
 dbg :: Type a => Qt a -> FAUN.Exp TH.Name
 dbg e = frmRgtZro (cnv(wrp e,etTFG , esTH))
@@ -145,3 +147,19 @@ testNrmSmpQt x y = testDpF (CDSL.simplifyF (toDp x)) (CDSL.simplifyF (toDp y))
 
 testDpF :: (Type a , Type b) => (Dp a -> Dp b) -> (Dp a -> Dp b) -> Bool
 testDpF = CDSL.trmEqlF
+
+toFAUN :: Qt a -> MP.ErrM (FAUN.Exp TH.Name)
+toFAUN ee = MP.evalStateT
+            (do ee' :: TH.Exp <- MP.lift (TH.runQ (TH.unTypeQ ee))
+                cnv (ee',())) 0
+
+data Sbs where
+  (:=) :: TH.Name -> Qt a -> Sbs
+
+expand :: [Sbs] -> Qt a -> FAUN.Exp TH.Name
+expand sbs ee = MP.frmRgt
+                (do ee' <- toFAUN ee
+                    MP.foldM
+                     (\ e (n := es) -> do es' <- toFAUN es
+                                          MP.return (FAUN.sbs (stripNameSpace n) es' e))
+                     ee' sbs)
