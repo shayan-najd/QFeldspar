@@ -74,7 +74,7 @@ remTheTag x ee = case ee of
    (\ tt -> if
     | matchQ tt [t| Exp t t |]            -> [| remTheTag  x |]
     | otherwise                           -> [| id |]))
-
+{-
 cseOne3 :: (HasSin TFG.Typ t , HasSin TFG.Typ a , HasSin TFG.Typ b , HasSin TFG.Typ c) =>
            (Exp g a -> Exp g b -> Exp g c -> Exp g t) ->
            Exp g a -> Exp g b -> Exp g c -> Chg (Exp g t)
@@ -175,7 +175,7 @@ findTagsF :: HasSin TFG.Typ b => Exp (a ': g) b -> [(String , Exs1 (Exp g) TFG.T
 findTagsF e = foldr (\ (x , Exs1 eg t) xxs -> case prdAllM eg of
                                                 Nothing ->  xxs
                                                 Just eg' -> (x , Exs1 eg' t) : xxs) [] (findTags e)
-{-
+-}
 
 cseOne3 :: (HasSin TFG.Typ t , HasSin TFG.Typ a , HasSin TFG.Typ b , HasSin TFG.Typ c) =>
            (Exp g a -> Exp g b -> Exp g c -> Exp g t) ->
@@ -259,7 +259,7 @@ numSubterm ex ee = let t = sin :: TFG.Typ a in
 findSubterms :: forall g t. HasSin TFG.Typ t =>
                 Exp g t -> [Exs1 (Exp g) TFG.Typ]
 findSubterms ee = let t = sin :: TFG.Typ t in
-                  (if not (isVal ee)
+                  (if not (isVal ee) && not (partialApp ee)
                    then ((Exs1 ee (sinTyp ee)) :)
                    else id)
  $(recAppMQ 'ee ''Exp (const [| [] |]) []
@@ -273,4 +273,9 @@ findSubtermsF :: HasSin TFG.Typ b => Exp (a ': g) b -> [Exs1 (Exp g) TFG.Typ]
 findSubtermsF e = foldr (\ (Exs1 eg t) xxs -> case prdAllM eg of
                                                 Nothing  ->  xxs
                                                 Just eg' -> (Exs1 eg' t) : xxs) [] (findSubterms e)
--}
+
+partialApp :: HasSin TFG.Typ a => Exp g a -> Bool
+partialApp (App l _) = case sinTyp l of
+  TFG.Arr _ (TFG.Arr _ _) -> True
+  _                       -> False
+partialApp _         = False
