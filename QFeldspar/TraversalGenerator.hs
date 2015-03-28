@@ -14,6 +14,7 @@ lowerFirst (x : xs)  = toLower x : xs
 getNameCount :: Con -> (Name, [Type])
 getNameCount (NormalC n ts)   = (n , map snd ts)
 getNameCount (ForallC _ _ c)  = getNameCount c
+getNameCount (InfixC tl n tr) = getNameCount (NormalC n [tl,tr])
 getNameCount _                = error "not supported"
 
 nameConsT :: Name
