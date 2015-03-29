@@ -4,7 +4,7 @@ module QFeldspar.Expression.GADTValue
     ,cmx,tag,mul,add,sub,eql,ltd,int,mem
     ,getTrm) where
 
-import QFeldspar.MyPrelude hiding (abs,fst,snd,may,som,non,cmx,tpl,cnd)
+import QFeldspar.MyPrelude hiding (abs,fst,snd,may,som,non,tpl,cnd)
 import qualified QFeldspar.MyPrelude as MP
 import QFeldspar.Type.GADT ()
 
@@ -81,7 +81,7 @@ leT :: Exp tl -> Exp (Arr tl tb) -> Exp tb
 leT = prm2 (\ x f -> f x)
 
 cmx :: Exp Flt -> Exp Flt -> Exp Cmx
-cmx = prm2 MP.cmx
+cmx = prm2 (:+)
 
 mul :: Num a => Exp a -> Exp a -> Exp a
 mul = prm2 (*)

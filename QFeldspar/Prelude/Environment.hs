@@ -1,6 +1,6 @@
 module QFeldspar.Prelude.Environment where
 
-import QFeldspar.MyPrelude
+import QFeldspar.MyPrelude hiding (cis,realPart,imagPart,i2f,ilog2)
 
 import qualified QFeldspar.Expression.ADTValue  as FAV
 import qualified QFeldspar.Expression.GADTValue as FGV
@@ -37,7 +37,7 @@ etTFG = sin
 -----------------------------------------------------------------------
 
 esString :: ES.Env (Len Prelude) String
-esString = fmap (init . init . init . TH.nameBase) esTH
+esString = fmap TH.nameBase esTH
 
 -----------------------------------------------------------------------
 -- Var
@@ -49,7 +49,7 @@ $(sequence (join
  , do e <- nat i ""
       return (TH.ValD (TH.VarP n) (TH.NormalB e) [])]
   | (i , nHsk) <- zip [0..] epTH ,
-    let nB = (init . init . init) (TH.nameBase nHsk),
+    let nB = TH.nameBase nHsk,
     let n  = stripNameSpace (TH.mkName (nB ++ "Var"))])
  )
 
@@ -62,7 +62,7 @@ $(sequence (join
  , do e <- [| FAV.lft $(TH.varE nHsk) |]
       return (TH.ValD (TH.VarP n) (TH.NormalB e) [])]
   | nHsk <- epTH ,
-    let nB = (init . init . init) (TH.nameBase nHsk),
+    let nB = TH.nameBase nHsk,
     let n  = stripNameSpace (TH.mkName (nB ++ "FAV"))])
  )
 
@@ -88,7 +88,7 @@ esFAV = $(return (foldr
                TH.InfixE (Just (TH.VarE a)) (TH.ConE 'ES.Ext) (Just b))
             (TH.ConE 'ES.Emp)
             (fmap (stripNameSpace . TH.mkName . (++ "FAV")
-                   . init . init . init .TH.nameBase) epTH)))
+                   .TH.nameBase) epTH)))
 
 -----------------------------------------------------------------------
 -- EMTHFAV

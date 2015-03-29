@@ -1,6 +1,7 @@
 module Tests.CompareExamples where
 
 import Prelude (Bool(..),(&&),Int,Float)
+import QFeldspar.MyPrelude(Complex)
 import qualified QFeldspar.QDSL as Q
 import qualified QFeldspar.CDSL as C
 
@@ -22,46 +23,46 @@ import qualified Examples.Windowing.CDSL as WC
 import qualified Examples.Power.QDSL as PQ
 import qualified Examples.Power.CDSL as PC
 
-qIPBW :: C.Data (C.Ary C.Int) -> C.Data (C.Ary C.Int)
+qIPBW :: C.Dp (C.Ary C.Int) -> C.Dp (C.Ary C.Int)
 qIPBW = C.simplifyF (C.normaliseF True (Q.translateF IPBWQ.ipbw))
 
-cIPBW :: C.Data (C.Ary C.Int) -> C.Data (C.Ary C.Int)
+cIPBW :: C.Dp (C.Ary C.Int) -> C.Dp (C.Ary C.Int)
 cIPBW = C.simplifyF (C.normaliseF True IPBWC.ipbw)
 
-qIPGray :: C.Data (C.Ary C.Int) -> C.Data (C.Ary C.Int)
+qIPGray :: C.Dp (C.Ary C.Int) -> C.Dp (C.Ary C.Int)
 qIPGray = C.simplifyF (C.normaliseF True (Q.translateF IPGrayQ.ipgray))
 
-cIPGray :: C.Data (C.Ary C.Int) -> C.Data (C.Ary C.Int)
+cIPGray :: C.Dp (C.Ary C.Int) -> C.Dp (C.Ary C.Int)
 cIPGray = C.simplifyF (C.normaliseF True IPGrayC.ipgray)
 
-qFFT :: C.Data (C.Ary C.Cmx) -> C.Data (C.Ary C.Cmx)
+qFFT :: C.Dp (C.Ary (Complex Float)) -> C.Dp (C.Ary (Complex Float))
 qFFT = C.simplifyF (C.normaliseF True (Q.translateF FFTQ.fft))
 
-cFFT :: C.Data (C.Ary C.Cmx) -> C.Data (C.Ary C.Cmx)
+cFFT :: C.Dp (C.Ary (Complex Float)) -> C.Dp (C.Ary (Complex Float))
 cFFT = C.simplifyF (C.normaliseF True FFTC.fft)
 
-qCRC :: C.Data (C.Ary C.Int) -> C.Data C.Int
+qCRC :: C.Dp (C.Ary C.Int) -> C.Dp C.Int
 qCRC = C.simplifyF (C.normaliseF True (Q.translateF CRCQ.crc))
 
-cCRC :: C.Data (C.Ary C.Int) -> C.Data C.Int
+cCRC :: C.Dp (C.Ary C.Int) -> C.Dp C.Int
 cCRC = C.simplifyF (C.normaliseF True CRCC.crc)
 
-qW :: C.Data (C.Ary C.Cmx) -> C.Data (C.Ary C.Cmx)
+qW :: C.Dp (C.Ary (Complex Float)) -> C.Dp (C.Ary (Complex Float))
 qW = C.simplifyF (C.normaliseF True (Q.translateF WQ.windowing))
 
-cW :: C.Data (C.Ary C.Cmx) -> C.Data (C.Ary C.Cmx)
+cW :: C.Dp (C.Ary (Complex Float)) -> C.Dp (C.Ary (Complex Float))
 cW = C.simplifyF (C.normaliseF True WC.windowing)
 
-qP :: Int -> C.Data Float -> C.Data Float
+qP :: Int -> C.Dp Float -> C.Dp Float
 qP n = C.simplifyF (C.normaliseF True (Q.translateF (PQ.power n)))
 
-cP :: Int -> C.Data Float -> C.Data Float
+cP :: Int -> C.Dp Float -> C.Dp Float
 cP n = C.simplifyF (C.normaliseF True (PC.power n))
 
-qP' :: Int -> C.Data Float -> C.Data Float
+qP' :: Int -> C.Dp Float -> C.Dp Float
 qP' n = C.simplifyF (C.normaliseF True (Q.translateF (PQ.power'' n)))
 
-cP' :: Int -> C.Data Float -> C.Data Float
+cP' :: Int -> C.Dp Float -> C.Dp Float
 cP' n = C.simplifyF (C.normaliseF True (PC.power'' n))
 
 result :: Bool

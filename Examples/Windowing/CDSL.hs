@@ -1,14 +1,16 @@
 module Examples.Windowing.CDSL where
+
 import Prelude hiding (Int,pi,div,foldl,map,replicate,zipWith)
 import QFeldspar.CDSL
+import Examples.Prelude.CDSL
 
-windowingVec :: Vec (Data Cmx) -> Vec (Data Cmx)
-windowingVec = \ (Vec ll f) -> let l = $shared ll in
-                      zipWith mul
+windowingVec :: Vec (Dp (Complex Float)) -> Vec (Dp (Complex Float))
+windowingVec = \ (Vec ll f) -> share ll (\ l ->
+                      zipWith (*)
                        (append
-                        (replicate (sub l (div l 4)) (cmx 1.0 0.0))
-                        (replicate l                (cmx 0.0 0.0)))
-                       (Vec l (\ x -> f x ))
+                        (replicate (l - (divE l 4)) (1.0 :+. 0.0))
+                        (replicate l                (0.0 :+. 0.0)))
+                       (Vec l (\ x -> f x )))
 
-windowing :: Data (Ary Cmx) -> Data (Ary Cmx)
+windowing :: Dp (Ary (Complex Float)) -> Dp (Ary (Complex Float))
 windowing = toExpF windowingVec

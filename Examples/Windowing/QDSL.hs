@@ -1,14 +1,15 @@
 module Examples.Windowing.QDSL where
 import Prelude hiding (Int,pi,div,foldl,map,replicate,zipWith)
 import QFeldspar.QDSL
+import Examples.Prelude.QDSL
 
-windowingVec :: Data (Vec Cmx -> Vec Cmx)
+windowingVec :: Qt (Vec (Complex Float) -> Vec (Complex Float))
 windowingVec = [|| \ (Vec ll f) -> let l = ll in
-                   $$zipWith $$mul
+                   $$zipWith (*)
                     ($$append
-                     ($$replicate ($$sub l ($$div l 4)) (cmx 1.0 0.0))
-                     ($$replicate l                     (cmx 0.0 0.0)))
+                     ($$replicate (l - (div l 4)) (1.0 :+ 0.0))
+                     ($$replicate l               (0.0 :+ 0.0)))
                     (Vec l (\ x -> f x)) ||]
 
-windowing :: Data (Ary Cmx -> Ary Cmx)
+windowing :: Qt (Ary (Complex Float) -> Ary (Complex Float))
 windowing = [|| $$toArrF $$windowingVec ||]

@@ -1,9 +1,10 @@
 module Examples.IPBW.CDSL where
-import Prelude hiding (Int)
+
 import QFeldspar.CDSL
+import Examples.Prelude.CDSL
 
-ipbwVec :: Vec (Data Int) -> Vec (Data Int)
-ipbwVec = fmap (\ x -> (lt x 135) ? (1 , 0))
+ipbwVec :: Vec (Dp Int) -> Vec (Dp Int)
+ipbwVec = fmap (\ x -> (x <. 135) ? (1 , 0))
 
-ipbw :: Data (Ary Int) -> Data (Ary Int)
+ipbw :: Dp (Ary Int) -> Dp (Ary Int)
 ipbw = toExpF ipbwVec

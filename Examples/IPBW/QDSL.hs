@@ -1,9 +1,12 @@
 module Examples.IPBW.QDSL where
+
 import Prelude hiding (Int,fmap)
+
 import QFeldspar.QDSL
+import Examples.Prelude.QDSL
 
-ipbwVec :: Data (Vec Int -> Vec Int)
-ipbwVec = [|| $$fmap (\ x -> if $$lt x 135 then 1 else 0) ||]
+ipbwVec :: Qt (Vec Int -> Vec Int)
+ipbwVec = [|| $$fmap (\ x -> if x < 135 then 1 else 0) ||]
 
-ipbw :: Data (Ary Int -> Ary Int)
+ipbw :: Qt (Ary Int -> Ary Int)
 ipbw = [|| \ a -> $$toArr ($$ipbwVec ($$fromArr a)) ||]

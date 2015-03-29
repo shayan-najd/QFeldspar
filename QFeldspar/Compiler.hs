@@ -1,6 +1,6 @@
 module QFeldspar.Compiler where
 
-import QFeldspar.MyPrelude hiding (fst , snd , cmx)
+import QFeldspar.MyPrelude hiding (fst,snd)
 
 import QFeldspar.Expression.C
 import qualified QFeldspar.Expression.MiniFeldspar as FMWS

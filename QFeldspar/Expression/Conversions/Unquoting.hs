@@ -16,11 +16,11 @@ mkDo :: [TH.Stmt] -> NamM ErrM (FAUN.Exp TH.Name)
 mkDo st = let ?r = () in case st of
   [TH.NoBindS e]                -> cnvImp e
   (TH.BindS (TH.VarP x) e : es) -> FAUN.App <$>
-                                   (FAUN.App (FAUN.Var (TH.mkName "_bnd"))
+                                   (FAUN.App (FAUN.Var (TH.mkName ">>="))
                                             <$@> e)
                                    <*> ((\ y -> FAUN.Abs (x , y)) <$> mkDo es)
   (TH.NoBindS           e : es) -> FAUN.App <$>
-                                   (FAUN.App (FAUN.Var (TH.mkName "_bnd"))
+                                   (FAUN.App (FAUN.Var (TH.mkName ">>="))
                                             <$@> e)
                                    <*> ((\ y -> FAUN.Abs
                                                 (TH.mkName "__dummyb__" , y))
@@ -48,6 +48,11 @@ instance Cnv (TH.Exp , ()) (FAUN.Exp TH.Name) where
       | n === 'Just         -> do v1 <- newTHVar
                                   pure (FAUN.Abs (v1 ,
                                      FAUN.Som (FAUN.Var v1)))
+      | n === '(:+)         -> do v1 <- newTHVar
+                                  v2 <- newTHVar
+                                  pure (FAUN.Abs (v1 ,
+                                     FAUN.Abs (v2 ,
+                                     FAUN.Cmx (FAUN.Var v1) (FAUN.Var v2))))
       | otherwise           -> pure (FAUN.Var (stripNameSpace n))
     TH.VarE n
       | n === 'save         -> do v1 <- newTHVar
@@ -67,11 +72,6 @@ instance Cnv (TH.Exp , ()) (FAUN.Exp TH.Name) where
                                   pure (FAUN.Abs (v1 ,
                                      FAUN.Abs (v2 ,
                                      FAUN.Ind (FAUN.Var v1) (FAUN.Var v2))))
-      | n === 'cmx          -> do v1 <- newTHVar
-                                  v2 <- newTHVar
-                                  pure (FAUN.Abs (v1 ,
-                                     FAUN.Abs (v2 ,
-                                     FAUN.Cmx (FAUN.Var v1) (FAUN.Var v2))))
       | n === '(*)          -> do v1 <- newTHVar
                                   v2 <- newTHVar
                                   pure (FAUN.Abs (v1 ,
@@ -123,15 +123,21 @@ instance Cnv (TH.Exp , ()) (FAUN.Exp TH.Name) where
       | n === 'Vec           -> FAUN.AryV <$@> el <*@> l
     TH.AppE (TH.ConE n) e
       | n === 'Just          -> FAUN.Som  <$@> e
+      | n === '(:+)          -> do v1 <- newTHVar
+                                   e' <- cnvImp e
+                                   pure (FAUN.Abs (v1 ,
+                                         FAUN.Cmx e' (FAUN.Var v1)))
     TH.AppE (TH.VarE n) ea
       | n === 'save          -> FAUN.Mem  <$@> ea
       | n === 'fst           -> FAUN.Fst  <$@> ea
       | n === 'snd           -> FAUN.Snd  <$@> ea
       | n === 'lnArr         -> FAUN.Len  <$@> ea
     TH.AppE (TH.AppE
+        (TH.ConE n) el) er
+      | n === '(:+)          -> FAUN.Cmx  <$@> el <*@> er
+    TH.AppE (TH.AppE
         (TH.VarE n) el) er
       | n === 'ixArr         -> FAUN.Ind  <$@> el <*@> er
-      | n === 'cmx           -> FAUN.Cmx  <$@> el <*@> er
       | n === '(*)           -> FAUN.Mul  <$@> el <*@> er
       | n === '(+)           -> FAUN.Add  <$@> el <*@> er
       | n === '(-)           -> FAUN.Sub  <$@> el <*@> er

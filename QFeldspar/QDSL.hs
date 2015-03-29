@@ -1,61 +1,71 @@
 {-# OPTIONS_GHC -fno-warn-unused-binds -fno-warn-name-shadowing #-}
 module QFeldspar.QDSL
-    (module TH,dbg,dbgF,Type,testQt,testNrmQt,testNrmSmpQt,testDpF,toDp
-    ,Qt,translate,translateF,evaluate,compile,compileF,wrp
-    ,ghoF{-,nghoF-},gho{-,ngho-},qdsl,trmEql
-    ,realPartHsk
-    ,imagPartHsk
-    ,divIntHsk
-    ,divFltHsk
-    ,divCmxHsk
-    ,andIntHsk
-    ,orIntHsk
-    ,xorIntHsk
-    ,shrIntHsk
-    ,shlIntHsk
-    ,cmpIntHsk
-    ,i2fHsk
-    ,cisHsk
-    ,ilog2Hsk
-    ,sqrtFltHsk
-    ,hshTblHsk)
-    where
+  (Qt,FO,Type,Num,Eq,Ord,
+   Int,Float,Bool(..),while,fst,snd,Ary,mkArr,lnArr,ixArr,
+   Vec(..),Complex(..),Maybe(..),(*),(+),(-),(==),(<),save,
+   realPart,imagPart,div,(/),(.&.),(.|.),xor,shfRgt,shfLft,
+   complement,i2f,cis,ilog2,sqrt,hashTable,
+   maybe,return,(>>=),(.),
+   qdsl,evaluate,translate,translateF,compile,compileF,
+   dbg,dbgF,testQt,testNrmQt,testNrmSmpQt,testDpF,toDp,wrp,
+   ghoF{-,nghoF-},gho{-,ngho-},trmEql) where
+
+import QFeldspar.MyPrelude hiding (while,save)
+import qualified QFeldspar.MyPrelude as MP
+
 import QFeldspar.Expression.Utils.Show.GADTFirstOrder()
 import QFeldspar.Expression.Utils.Show.GADTHigherOrder()
 import QFeldspar.Expression.Utils.Show.MiniFeldspar()
 
-import Prelude(Bool(..),String,(.))
 import QFeldspar.CDSL (Dp)
 import qualified QFeldspar.CDSL as CDSL
 
-import QFeldspar.Prelude.TemplateHaskell as TH
-
 import QFeldspar.Singleton
-import QFeldspar.MyPrelude (frmRgtZro)
-import qualified QFeldspar.MyPrelude as MP
+
 import QFeldspar.Expression.Utils.TemplateHaskell
     (trmEql,stripNameSpace)
 
 import QFeldspar.Conversion
-import QFeldspar.Expression.Conversions.Evaluation.MiniFeldspar ()
 import QFeldspar.Expression.Conversion ()
+import QFeldspar.Expression.Conversions.Evaluation.MiniFeldspar ()
 import QFeldspar.Expression.Conversions.Lifting(cnvFOHOF)
 
 import qualified QFeldspar.Expression.ADTUntypedNamed as FAUN
 import qualified QFeldspar.Expression.Utils.ADTUntypedNamed as FAUN
 import qualified QFeldspar.Expression.GADTHigherOrder as FGHO
 import qualified QFeldspar.Expression.GADTFirstOrder as GFO
-import qualified QFeldspar.Type.GADT                  as TFG
-
-import QFeldspar.Type.Conversion ()
-import qualified QFeldspar.Normalisation as GFO
 import qualified Language.Haskell.TH.Syntax as TH
-import QFeldspar.Prelude.HaskellEnvironment
-import QFeldspar.Prelude.Environment
 
+import qualified QFeldspar.Type.GADT as TFG
+import qualified QFeldspar.Normalisation as GFO
+
+import QFeldspar.Prelude.Environment (etTFG,(<:>))
+import qualified QFeldspar.Prelude.HaskellEnvironment as PHE
+
+type Data a = TH.Q (TH.TExp a)
 type Qt a = Data a
 type C    = String
 type Type a = HasSin TFG.Typ a
+
+class    FO a                              where {}
+instance FO MP.Bol                         where {}
+instance FO MP.Int                         where {}
+instance FO MP.Flt                         where {}
+instance (FO a , FO b) => FO (a , b)       where {}
+instance FO a => FO (MP.Ary a)             where {}
+instance FO MP.Cmx                         where {}
+
+instance TH.Lift MP.Int where
+  lift i = MP.return (TH.LitE (TH.IntegerL (MP.toInteger i)))
+
+instance TH.Lift MP.Flt where
+  lift f = MP.return (TH.LitE (TH.RationalL (MP.toRational f)))
+
+while :: FO a => (a -> MP.Bol) -> (a -> a) -> a -> a
+while = MP.while
+
+save :: FO a => a -> a
+save = MP.save
 
 dn :: TH.Name
 dn = (TH.Name (TH.OccName "dummyy") TH.NameS)
@@ -63,36 +73,50 @@ dn = (TH.Name (TH.OccName "dummyy") TH.NameS)
 dummy :: Data a
 dummy = MP.return (TH.TExp (TH.VarE dn))
 
-_bnd :: a
-_bnd = _bnd
-
 wrp :: Type a => Data a -> FAUN.Exp TH.Name
 wrp = expand
-        ['_bnd      := bnd,
-         'MP.maybe  := may,
-         'MP.return := ret,
-         '(MP./)    := [|| \x -> \y -> divFltHsk x y ||],
-         '(MP..)    := [|| \f -> \g -> \x -> f (g x) ||],
-         'MP.sqrt   := [|| \x -> sqrtFltHsk x ||]]
+        ['(>>=)      := [|| \m -> \k ->
+                              case m of
+                              {Nothing -> Nothing ; Just x -> k x} ||],
+         'maybe      := [|| \x -> \g -> \m ->
+                               case m of
+                               {Nothing -> x ; Just y -> g y} ||],
+         'return     := [|| \x -> Just x ||],
+         '(.)        := [|| \f -> \g -> \x -> f (g x) ||],
+         'realPart   := [|| \x -> PHE.realPart x ||],
+         'imagPart   := [|| \x -> PHE.imagPart x ||],
+         'div        := [|| \x -> \y -> PHE.divInt x y ||],
+         '(/)        := [|| \x -> \y -> PHE.divFlt x y ||],
+         '(.&.)      := [|| \x -> \y -> PHE.andInt x y ||],
+         '(.|.)      := [|| \x -> \y -> PHE.orInt  x y ||],
+         'xor        := [|| \x -> \y -> PHE.xorInt x y ||],
+         'shfRgt     := [|| \x -> \y -> PHE.shrInt x y ||],
+         'shfLft     := [|| \x -> \y -> PHE.shlInt x y ||],
+         'complement := [|| \x -> PHE.cmpInt   x ||],
+         'i2f        := [|| \x -> PHE.i2f  x ||],
+         'cis        := [|| \x -> PHE.cis      x ||],
+         'ilog2      := [|| \x -> PHE.ilog2    x ||],
+         'sqrt       := [|| \x -> PHE.sqrtFlt  x ||],
+         'hashTable  := [|| PHE.hshTbl ||]]
         . wrpTyp
 
 wrpTyp :: forall a. Type a => Data a -> Data a
 wrpTyp ee = do e <- ee
-               MP.return (TH.TExp (TH.SigE (TH.unType e)
-                                  (frmRgtZro (cnv (sin :: TFG.Typ a , ())))))
+               return (TH.TExp (TH.SigE (TH.unType e)
+                         (frmRgtZro (cnv (sin :: TFG.Typ a , ())))))
 
 translate :: forall a.
              (Type a , FO a) =>
              Qt a -> Dp a
-translate f = frmRgtZro (cnv (wrp f , etTFG , esTH))
+translate f = frmRgtZro (cnv (wrp f , etTFG , PHE.esTH))
 
 translateF :: forall a b.
              (Type a , Type b) =>
              Qt (a -> b) -> Dp a -> Dp b
-translateF f = let e :: GFO.Exp (a ': Prelude) b =
-                        frmRgtZro (cnv (wrp
-                                        ([|| $$f $$dummy ||])
-                                       , (sin :: TFG.Typ a) <:> etTFG, dn <+> esTH))
+translateF f = let e :: GFO.Exp (a ': PHE.Prelude) b =
+                    frmRgtZro (cnv (wrp
+                      ([|| $$f $$dummy ||])
+                      , (sin :: TFG.Typ a) <:> etTFG, dn PHE.<+> PHE.esTH))
                in frmRgtZro (cnv (cnvFOHOF etTFG (GFO.nrm e) , ()))
 
 evaluate ::  forall a.
@@ -111,16 +135,17 @@ compileF :: forall a b.
 compileF b1 b2 = CDSL.compileF b1 b2 . translateF
 
 dbg :: Type a => Qt a -> FAUN.Exp TH.Name
-dbg e = frmRgtZro (cnv(wrp e,etTFG , esTH))
+dbg e = frmRgtZro (cnv(wrp e,etTFG , PHE.esTH))
 
 dbgF :: (Type a , Type b) => Qt (a -> b) -> FAUN.Exp TH.Name
-dbgF e = frmRgtZro (cnv(wrp e,etTFG , esTH))
+dbgF e = frmRgtZro (cnv(wrp e,etTFG , PHE.esTH))
 
-gho :: Type a => Qt a -> FGHO.Exp Prelude a
-gho e = frmRgtZro (cnv(wrp e,etTFG , esTH))
+gho :: Type a => Qt a -> FGHO.Exp PHE.Prelude a
+gho e = frmRgtZro (cnv(wrp e,etTFG , PHE.esTH))
 
-ghoF :: (Type a , Type b) => Qt (a -> b) -> FGHO.Exp Prelude (a -> b)
-ghoF e = frmRgtZro (cnv(wrp e,etTFG , esTH))
+ghoF :: (Type a , Type b) =>
+        Qt (a -> b) -> FGHO.Exp PHE.Prelude (a -> b)
+ghoF e = frmRgtZro (cnv(wrp e,etTFG , PHE.esTH))
 
 -- nghoF :: (Type a , Type b) => Qt (a -> b) -> FGHO.Exp Prelude (a -> b)
 -- nghoF e = nrm (ghoF e)

@@ -1,15 +1,12 @@
 module Examples.Power.CDSL where
 import Prelude
-import QFeldspar.CDSL hiding (div,Int)
-
-(.==.) :: Equality t => Data t -> Data t -> Data Bool
-(.==.) = eql
+import QFeldspar.CDSL hiding (Int)
 
 power :: Int -> Dp Float -> Dp Float
 power n xx =
   if n < 0 then
     share xx (\ x ->
-    x .==. 0 ? (0 ,  1 / power (-n) x))
+    (x ==. 0) ? (0 ,  1 / power (-n) x))
   else if n == 0 then
     1
   else if even n then
@@ -26,7 +23,7 @@ power' :: Int -> Dp Float -> Opt (Dp Float)
 power' n xx  =
   if n < 0 then
     share xx (\ x ->
-    x .==. 0 ? (none, do y <- power' (-n) x; return (1 / y)))
+    (x ==. 0) ? (none, do y <- power' (-n) x; return (1 / y)))
   else if n == 0 then
     return 1
   else if even n then

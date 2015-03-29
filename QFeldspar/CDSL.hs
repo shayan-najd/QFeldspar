@@ -1,11 +1,12 @@
-module QFeldspar.CDSL(module QFeldspar.Prelude.MiniFeldspar
-                     ,Dp,evaluate,compile,compileF,normalise,normaliseF
-                     ,simplify,simplifyF,cdsl) where
+module QFeldspar.CDSL
+  (module QFeldspar.Prelude.MiniFeldspar,shared,(.),
+   evaluate,compile,compileF,normalise,normaliseF,
+   simplify,simplifyF,cdsl) where
 
 import QFeldspar.Prelude.MiniFeldspar
 import QFeldspar.Prelude.Environment
 import QFeldspar.Singleton
-import QFeldspar.MyPrelude (frmRgt,String,(.),Bool)
+import QFeldspar.MyPrelude (frmRgt,String,(.))
 import qualified QFeldspar.MyPrelude as MP
 
 import QFeldspar.Conversion
@@ -18,11 +19,11 @@ import QFeldspar.Compiler(scompile)
 import QFeldspar.Normalisation (nrm)
 -- import QFeldspar.ChangeMonad
 import QFeldspar.Expression.Utils.Reuse.MiniFeldspar
+import QFeldspar.Expression.Utils.MiniFeldspar(shared)
 import QFeldspar.CSE(cse,remTag)
 import QFeldspar.Simplification (smp)
 
 type C    = String
-type Dp a = Data a
 
 evaluate :: forall a. Syn a => a -> InT a
 evaluate ee = let e = toExp ee

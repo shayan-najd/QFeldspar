@@ -1,41 +1,41 @@
 module Examples.FFT.CDSL where
+
 import Prelude hiding (Int,pi,div)
 import QFeldspar.CDSL
+import Examples.Prelude.CDSL
 
-fftVec :: Vec (Data Cmx) -> Vec (Data Cmx)
+fftVec :: Vec (Dp (Complex Float)) -> Vec (Dp (Complex Float))
 fftVec = \ (Vec ll f) ->
          let l     = $shared ll in
-         let steps = $shared (sub (ilog2 l) 1) in
+         let steps = $shared (ilog2E l - 1) in
          bitRev steps (fftCore steps (Vec l (\ i -> f i)))
 
-fftCore :: Data Int -> Vec (Data Cmx) -> Vec (Data Cmx)
+fftCore :: Dp Int -> Vec (Dp (Complex Float)) -> Vec (Dp (Complex Float))
 fftCore = \ n -> \ (Vec l f) ->
-          for (add n 1) (Vec l (\ i -> f i))
+          for (n + 1) (Vec l (\ i -> f i))
                 (\ j -> \ v ->
-                        Vec l (\ i -> ixf v (sub n j) i))
+                        Vec l (\ i -> ixf v (n - j) i))
 
-ixf :: Vec (Data Cmx)
-    -> Data Int -> Data Int -> Data Cmx
+ixf :: Vec (Dp (Complex Float))
+    -> Dp Int -> Dp Int -> Dp (Complex Float)
 ixf = \ (Vec _l f) -> \ kk -> \ i -> share kk (\ k ->
-      share (shfLft 1 k) (\ k2 ->
-      share (cis ((mul pi (i2f (lsbs k i))) / (i2f k2))) (\ twid ->
+      share (shfLftE 1 k) (\ k2 ->
+      share (cisE ((pi * (i2fE (lsbs k i))) / (i2fE k2))) (\ twid ->
       share (f i) (\ a ->
-      share (f (bitXor i k2)) (\ b ->
+      share (f (xorE i k2)) (\ b ->
         (testBit i k) ?
-           (mul twid (sub b a) , add a b))))))
+           (twid * (b - a) , a + b))))))
 
-bitRev :: Data Int -> Vec (Data Cmx) -> Vec (Data Cmx)
+bitRev :: Dp Int -> Vec (Dp (Complex Float)) -> Vec (Dp (Complex Float))
 bitRev = \ n -> \ x ->
-         for n x (\ i -> permute (\ _j -> rotBit (add i 1)))
+         for n x (\ i -> permute (\ _j -> rotBit (i + 1)))
 
-rotBit :: Data Int -> Data Int -> Data Int
+rotBit :: Dp Int -> Dp Int -> Dp Int
 rotBit = \ kk -> \ i ->
          share kk (\ k ->
-         bitOr
-         (shfLft (bitOr
-                  (shfLft (shfRgt (shfRgt i 1) k) 1)
-                  (bitAnd i 1)) k)
-         (lsbs k (shfRgt i 1)))
+         (shfLftE ((shfLftE (shfRgtE (shfRgtE i 1) k) 1) .|..
+                   (i .&.. 1)) k) .|..
+         (lsbs k (shfRgtE i 1)))
 
-fft :: Data (Ary Cmx) -> Data (Ary Cmx)
+fft :: Dp (Ary (Complex Float)) -> Dp (Ary (Complex Float))
 fft = toExpF fftVec
