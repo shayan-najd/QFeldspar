@@ -55,12 +55,6 @@ instance (FO a , FO b) => FO (a , b)       where {}
 instance FO a => FO (MP.Ary a)             where {}
 instance FO MP.Cmx                         where {}
 
-instance TH.Lift MP.Int where
-  lift i = MP.return (TH.LitE (TH.IntegerL (MP.toInteger i)))
-
-instance TH.Lift MP.Flt where
-  lift f = MP.return (TH.LitE (TH.RationalL (MP.toRational f)))
-
 while :: FO a => (a -> MP.Bol) -> (a -> a) -> a -> a
 while = MP.while
 

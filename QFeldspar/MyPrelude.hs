@@ -23,8 +23,8 @@ module QFeldspar.MyPrelude
         otherwise, impossible , impossibleM,badUse,badTypVal,
         badTypValM,frmRgtZro,
         lookup,
-        State,getState,put,modify,runState,execState,evalState,StateT
-             ,lift,runStateT,evalStateT,
+        State,getState,put,modify,runState,execState,evalState,StateT(..)
+             ,lift,evalStateT,
         module QFeldspar.ErrorMonad,
         module QFeldspar.NameMonad,
         module QFeldspar.Existential,

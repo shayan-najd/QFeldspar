@@ -154,5 +154,8 @@ library
      mtl              >=2.1 && <2.3,
      template-haskell >=2.9 && <2.10,
      pretty           >=1.1 && <1.2,
-     directory        >=1.2 && <1.3
+     directory        >=1.2 && <1.3,
+     th-desugar       >=1.5 && <1.6,
+     ghc-prim         >=0.3 && <0.4,
+     th-orphans       >=0.11 && <0.12
   default-language:    Haskell2010

@@ -2,182 +2,327 @@ module QFeldspar.Expression.Conversions.Unquoting () where
 
 import QFeldspar.MyPrelude
 
-import qualified QFeldspar.Expression.ADTUntypedNamed as FAUN
-import qualified Language.Haskell.TH.Syntax          as TH
+import qualified QFeldspar.Type.ADT as TA
+import qualified QFeldspar.Expression.ADTUntypedNamed as AUN
+import qualified Language.Haskell.TH.Syntax as TH
+import qualified Language.Haskell.TH.Desugar as DTH
+import qualified GHC.Types
+import Language.Haskell.TH.Instances ()
 import QFeldspar.Expression.Utils.TemplateHaskell
 import QFeldspar.Conversion
 import QFeldspar.Type.Conversion ()
+
+instance Cnv (DTH.DExp , r) (AUN.Exp TH.Name) where
+  cnv (ee , r) = let ?r = r in case ee of
+    DTH.DLitE l         -> case l of
+      TH.IntegerL  i    -> pure (AUN.Int  (fromInteger  i :: Int))
+      TH.RationalL i    -> pure (AUN.ConF (fromRational i :: Flt))
+      _                 -> fail "Not Supported!"
+    DTH.DVarE n
+      | n === 'fst          -> do vv1 <- newTHVar
+                                  pure (AUN.Abs (vv1 ,
+                                        AUN.Fst (AUN.Var vv1)))
+      | n === 'snd          -> do vv1 <- newTHVar
+                                  pure (AUN.Abs (vv1 ,
+                                        AUN.Snd (AUN.Var vv1)))
+      | n === 'save         -> do v1 <- newTHVar
+                                  pure (AUN.Abs (v1 ,
+                                       AUN.Mem (AUN.Var v1)))
+      | n === 'lnArr        -> do v1 <- newTHVar
+                                  pure (AUN.Abs (v1 ,
+                                        AUN.Len (AUN.Var v1)))
+      | n === 'ixArr        -> do v1 <- newTHVar
+                                  v2 <- newTHVar
+                                  pure (AUN.Abs (v1 ,
+                                     AUN.Abs (v2 ,
+                                     AUN.Ind (AUN.Var v1)
+                                             (AUN.Var v2))))
+      | n === '(*)          -> do v1 <- newTHVar
+                                  v2 <- newTHVar
+                                  pure (AUN.Abs (v1 ,
+                                        AUN.Abs (v2 ,
+                                        AUN.Mul (AUN.Var v1)
+                                                (AUN.Var v2))))
+      | n === '(+)          -> do v1 <- newTHVar
+                                  v2 <- newTHVar
+                                  pure (AUN.Abs (v1 ,
+                                        AUN.Abs (v2 ,
+                                        AUN.Add (AUN.Var v1)
+                                                (AUN.Var v2))))
+      | n === '(-)          -> do v1 <- newTHVar
+                                  v2 <- newTHVar
+                                  pure (AUN.Abs (v1 ,
+                                        AUN.Abs (v2 ,
+                                        AUN.Sub (AUN.Var v1)
+                                                (AUN.Var v2))))
+      | n === '(==)         -> do v1 <- newTHVar
+                                  v2 <- newTHVar
+                                  pure (AUN.Abs (v1 ,
+                                        AUN.Abs (v2 ,
+                                        AUN.Eql (AUN.Var v1)
+                                                (AUN.Var v2))))
+      | n === '(<)          -> do v1 <- newTHVar
+                                  v2 <- newTHVar
+                                  pure (AUN.Abs (v1 ,
+                                        AUN.Abs (v2 ,
+                                        AUN.Ltd (AUN.Var v1)
+                                                (AUN.Var v2))))
+      | n === 'mkArr        -> do v1 <- newTHVar
+                                  v2 <- newTHVar
+                                  pure (AUN.Abs (v1 ,
+                                        AUN.Abs (v2 ,
+                                        AUN.Ary (AUN.Var v1)
+                                                (AUN.Var v2))))
+      | n === 'while        -> do v1 <- newTHVar
+                                  v2 <- newTHVar
+                                  v3 <- newTHVar
+                                  pure (AUN.Abs (v1 ,
+                                     AUN.Abs (v2 ,
+                                     AUN.Abs (v3 ,
+                                     AUN.Whl (AUN.Var v1) (AUN.Var v2)
+                                             (AUN.Var v3)))))
+      | otherwise           -> pure (AUN.Var (stripNameSpace n))
+    DTH.DConE n
+      | n === 'True         -> pure (AUN.ConB True)
+      | n === 'False        -> pure (AUN.ConB False)
+      | n === 'Nothing      -> pure AUN.Non
+      | n === 'Just         -> do v1 <- newTHVar
+                                  pure (AUN.Abs (v1 ,
+                                        AUN.Som (AUN.Var v1)))
+      | n === '(,)          -> do vv1 <- newTHVar
+                                  vv2 <- newTHVar
+                                  pure (AUN.Abs (vv1 ,
+                                        AUN.Abs (vv2 ,
+                                        AUN.Tpl (AUN.Var vv1)
+                                                (AUN.Var vv1))))
+      | n === 'Vec          -> do v1 <- newTHVar
+                                  v2 <- newTHVar
+                                  pure (AUN.Abs (v1 ,
+                                        AUN.Abs (v2 ,
+                                        AUN.AryV (AUN.Var v1)
+                                                 (AUN.Var v2))))
+      | n === '(:+)         -> do v1 <- newTHVar
+                                  v2 <- newTHVar
+                                  pure (AUN.Abs (v1 ,
+                                        AUN.Abs (v2 ,
+                                        AUN.Cmx (AUN.Var v1)
+                                                (AUN.Var v2))))
+      | otherwise       -> pure (AUN.Var (stripNameSpace n))
+    DTH.DAppE (DTH.DAppE (DTH.DConE n) el) l
+      | n === '(,)      -> AUN.Tpl  <$@> el <*@> l
+      | n === 'Vec      -> AUN.AryV <$@> el <*@> l
+      | n === '(:+)     -> AUN.Cmx  <$@> el <*@> l
+    DTH.DAppE (DTH.DConE n) e
+      | n === 'Just     -> AUN.Som  <$@> e
+      | n === 'Vec      -> do v1 <- newTHVar
+                              e' <- cnvImp e
+                              pure (AUN.Abs (v1 ,
+                                    AUN.AryV e' (AUN.Var v1)))
+      | n === '(,)      -> do v1 <- newTHVar
+                              e' <- cnvImp e
+                              pure (AUN.Abs (v1 ,
+                                    AUN.Tpl e' (AUN.Var v1)))
+      | n === '(:+)     -> do v1 <- newTHVar
+                              e' <- cnvImp e
+                              pure (AUN.Abs (v1 ,
+                                    AUN.Cmx e' (AUN.Var v1)))
+    DTH.DAppE (DTH.DVarE n) e
+      | n === 'fst      -> AUN.Fst  <$@> e
+      | n === 'snd      -> AUN.Snd  <$@> e
+      | n === 'save     -> AUN.Mem  <$@> e
+      | n === 'lnArr    -> AUN.Len  <$@> e
+      | n === 'ixArr    -> do v1 <- newTHVar
+                              e' <- cnvImp e
+                              pure (AUN.Abs (v1 ,
+                                    AUN.Ind e' (AUN.Var v1)))
+      | n === '(*)      -> do v1 <- newTHVar
+                              e' <- cnvImp e
+                              pure (AUN.Abs (v1 ,
+                                    AUN.Mul e' (AUN.Var v1)))
+      | n === '(+)      -> do v1 <- newTHVar
+                              e' <- cnvImp e
+                              pure (AUN.Abs (v1 ,
+                                    AUN.Add e' (AUN.Var v1)))
+      | n === '(-)      -> do v1 <- newTHVar
+                              e' <- cnvImp e
+                              pure (AUN.Abs (v1 ,
+                                    AUN.Sub e' (AUN.Var v1)))
+      | n === '(==)     -> do v1 <- newTHVar
+                              e' <- cnvImp e
+                              pure (AUN.Abs (v1 ,
+                                    AUN.Eql e' (AUN.Var v1)))
+      | n === '(<)      -> do v1 <- newTHVar
+                              e' <- cnvImp e
+                              pure (AUN.Abs (v1 ,
+                                    AUN.Ltd e' (AUN.Var v1)))
+      | n === 'mkArr    -> do v1 <- newTHVar
+                              e' <- cnvImp e
+                              pure (AUN.Abs (v1 ,
+                                    AUN.Ary e' (AUN.Var v1)))
+      | n === 'while    -> do v1 <- newTHVar
+                              v2 <- newTHVar
+                              e' <- cnvImp e
+                              pure (AUN.Abs (v1 ,
+                                    AUN.Abs (v2 ,
+                                    AUN.Whl e' (AUN.Var v1)
+                                               (AUN.Var v2))))
+    DTH.DAppE (DTH.DAppE (DTH.DVarE n) el) er
+      | n === 'ixArr    -> AUN.Ind  <$@> el <*@> er
+      | n === '(*)      -> AUN.Mul  <$@> el <*@> er
+      | n === '(+)      -> AUN.Add  <$@> el <*@> er
+      | n === '(-)      -> AUN.Sub  <$@> el <*@> er
+      | n === '(==)     -> AUN.Eql  <$@> el <*@> er
+      | n === '(<)      -> AUN.Ltd  <$@> el <*@> er
+      | n === 'mkArr    -> AUN.Ary  <$@> el <*@> er
+      | n === 'while    -> do v1 <- newTHVar
+                              el' <- cnvImp el
+                              er' <- cnvImp er
+                              pure (AUN.Abs (v1 ,
+                                    AUN.Whl el' er' (AUN.Var v1)))
+    DTH.DAppE (DTH.DAppE (DTH.DAppE (DTH.DVarE n) l1) l2) ei
+      | n === 'while    -> AUN.Whl  <$@> l1 <*@> l2 <*@> ei
+    DTH.DAppE ef ea     -> AUN.App  <$@> ef <*@> ea
+    DTH.DLamE []  _     -> fail "Bad Syntax!"
+    DTH.DLamE [x] eb    -> AUN.Abs  <$@> (x , eb)
+    DTH.DLamE (x:xs) eb -> cnvImp (DTH.DLamE [x] (DTH.DLamE xs eb))
+        -- simple but not a good idea
+    DTH.DSigE e  t      -> AUN.Typ  <$@> t  <*@> e
+    DTH.DLetE [] _      -> fail "Bad Syntax!"
+    DTH.DLetE [DTH.DValD (DTH.DVarPa x) el] eb ->
+        AUN.Let  <$@> el <*@> (x , eb)
+    DTH.DLetE _  _      ->  fail "let bindings forms other than let x = M in N are not supported!"
+    DTH.DCaseE ec [DTH.DMatch
+      (DTH.DConPa n [DTH.DVarPa xf , DTH.DVarPa xs]) eb]
+         | n === '(,)    -> do v1 <- newTHVar
+                               ec' <- cnvImp ec
+                               eb' <- cnvImp eb
+                               pure (AUN.Let ec' (v1 ,
+                                     AUN.Let (AUN.Fst (AUN.Var v1))
+                                     (xf ,
+                                     AUN.Let (AUN.Snd (AUN.Var v1))
+                                     (xs , eb'))))
+         | n === 'Vec    -> do v1 <- newTHVar
+                               v2 <- newTHVar
+                               ec' <- cnvImp ec
+                               eb' <- cnvImp eb
+                               pure (AUN.Let ec' (v1 ,
+                                     AUN.Let (AUN.LenV (AUN.Var v1))
+                                     (xf ,
+                                     AUN.Let (AUN.Abs (v2 ,
+                                     AUN.IndV (AUN.Var v1)
+                                              (AUN.Var v2)))
+                                     (xs , eb'))))
+    DTH.DCaseE ec [DTH.DMatch (DTH.DConPa n []) el,
+                   DTH.DMatch (DTH.DConPa m []) er]
+         | n === 'False,
+           m === 'True  -> AUN.Cnd  <$@> ec <*@> er <*@> el
+    DTH.DCaseE ec [DTH.DMatch (DTH.DConPa n []) el,
+                   DTH.DMatch (DTH.DConPa m []) er]
+         | m === 'False,
+           n === 'True  -> AUN.Cnd  <$@> ec <*@> el <*@> er
+    DTH.DCaseE ec [DTH.DMatch (DTH.DConPa nl []) el,
+                   DTH.DMatch (DTH.DConPa nr [DTH.DVarPa xr]) er]
+        | nl === 'Nothing ,
+          nr === 'Just  -> AUN.May <$@> ec <*@> el <*@>
+                           (DTH.DLamE [xr] er)
+    DTH.DCaseE ec [DTH.DMatch (DTH.DConPa nl [DTH.DVarPa xr]) el,
+                   DTH.DMatch (DTH.DConPa nr []) er]
+        | nr === 'Nothing ,
+          nl === 'Just  -> AUN.May <$@> ec <*@> er <*@>
+                           (DTH.DLamE [xr] el)
+    DTH.DCaseE _ _      -> fail "case expression form is not supported!"
+    DTH.DStaticE _      -> fail "Not supported!"
+
+instance Cnv ((TH.Name , DTH.DExp) , r) (TH.Name , AUN.Exp TH.Name) where
+    cnv ((x , e) , r) = let ?r = r
+                        in (,) <$> pure (stripNameSpace x) <*@> e
+
+instance Cnv (DTH.DType , r) TA.Typ where
+  cnv (th , r) = let ?r = r in case th of
+   DTH.DConT n
+       | n == ''Word32                     -> pure TA.Int
+       | n == ''Int                        -> pure TA.Int
+       | n == ''Bol                        -> pure TA.Bol
+       | n == ''Bool                       -> pure TA.Bol
+       | n == ''Float                      -> pure TA.Flt
+       | n == ''Flt                        -> pure TA.Flt
+       | n == ''Cmx                        -> pure TA.Cmx
+   DTH.DAppT (DTH.DAppT (DTH.DConT n) (DTH.DConT m)) a
+       | n == ''Array && m == ''Word32     -> TA.Ary <$@> a
+       | n == ''Array && m == ''Int        -> TA.Ary <$@> a
+   DTH.DAppT (DTH.DAppT DTH.DArrowT   a) b -> TA.Arr <$@> a <*@> b
+   DTH.DAppT (DTH.DAppT (DTH.DConT n) a) b
+       | n == ''Arr                        -> TA.Arr <$@> a <*@> b
+       | n == ''(,)                        -> TA.Tpl <$@> a <*@> b
+       | n == ''Tpl                        -> TA.Tpl <$@> a <*@> b
+   DTH.DAppT (DTH.DConT n) (DTH.DConT m)
+       | n == ''Complex && m == ''Float    -> pure TA.Cmx
+       | n == ''Complex && m == ''Flt      -> pure TA.Cmx
+   DTH.DAppT (DTH.DConT n) a
+       | n == ''Maybe                      -> TA.May <$@> a
+       | n == ''May                        -> TA.May <$@> a
+       | n == ''Ary                        -> TA.Ary <$@> a
+       | n == ''Vec                        -> TA.Vec <$@> a
+   _            -> fail ("Syntax not supported:\n" ++ show th)
+
+-- not supported:
+--           | DLitT TyLit
+--           | DVarT Name
+--           | DSigT DType DKind
+--           | DForallT [DTyVarBndr] DCxt DType
 
 newTHVar :: NamM ErrM TH.Name
 newTHVar = do v1 <- newVar
               return (stripNameSpace (TH.mkName v1))
 
-mkDo :: [TH.Stmt] -> NamM ErrM (FAUN.Exp TH.Name)
-mkDo st = let ?r = () in case st of
-  [TH.NoBindS e]                -> cnvImp e
-  (TH.BindS (TH.VarP x) e : es) -> FAUN.App <$>
-                                   (FAUN.App (FAUN.Var (TH.mkName ">>="))
-                                            <$@> e)
-                                   <*> ((\ y -> FAUN.Abs (x , y)) <$> mkDo es)
-  (TH.NoBindS           e : es) -> FAUN.App <$>
-                                   (FAUN.App (FAUN.Var (TH.mkName ">>="))
-                                            <$@> e)
-                                   <*> ((\ y -> FAUN.Abs
-                                                (TH.mkName "__dummyb__" , y))
-                                        <$> mkDo es)
-  _                             -> fail ("Syntax Error!\n" ++ (show st))
+instance Cnv (TH.Exp , ()) (AUN.Exp TH.Name) where
+  cnv (ee , _) =  do
+    ee' :: DTH.DExp <- unQM (TH.runQ (DTH.desugar ee))
+    cnv (ee' , ())
 
-instance Cnv (TH.Exp , ()) (FAUN.Exp TH.Name) where
-  cnv (ee , r) = let ?r = r in case ee of
-    TH.ParensE e            -> cnvImp e
-    TH.InfixE (Just el) ef
-      (Just er)             -> cnvImp (TH.AppE (TH.AppE ef el) er)
-    TH.DoE stmts            -> mkDo stmts
-    TH.LitE (TH.IntegerL i) -> pure (FAUN.Int  (fromInteger  i :: Int))
-    TH.LitE (TH.RationalL i)-> pure (FAUN.ConF (fromRational i :: Flt))
-    TH.ConE n
-      | n === 'True         -> pure (FAUN.ConB True)
-      | n === 'False        -> pure (FAUN.ConB False)
-      | n === 'Nothing      -> pure FAUN.Non
-      | n === 'Vec          -> do v1 <- newTHVar
-                                  v2 <- newTHVar
-                                  pure (FAUN.Abs (v1 ,
-                                     FAUN.Abs (v2 ,
-                                     FAUN.AryV (FAUN.Var v1)
-                                               (FAUN.Var v2))))
-      | n === 'Just         -> do v1 <- newTHVar
-                                  pure (FAUN.Abs (v1 ,
-                                     FAUN.Som (FAUN.Var v1)))
-      | n === '(:+)         -> do v1 <- newTHVar
-                                  v2 <- newTHVar
-                                  pure (FAUN.Abs (v1 ,
-                                     FAUN.Abs (v2 ,
-                                     FAUN.Cmx (FAUN.Var v1) (FAUN.Var v2))))
-      | otherwise           -> pure (FAUN.Var (stripNameSpace n))
-    TH.VarE n
-      | n === 'save         -> do v1 <- newTHVar
-                                  pure (FAUN.Abs (v1 ,
-                                                  FAUN.Mem (FAUN.Var v1)))
-      | n === 'fst          -> do v1 <- newTHVar
-                                  pure (FAUN.Abs (v1 ,
-                                                  FAUN.Fst (FAUN.Var v1)))
-      | n === 'snd          -> do v1 <- newTHVar
-                                  pure (FAUN.Abs (v1 ,
-                                                  FAUN.Snd (FAUN.Var v1)))
-      | n === 'lnArr        -> do v1 <- newTHVar
-                                  pure (FAUN.Abs (v1 ,
-                                                  FAUN.Len (FAUN.Var v1)))
-      | n === 'ixArr        -> do v1 <- newTHVar
-                                  v2 <- newTHVar
-                                  pure (FAUN.Abs (v1 ,
-                                     FAUN.Abs (v2 ,
-                                     FAUN.Ind (FAUN.Var v1) (FAUN.Var v2))))
-      | n === '(*)          -> do v1 <- newTHVar
-                                  v2 <- newTHVar
-                                  pure (FAUN.Abs (v1 ,
-                                     FAUN.Abs (v2 ,
-                                     FAUN.Mul (FAUN.Var v1) (FAUN.Var v2))))
-      | n === '(+)          -> do v1 <- newTHVar
-                                  v2 <- newTHVar
-                                  pure (FAUN.Abs (v1 ,
-                                     FAUN.Abs (v2 ,
-                                     FAUN.Add (FAUN.Var v1) (FAUN.Var v2))))
-      | n === '(-)          -> do v1 <- newTHVar
-                                  v2 <- newTHVar
-                                  pure (FAUN.Abs (v1 ,
-                                     FAUN.Abs (v2 ,
-                                     FAUN.Sub (FAUN.Var v1) (FAUN.Var v2))))
-      | n === '(==)         -> do v1 <- newTHVar
-                                  v2 <- newTHVar
-                                  pure (FAUN.Abs (v1 ,
-                                     FAUN.Abs (v2 ,
-                                     FAUN.Eql (FAUN.Var v1) (FAUN.Var v2))))
-      | n === '(<)          -> do v1 <- newTHVar
-                                  v2 <- newTHVar
-                                  pure (FAUN.Abs (v1 ,
-                                     FAUN.Abs (v2 ,
-                                     FAUN.Ltd (FAUN.Var v1) (FAUN.Var v2))))
-      | n === 'mkArr        -> do v1 <- newTHVar
-                                  v2 <- newTHVar
-                                  pure (FAUN.Abs (v1 ,
-                                     FAUN.Abs (v2 ,
-                                     FAUN.Ary (FAUN.Var v1) (FAUN.Var v2))))
-      | n === 'while        -> do v1 <- newTHVar
-                                  v2 <- newTHVar
-                                  v3 <- newTHVar
-                                  pure (FAUN.Abs (v1 ,
-                                     FAUN.Abs (v2 ,
-                                     FAUN.Abs (v3 ,
-                                     FAUN.Whl (FAUN.Var v1) (FAUN.Var v2)
-                                              (FAUN.Var v3)))))
-      | otherwise           -> pure (FAUN.Var (stripNameSpace n))
+data QM a = QM {unQM :: StateT GHC.Types.Int ErrM a}
 
-    TH.LamE [TH.VarP x] eb  -> FAUN.Abs <$@> (x , eb)
-    TH.LamE [p]         eb  -> do v1 <- newTHVar
-                                  cnvImp (TH.LamE [TH.VarP v1]
-                                       (TH.CaseE (TH.VarE v1)
-                                       [TH.Match p (TH.NormalB eb) []]))
-    TH.LamE (x:xs)      eb  -> cnvImp (TH.LamE [x] (TH.LamE xs eb))
+instance Applicative QM where
+  pure = QM . pure
+  f <*> g = QM (unQM f <*> unQM g)
 
-    TH.AppE (TH.AppE (TH.ConE n) el) l
-      | n === 'Vec           -> FAUN.AryV <$@> el <*@> l
-    TH.AppE (TH.ConE n) e
-      | n === 'Just          -> FAUN.Som  <$@> e
-      | n === '(:+)          -> do v1 <- newTHVar
-                                   e' <- cnvImp e
-                                   pure (FAUN.Abs (v1 ,
-                                         FAUN.Cmx e' (FAUN.Var v1)))
-    TH.AppE (TH.VarE n) ea
-      | n === 'save          -> FAUN.Mem  <$@> ea
-      | n === 'fst           -> FAUN.Fst  <$@> ea
-      | n === 'snd           -> FAUN.Snd  <$@> ea
-      | n === 'lnArr         -> FAUN.Len  <$@> ea
-    TH.AppE (TH.AppE
-        (TH.ConE n) el) er
-      | n === '(:+)          -> FAUN.Cmx  <$@> el <*@> er
-    TH.AppE (TH.AppE
-        (TH.VarE n) el) er
-      | n === 'ixArr         -> FAUN.Ind  <$@> el <*@> er
-      | n === '(*)           -> FAUN.Mul  <$@> el <*@> er
-      | n === '(+)           -> FAUN.Add  <$@> el <*@> er
-      | n === '(-)           -> FAUN.Sub  <$@> el <*@> er
-      | n === '(==)          -> FAUN.Eql  <$@> el <*@> er
-      | n === '(<)           -> FAUN.Ltd  <$@> el <*@> er
-      | n === 'mkArr         -> FAUN.Ary  <$@> el <*@> er
-    TH.AppE (TH.AppE
-        (TH.AppE (TH.VarE n)
-        l1) l2) ei
-      | n === 'while        -> FAUN.Whl  <$@> l1 <*@> l2
-                                         <*@> ei
-    TH.AppE ef ea           -> FAUN.App  <$@> ef <*@> ea
-    TH.CondE ec et ef       -> FAUN.Cnd  <$@> ec <*@> et <*@> ef
-    TH.TupE [ef , es]       -> FAUN.Tpl  <$@> ef <*@> es
-    TH.LetE [TH.ValD (TH.VarP x) (TH.NormalB el) []] eb
-                            -> FAUN.Let  <$@> el <*@> (x , eb)
-    TH.CaseE ec [TH.Match (TH.TupP [TH.VarP xf , TH.VarP xs]) (TH.NormalB eb) []]
-                            -> do v1 <- newTHVar
-                                  ec' <- cnvImp ec
-                                  eb' <- cnvImp eb
-                                  pure (FAUN.Let ec' (v1 ,
-                                           FAUN.Let (FAUN.Fst (FAUN.Var v1)) (xf ,
-                                           FAUN.Let (FAUN.Snd (FAUN.Var v1)) (xs ,
-                                             eb'))))
-    TH.CaseE ec [TH.Match (TH.ConP nl [TH.VarP xl , TH.VarP xf]) (TH.NormalB eb) []]
-        | nl === 'Vec       -> do v1 <- newTHVar
-                                  v2 <- newTHVar
-                                  ec' <- cnvImp ec
-                                  eb' <- cnvImp eb
-                                  pure (FAUN.Let ec' (v1 ,
-                                             FAUN.Let (FAUN.LenV (FAUN.Var v1)) (xl ,
-                                             FAUN.Let (FAUN.Abs (v2 , FAUN.IndV (FAUN.Var v1) (FAUN.Var v2))) (xf ,
-                                             eb'))))
-    TH.CaseE ec [TH.Match (TH.ConP nl []) (TH.NormalB el) []
-                ,TH.Match (TH.ConP nr [TH.VarP xr]) (TH.NormalB er) []]
-        | nl === 'Nothing ,
-          nr === 'Just      -> FAUN.May <$@> ec <*@> el <*@> (TH.LamE [TH.VarP xr] er)
-    TH.SigE e t             -> FAUN.Typ <$@> t  <*@> e
-    e                       -> fail  ("Syntax Error!\n" ++ (show e))
+instance Functor QM where
+  fmap f = QM . fmap f . unQM
 
-instance Cnv ((TH.Name , TH.Exp) , ()) (TH.Name , FAUN.Exp TH.Name) where
-    cnv ((x , e) , r) = let ?r = r
-                        in (,) <$> pure (stripNameSpace x) <*@> e
+instance Monad QM where
+  return       = QM . return
+  (QM m) >>= f = QM (m >>= (unQM .f))
+
+
+instance TH.Quasi QM where
+  qNewName s          = QM (do n <- newVar
+                               return (TH.mkName (n++s)))
+  qReport b e         = QM (fail (if b
+                                  then ("Error: " ++ e)
+                                  else ("Warning: " ++ e)))
+  qRecover m1 m2      = QM (StateT (\ s -> case runStateT (unQM m1) s of
+                                             Lft _ -> runStateT (unQM m2) s
+                                             x     -> x))
+  qReify  n
+    | n === 'False    = QM (return $(do {i <- TH.reify 'False; TH.lift i}))
+    | n === 'True     = QM (return $(do {i <- TH.reify 'True; TH.lift i}))
+    | n === ''Bool    = QM (return $(do {i <- TH.reify ''Bool; TH.lift i}))
+    | n === 'Nothing  = QM (return $(do {i <- TH.reify 'Nothing; TH.lift i}))
+    | n === 'Just     = QM (return $(do {i <- TH.reify 'Just; TH.lift i}))
+    | n === ''Maybe   = QM (return $(do {i <- TH.reify ''Maybe; TH.lift i}))
+    | n === '(,)      = QM (return $(do {i <- TH.reify '(,); TH.lift i}))
+    | n === ''(,)     = QM (return $(do {i <- TH.reify ''(,); TH.lift i}))
+    | otherwise       = QM (fail ("Not Supported for reification:\n"++ show n))
+
+  qLookupName _ _     = QM (fail "Not Allowed!")
+  qReifyInstances _ _ = QM (fail "Not Allowed!")
+  qLocation           = QM (fail "Not Allowed!")
+  qReifyRoles _       = QM (fail "Not Allowed!")
+  qReifyAnnotations _ = QM (fail "Not Allowed!")
+  qReifyModule _      = QM (fail "Not Allowed!")
+  qAddDependentFile _ = QM (fail "Not Allowed!")
+  qAddModFinalizer _  = QM (fail "Not Allowed!")
+  qAddTopDecls _      = QM (fail "Not Allowed!")
+  qRunIO _            = QM (fail "Not Allowed!")
+  qPutQ _             = QM (fail "Not Allowed!")
+  qGetQ               = QM (fail "Not Allowed!")

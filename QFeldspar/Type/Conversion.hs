@@ -100,7 +100,7 @@ instance Cnv (HR.Typ (HR.EnvFld '[]) , r) TFA.Typ where
 
 instance ts ~ ts' => Cnv (TFG.Typ ts, r) (TFG.Typ ts') where
   cnv = pure . fst
-
+{-
 ---------------------------------------------------------------------------------
 --  Conversion from HR.Typ
 ---------------------------------------------------------------------------------
@@ -132,3 +132,4 @@ instance Cnv (TH.Type , r) TFA.Typ where
        | n == ''Ary                     -> TFA.Ary <$@> a
        | n == ''Vec                     -> TFA.Vec <$@> a
    _            -> fail ("Type Error:\n" ++ show th)
+-}
