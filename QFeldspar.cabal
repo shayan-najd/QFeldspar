@@ -117,8 +117,7 @@ library
      QFeldspar.Environment.Conversion,
      QFeldspar.Prelude.MiniFeldspar,
      QFeldspar.Prelude.HaskellEnvironment,
-     QFeldspar.Prelude.Environment,
-     QFeldspar.Prelude.TemplateHaskell
+     QFeldspar.Prelude.Environment
   other-modules:
      Experiment.GenExperiment,
      Experiment.Process,

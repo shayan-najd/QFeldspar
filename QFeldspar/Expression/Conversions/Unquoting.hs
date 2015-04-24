@@ -5,20 +5,20 @@ import QFeldspar.MyPrelude
 import qualified QFeldspar.Type.ADT as TA
 import qualified QFeldspar.Expression.ADTUntypedNamed as AUN
 import qualified Language.Haskell.TH.Syntax as TH
-import qualified Language.Haskell.TH.Desugar as DTH
+import qualified Language.Haskell.TH.Desugar as  DTH
 import qualified GHC.Types
 import Language.Haskell.TH.Instances ()
 import QFeldspar.Expression.Utils.TemplateHaskell
 import QFeldspar.Conversion
 import QFeldspar.Type.Conversion ()
 
-instance Cnv (DTH.DExp , r) (AUN.Exp TH.Name) where
+instance Cnv (DTH.MExp , r) (AUN.Exp TH.Name) where
   cnv (ee , r) = let ?r = r in case ee of
-    DTH.DLitE l         -> case l of
+    DTH.MLitE l         -> case l of
       TH.IntegerL  i    -> pure (AUN.Int  (fromInteger  i :: Int))
       TH.RationalL i    -> pure (AUN.ConF (fromRational i :: Flt))
       _                 -> fail "Not Supported!"
-    DTH.DVarE n
+    DTH.MVarE n
       | n === 'fst          -> do vv1 <- newTHVar
                                   pure (AUN.Abs (vv1 ,
                                         AUN.Fst (AUN.Var vv1)))
@@ -82,7 +82,7 @@ instance Cnv (DTH.DExp , r) (AUN.Exp TH.Name) where
                                      AUN.Whl (AUN.Var v1) (AUN.Var v2)
                                              (AUN.Var v3)))))
       | otherwise           -> pure (AUN.Var (stripNameSpace n))
-    DTH.DConE n
+    DTH.MConE n
       | n === 'True         -> pure (AUN.ConB True)
       | n === 'False        -> pure (AUN.ConB False)
       | n === 'Nothing      -> pure AUN.Non
@@ -108,11 +108,11 @@ instance Cnv (DTH.DExp , r) (AUN.Exp TH.Name) where
                                         AUN.Cmx (AUN.Var v1)
                                                 (AUN.Var v2))))
       | otherwise       -> pure (AUN.Var (stripNameSpace n))
-    DTH.DAppE (DTH.DAppE (DTH.DConE n) el) l
+    DTH.MAppE (DTH.MAppE (DTH.MConE n) el) l
       | n === '(,)      -> AUN.Tpl  <$@> el <*@> l
       | n === 'Vec      -> AUN.AryV <$@> el <*@> l
       | n === '(:+)     -> AUN.Cmx  <$@> el <*@> l
-    DTH.DAppE (DTH.DConE n) e
+    DTH.MAppE (DTH.MConE n) e
       | n === 'Just     -> AUN.Som  <$@> e
       | n === 'Vec      -> do v1 <- newTHVar
                               e' <- cnvImp e
@@ -126,7 +126,7 @@ instance Cnv (DTH.DExp , r) (AUN.Exp TH.Name) where
                               e' <- cnvImp e
                               pure (AUN.Abs (v1 ,
                                     AUN.Cmx e' (AUN.Var v1)))
-    DTH.DAppE (DTH.DVarE n) e
+    DTH.MAppE (DTH.MVarE n) e
       | n === 'fst      -> AUN.Fst  <$@> e
       | n === 'snd      -> AUN.Snd  <$@> e
       | n === 'save     -> AUN.Mem  <$@> e
@@ -166,7 +166,7 @@ instance Cnv (DTH.DExp , r) (AUN.Exp TH.Name) where
                                     AUN.Abs (v2 ,
                                     AUN.Whl e' (AUN.Var v1)
                                                (AUN.Var v2))))
-    DTH.DAppE (DTH.DAppE (DTH.DVarE n) el) er
+    DTH.MAppE (DTH.MAppE (DTH.MVarE n) el) er
       | n === 'ixArr    -> AUN.Ind  <$@> el <*@> er
       | n === '(*)      -> AUN.Mul  <$@> el <*@> er
       | n === '(+)      -> AUN.Add  <$@> el <*@> er
@@ -179,20 +179,14 @@ instance Cnv (DTH.DExp , r) (AUN.Exp TH.Name) where
                               er' <- cnvImp er
                               pure (AUN.Abs (v1 ,
                                     AUN.Whl el' er' (AUN.Var v1)))
-    DTH.DAppE (DTH.DAppE (DTH.DAppE (DTH.DVarE n) l1) l2) ei
+    DTH.MAppE (DTH.MAppE (DTH.MAppE (DTH.MVarE n) l1) l2) ei
       | n === 'while    -> AUN.Whl  <$@> l1 <*@> l2 <*@> ei
-    DTH.DAppE ef ea     -> AUN.App  <$@> ef <*@> ea
-    DTH.DLamE []  _     -> fail "Bad Syntax!"
-    DTH.DLamE [x] eb    -> AUN.Abs  <$@> (x , eb)
-    DTH.DLamE (x:xs) eb -> cnvImp (DTH.DLamE [x] (DTH.DLamE xs eb))
-        -- simple but not a good idea
-    DTH.DSigE e  t      -> AUN.Typ  <$@> t  <*@> e
-    DTH.DLetE [] _      -> fail "Bad Syntax!"
-    DTH.DLetE [DTH.DValD (DTH.DVarPa x) el] eb ->
+    DTH.MAppE ef ea     -> AUN.App  <$@> ef <*@> ea
+    DTH.MLamE x   eb    -> AUN.Abs  <$@> (x , eb)
+    DTH.MSigE e  t      -> AUN.Typ  <$@> t  <*@> e
+    DTH.MLetE x el eb   ->
         AUN.Let  <$@> el <*@> (x , eb)
-    DTH.DLetE _  _      ->  fail "let bindings forms other than let x = M in N are not supported!"
-    DTH.DCaseE ec [DTH.DMatch
-      (DTH.DConPa n [DTH.DVarPa xf , DTH.DVarPa xs]) eb]
+    DTH.MCaseE ec [(DTH.DConPa n [DTH.DVarPa xf , DTH.DVarPa xs],eb)]
          | n === '(,)    -> do v1 <- newTHVar
                                ec' <- cnvImp ec
                                eb' <- cnvImp eb
@@ -212,28 +206,27 @@ instance Cnv (DTH.DExp , r) (AUN.Exp TH.Name) where
                                      AUN.IndV (AUN.Var v1)
                                               (AUN.Var v2)))
                                      (xs , eb'))))
-    DTH.DCaseE ec [DTH.DMatch (DTH.DConPa n []) el,
-                   DTH.DMatch (DTH.DConPa m []) er]
+    DTH.MCaseE ec [(DTH.DConPa n [] , el),
+                   (DTH.DConPa m [] , er)]
          | n === 'False,
            m === 'True  -> AUN.Cnd  <$@> ec <*@> er <*@> el
-    DTH.DCaseE ec [DTH.DMatch (DTH.DConPa n []) el,
-                   DTH.DMatch (DTH.DConPa m []) er]
+    DTH.MCaseE ec [(DTH.DConPa n [] , el),
+                   (DTH.DConPa m [] , er)]
          | m === 'False,
            n === 'True  -> AUN.Cnd  <$@> ec <*@> el <*@> er
-    DTH.DCaseE ec [DTH.DMatch (DTH.DConPa nl []) el,
-                   DTH.DMatch (DTH.DConPa nr [DTH.DVarPa xr]) er]
+    DTH.MCaseE ec [(DTH.DConPa nl [] , el),
+                   (DTH.DConPa nr [DTH.DVarPa xr] , er)]
         | nl === 'Nothing ,
           nr === 'Just  -> AUN.May <$@> ec <*@> el <*@>
-                           (DTH.DLamE [xr] er)
-    DTH.DCaseE ec [DTH.DMatch (DTH.DConPa nl [DTH.DVarPa xr]) el,
-                   DTH.DMatch (DTH.DConPa nr []) er]
+                           (DTH.MLamE xr er)
+    DTH.MCaseE ec [(DTH.DConPa nl [DTH.DVarPa xr] , el),
+                   (DTH.DConPa nr [] , er)]
         | nr === 'Nothing ,
           nl === 'Just  -> AUN.May <$@> ec <*@> er <*@>
-                           (DTH.DLamE [xr] el)
-    DTH.DCaseE _ _      -> fail "case expression form is not supported!"
-    DTH.DStaticE _      -> fail "Not supported!"
+                           (DTH.MLamE xr el)
+    DTH.MCaseE _ _      -> fail "case expression form is not supported!"
 
-instance Cnv ((TH.Name , DTH.DExp) , r) (TH.Name , AUN.Exp TH.Name) where
+instance Cnv ((TH.Name , DTH.MExp) , r) (TH.Name , AUN.Exp TH.Name) where
     cnv ((x , e) , r) = let ?r = r
                         in (,) <$> pure (stripNameSpace x) <*@> e
 
@@ -277,7 +270,7 @@ newTHVar = do v1 <- newVar
 
 instance Cnv (TH.Exp , ()) (AUN.Exp TH.Name) where
   cnv (ee , _) =  do
-    ee' :: DTH.DExp <- unQM (TH.runQ (DTH.desugar ee))
+    ee' :: DTH.MExp <- unQM (TH.runQ (DTH.desugar ee))
     cnv (ee' , ())
 
 data QM a = QM {unQM :: StateT GHC.Types.Int ErrM a}
