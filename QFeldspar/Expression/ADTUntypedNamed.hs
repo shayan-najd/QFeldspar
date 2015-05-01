@@ -34,6 +34,7 @@ data Exp x = ConI Int
            | Ltd (Exp x) (Exp x)
            | Int Int
            | Mem (Exp x)
+           | Fix (Exp x)
 
 deriving instance Eq x   => Eq   (Exp x)
 deriving instance Show x => Show (Exp x)

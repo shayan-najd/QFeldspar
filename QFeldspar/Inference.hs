@@ -182,3 +182,7 @@ collect ee r = case ee of
                          return Bol
     Int _          -> newMT
     Mem e          -> collect e r
+    Fix e          -> do te <- collect e r
+                         ta <- newMT
+                         addC (te :~: Arr ta ta)
+                         return ta

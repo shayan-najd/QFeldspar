@@ -42,3 +42,4 @@ data Exp :: [*] -> * -> * where
   Int  :: Int      -> Exp r a
   Tag  :: String   -> Exp r a -> Exp r a
   Mem  :: Exp r a  -> Exp r a
+  Fix  :: Exp r (a -> a) -> Exp r a

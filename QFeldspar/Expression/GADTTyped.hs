@@ -36,6 +36,7 @@ data Exp :: NA.Nat -> * -> * where
   Ltd  :: t -> Exp n t -> Exp n t -> Exp n t
   Int  :: Int -> Exp n t
   Mem  :: Exp n t -> Exp n t
+  Fix  :: Exp n t -> Exp n t
 
 deriving instance Eq t   => Eq   (Exp n t)
 deriving instance Show t => Show (Exp n t)

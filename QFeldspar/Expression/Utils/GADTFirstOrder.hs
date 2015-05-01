@@ -130,6 +130,7 @@ isVal ee = case ee of
     Int _         -> True -- shouldn't matter
     Tag _ e       -> isVal e
     Mem _         -> False
+    Fix _         -> False
 
 val :: Exp n t -> (Bool,Exp n t)
 val ee = (isVal ee , ee)

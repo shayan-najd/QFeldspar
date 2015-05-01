@@ -81,6 +81,9 @@ instance Cnv (DTH.MExp , r) (AUN.Exp TH.Name) where
                                      AUN.Abs (v3 ,
                                      AUN.Whl (AUN.Var v1) (AUN.Var v2)
                                              (AUN.Var v3)))))
+      | n === 'fix          -> do v1 <- newTHVar
+                                  pure (AUN.Abs (v1 ,
+                                        AUN.Fix (AUN.Var v1)))
       | otherwise           -> pure (AUN.Var (stripNameSpace n))
     DTH.MConE n
       | n === 'True         -> pure (AUN.ConB True)
@@ -166,6 +169,7 @@ instance Cnv (DTH.MExp , r) (AUN.Exp TH.Name) where
                                     AUN.Abs (v2 ,
                                     AUN.Whl e' (AUN.Var v1)
                                                (AUN.Var v2))))
+      | n === 'fix      -> AUN.Fix  <$@> e
     DTH.MAppE (DTH.MAppE (DTH.MVarE n) el) er
       | n === 'ixArr    -> AUN.Ind  <$@> el <*@> er
       | n === '(*)      -> AUN.Mul  <$@> el <*@> er

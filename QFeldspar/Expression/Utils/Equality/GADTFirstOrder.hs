@@ -126,3 +126,6 @@ eql (Tag _ _)   _             = False
 
 eql (Mem e)     (Mem e')      = eql e e'
 eql (Mem _)     _             = False
+
+eql (Fix e)     (Fix e')      = eql e e'
+eql (Fix _)     _             = False

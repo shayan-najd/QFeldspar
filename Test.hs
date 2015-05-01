@@ -23,6 +23,11 @@ import qualified Examples.IPGray.QDSL ()
 import qualified Examples.Windowing.CDSL ()
 import qualified Examples.Windowing.QDSL ()
 
+import QFeldspar.Normalisation ()
+import QFeldspar.Simplification ()
+import QFeldspar.CSE ()
+
+
 main :: IO ()
 main = print (if FAUN.test  && FAUD.test && FGTD.test  &&
                  FGFO.test  && FGHO.test && FMWS.test  &&

@@ -146,6 +146,7 @@ instance (r ~ r' , n ~ Len r , HasSin TFG.Typ t) =>
       TFG.Flt         -> pure (FGFO.Int i)
       _               -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
     FGTD.Mem e        -> FGFO.Mem <$@> e
+    FGTD.Fix e        -> FGFO.Fix <$@> e
 
 instance (r ~ r' , n ~ Len (tr ': r) , HasSin TFG.Typ t , tr ~ tr') =>
          Cnv ((TFG.Typ tr , FGTD.Exp n TFA.Typ) , Env TFG.Typ r)
