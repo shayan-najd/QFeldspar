@@ -21,7 +21,7 @@ m <$+> n = do m' <- m
               return (m' ++ " (" ++ n' ++ ")")
 
 showM :: forall g t.
-         Exp g t -> State Int String
+         Exp g t -> State Word32 String
 showM e = case e of
   Tmp  x    -> pure x
   _         -> $(recAppMQ 'e ''Exp ( (\ s -> [| pure s |]) .  show . stripNameSpace) ['Tmp]
@@ -31,7 +31,7 @@ showM e = case e of
     | matchQ tt [t| Exp t t |]            -> [| showM  |]
     | otherwise                           -> [| (pure . show) |]))
 
-showMF :: (Exp g a -> Exp g b) -> State Int String
+showMF :: (Exp g a -> Exp g b) -> State Word32 String
 showMF f = do i  <- getState
               put (i+1)
               let v = "x" ++ show i

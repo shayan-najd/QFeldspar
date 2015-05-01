@@ -8,13 +8,13 @@ import QFeldspar.MyPrelude hiding (abs,fst,snd,may,som,non,tpl,cnd,fix)
 import qualified QFeldspar.MyPrelude as MP
 import qualified QFeldspar.Type.ADT as TFA
 
-data Exp = ConI Int
-         | ConB Bol
-         | ConF Flt
+data Exp = ConI Word32
+         | ConB Bool
+         | ConF Float
          | Abs (Exp -> ErrM Exp)
          | Tpl (Exp , Exp)
          | Ary (Ary Exp)
-         | Cmx Cmx
+         | Cmx (Complex Float)
 
 class Lft t where
   lft :: t -> Exp
@@ -22,7 +22,7 @@ class Lft t where
 instance Lft Exp where
   lft = id
 
-instance Lft Int where
+instance Lft Word32 where
   lft = ConI
 
 instance Lft Bool where
@@ -37,7 +37,7 @@ instance (CoLft a , Lft b) => Lft (a -> b) where
 instance (Lft a , Lft b) => Lft (a , b) where
   lft (x , y) = Tpl (lft x , lft y)
 
-instance Lft a => Lft (Array Int a) where
+instance Lft a => Lft (Array Word32 a) where
   lft a = Ary (fmap lft a)
 
 instance Lft (Complex Float) where
@@ -46,7 +46,7 @@ instance Lft (Complex Float) where
 class CoLft t where
   colft :: Exp -> ErrM t
 
-instance CoLft Int where
+instance CoLft Word32 where
   colft (ConI i) = return i
   colft _        = badTypValM
 
@@ -66,7 +66,7 @@ instance (CoLft a , CoLft b) => CoLft (a , b) where
   colft (Tpl (x , y)) = ((,)) <$> colft x <*> colft y
   colft _             = badTypValM
 
-instance CoLft a => CoLft (Array Int a) where
+instance CoLft a => CoLft (Array Word32 a) where
   colft (Ary x)  = mapM colft x
   colft _        = badTypValM
 
@@ -77,7 +77,7 @@ instance CoLft (Complex Float) where
 class ToHsk t where
   toHsk :: Exp -> ErrM t
 
-instance ToHsk Int where
+instance ToHsk Word32 where
   toHsk (ConI i) = return i
   toHsk _        = badTypValM
 
@@ -97,7 +97,7 @@ instance ToHsk (Exp , Exp) where
   toHsk (Tpl p ) = return p
   toHsk _        = badTypValM
 
-instance ToHsk (Array Int Exp) where
+instance ToHsk (Array Word32 Exp) where
   toHsk (Ary x)  = return x
   toHsk _        = badTypValM
 
@@ -122,7 +122,7 @@ prm2 f x y = do x' <- toHsk x
 var :: a -> NamM ErrM a
 var = return
 
-conI :: Int -> NamM ErrM Exp
+conI :: Word32 -> NamM ErrM Exp
 conI = lift . prm0
 
 conB :: Bool -> NamM ErrM Exp
@@ -206,7 +206,7 @@ ltd (ConI i) (ConI i') = return (lft (i < i'))
 ltd (ConF f) (ConF f') = return (lft (f < f'))
 ltd _        _         = badTypValM
 
-int :: Int -> NamM ErrM Exp
+int :: Word32 -> NamM ErrM Exp
 int = lift . prm0
 
 mem :: Exp -> NamM ErrM Exp

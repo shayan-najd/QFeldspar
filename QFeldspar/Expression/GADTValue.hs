@@ -38,49 +38,49 @@ prm3 f e1 e2 e3 = let e1' = getTrm e1
 var :: t -> t
 var = id
 
-conI :: Int -> Exp Int
+conI :: Word32 -> Exp Word32
 conI = prm0
 
-conB :: Bool -> Exp Bol
+conB :: Bool -> Exp Bool
 conB = prm0
 
-conF :: Float -> Exp Flt
+conF :: Float -> Exp Float
 conF = prm0
 
-abs :: Exp (Arr ta tb) -> Exp (Arr ta tb)
+abs :: Exp (ta -> tb) -> Exp (ta -> tb)
 abs = id
 
-app :: Exp (Arr ta tb) -> Exp ta -> Exp tb
+app :: Exp (ta -> tb) -> Exp ta -> Exp tb
 app = prm2 (\ f x -> f x)
 
-cnd :: Exp Bol -> Exp a -> Exp a -> Exp a
+cnd :: Exp Bool -> Exp a -> Exp a -> Exp a
 cnd = prm3 MP.cnd
 
-whl :: Exp (Arr s  Bol) -> Exp (Arr s s) -> Exp s -> Exp s
+whl :: Exp (s -> Bool) -> Exp (s -> s) -> Exp s -> Exp s
 whl = prm3 MP.while
 
-tpl :: Exp tf -> Exp ts -> Exp (Tpl tf ts)
+tpl :: Exp tf -> Exp ts -> Exp (tf , ts)
 tpl = prm2 MP.tpl
 
-fst :: Exp (Tpl a b) -> Exp a
+fst :: Exp (a , b) -> Exp a
 fst = prm1 MP.fst
 
-snd :: Exp (Tpl a b) -> Exp b
+snd :: Exp (a , b) -> Exp b
 snd = prm1 MP.snd
 
-ary :: Exp Int -> Exp (Arr Int a) -> Exp (Ary a)
+ary :: Exp Word32 -> Exp (Word32 -> a) -> Exp (Ary a)
 ary = prm2 MP.mkArr
 
-len :: Exp (Ary a) -> Exp Int
+len :: Exp (Ary a) -> Exp Word32
 len = prm1 MP.lnArr
 
-ind :: Exp (Ary a) -> Exp Int -> Exp a
+ind :: Exp (Ary a) -> Exp Word32 -> Exp a
 ind = prm2 MP.ixArr
 
-leT :: Exp tl -> Exp (Arr tl tb) -> Exp tb
+leT :: Exp tl -> Exp (tl -> tb) -> Exp tb
 leT = prm2 (\ x f -> f x)
 
-cmx :: Exp Flt -> Exp Flt -> Exp Cmx
+cmx :: Exp Float -> Exp Float -> Exp (Complex Float)
 cmx = prm2 (:+)
 
 mul :: Num a => Exp a -> Exp a -> Exp a
@@ -101,7 +101,7 @@ ltd = prm2 (<)
 tag :: String -> Exp a -> Exp a
 tag = const id
 
-int :: Num a => Int -> Exp a
+int :: Num a => Word32 -> Exp a
 int = Exp . fromIntegral
 
 mem :: Exp a -> Exp a

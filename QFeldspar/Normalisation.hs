@@ -96,7 +96,7 @@ nrmOne ee = let t = sin :: TFG.Typ a in case ee of
     Ltd (NV er) (V ei)           -> chg (Let er (Ltd (Var Zro)   (sucAll ei)))
 
     Int i                        -> case t of
-      TFG.Int                    -> chg (ConI i)
+      TFG.Wrd                    -> chg (ConI i)
       TFG.Flt                    -> chg (ConF (fromIntegral i))
       _                          -> fail "Type Error3!"
 

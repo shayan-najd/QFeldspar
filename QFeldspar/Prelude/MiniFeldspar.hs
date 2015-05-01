@@ -1,6 +1,6 @@
 module QFeldspar.Prelude.MiniFeldspar
   (Dp,Syn(..),toExpF,frmExpF,Type,Num,EqE,OrdE,Fractional,conF,
-   Int,Float,Bool,pattern TrueE,pattern FalseE,(?),while,fst,snd,
+   Word32,Float,Bool,pattern TrueE,pattern FalseE,(?),while,fst,snd,
    Ary,mkArr,lnArr,ixArr,Vec(..),share,Complex,pattern (:+.),
    Opt,some,none,option,
    (*),(+),(-),(==.),(<.),save,
@@ -8,7 +8,7 @@ module QFeldspar.Prelude.MiniFeldspar
    complementE,i2fE,cisE,ilog2E,sqrtE,hashTableE,
    trmEql,trmEqlF) where
 
-import QFeldspar.MyPrelude (Int,Float,Complex,Ary,Bool(..),Num(..)
+import QFeldspar.MyPrelude (Word32,Float,Complex,Ary,Bool(..),Num(..)
        ,Monad(..),fst,snd,Fractional(..),impossible,(.))
 import qualified QFeldspar.MyPrelude as MP
 
@@ -81,16 +81,16 @@ instance (Syn a , Syn b) => Syn (a , b) where
     frmExp ee        = let e = $shared ee in
                        (frmExp (Fst e) , frmExp (Snd e))
 
-mkArr :: Dp Int -> (Dp Int -> Dp t) -> Dp (Ary t)
+mkArr :: Dp Word32 -> (Dp Word32 -> Dp t) -> Dp (Ary t)
 mkArr = Ary
 
-lnArr  :: Type t => Dp (Ary t) -> Dp Int
+lnArr  :: Type t => Dp (Ary t) -> Dp Word32
 lnArr = Len
 
-ixArr :: Dp (Ary t) -> Dp Int -> Dp t
+ixArr :: Dp (Ary t) -> Dp Word32 -> Dp t
 ixArr = Ind
 
-data Vec t = Vec (Dp Int) (Dp Int -> t)
+data Vec t = Vec (Dp Word32) (Dp Word32 -> t)
 
 instance Syn a => Syn (Vec a) where
   type InT (Vec a)  = Ary (InT a)
@@ -109,7 +109,7 @@ class Syn a => Undef a where
 instance Undef (Dp Bool) where
   undef = FalseE
 
-instance Undef (Dp Int) where
+instance Undef (Dp Word32) where
   undef = 0
 
 instance Undef (Dp Float) where
@@ -171,7 +171,7 @@ instance Num (Dp Float) where
   abs    = impossible
   signum = impossible
 
-instance Num (Dp Int) where
+instance Num (Dp Word32) where
   (+) = Add
   (-) = Sub
   (*) = Mul
@@ -194,7 +194,7 @@ class EqE t where
 instance EqE Bool where
   (==.) = Eql
 
-instance EqE Int where
+instance EqE Word32 where
   (==.) = Eql
 
 instance EqE Float where
@@ -207,7 +207,7 @@ class OrdE t where
 instance OrdE Bool where
   (<.) = Ltd
 
-instance OrdE Int where
+instance OrdE Word32 where
   (<.) = Ltd
 
 instance OrdE Float where
@@ -223,43 +223,43 @@ realPartE = prm1 realPartVar
 imagPartE :: Dp (Complex Float) -> Dp Float
 imagPartE = prm1 imagPartVar
 
-divE :: Dp Int -> Dp Int -> Dp Int
-divE = prm2 divIntVar
+divE :: Dp Word32 -> Dp Word32 -> Dp Word32
+divE = prm2 divWrdVar
 
 instance Fractional (Dp Float) where
   (/) = prm2 divFltVar
   fromRational r = ConF (fromRational r)
 
 infixl 7 .&..
-(.&..) :: Dp Int -> Dp Int -> Dp Int
-(.&..) = prm2 andIntVar
+(.&..) :: Dp Word32 -> Dp Word32 -> Dp Word32
+(.&..) = prm2 andWrdVar
 
 infixl 7 .|..
-(.|..)  :: Dp Int -> Dp Int -> Dp Int
-(.|..)  = prm2 orIntVar
+(.|..)  :: Dp Word32 -> Dp Word32 -> Dp Word32
+(.|..)  = prm2 orWrdVar
 
-xorE :: Dp Int -> Dp Int -> Dp Int
-xorE = prm2 xorIntVar
+xorE :: Dp Word32 -> Dp Word32 -> Dp Word32
+xorE = prm2 xorWrdVar
 
-shfRgtE :: Dp Int -> Dp Int -> Dp Int
-shfRgtE = prm2 shrIntVar
+shfRgtE :: Dp Word32 -> Dp Word32 -> Dp Word32
+shfRgtE = prm2 shrWrdVar
 
-shfLftE :: Dp Int -> Dp Int -> Dp Int
-shfLftE = prm2 shlIntVar
+shfLftE :: Dp Word32 -> Dp Word32 -> Dp Word32
+shfLftE = prm2 shlWrdVar
 
-complementE :: Dp Int -> Dp Int
-complementE = prm1 cmpIntVar
+complementE :: Dp Word32 -> Dp Word32
+complementE = prm1 cmpWrdVar
 
-i2fE :: Dp Int -> Dp Float
+i2fE :: Dp Word32 -> Dp Float
 i2fE = prm1 i2fVar
 
 cisE :: Dp Float -> Dp (Complex Float)
 cisE = prm1 cisVar
 
-ilog2E :: Dp Int -> Dp Int
+ilog2E :: Dp Word32 -> Dp Word32
 ilog2E = prm1 ilog2Var
 
-hashTableE :: Dp (Ary Int)
+hashTableE :: Dp (Ary Word32)
 hashTableE = prm0 hshTblVar
 
 sqrtE :: Dp Float -> Dp Float

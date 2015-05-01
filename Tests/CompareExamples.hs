@@ -23,16 +23,16 @@ import qualified Examples.Windowing.CDSL as WC
 import qualified Examples.Power.QDSL as PQ
 import qualified Examples.Power.CDSL as PC
 
-qIPBW :: C.Dp (C.Ary C.Int) -> C.Dp (C.Ary C.Int)
+qIPBW :: C.Dp (C.Ary C.Word32) -> C.Dp (C.Ary C.Word32)
 qIPBW = C.simplifyF (C.normaliseF True (Q.translateF IPBWQ.ipbw))
 
-cIPBW :: C.Dp (C.Ary C.Int) -> C.Dp (C.Ary C.Int)
+cIPBW :: C.Dp (C.Ary C.Word32) -> C.Dp (C.Ary C.Word32)
 cIPBW = C.simplifyF (C.normaliseF True IPBWC.ipbw)
 
-qIPGray :: C.Dp (C.Ary C.Int) -> C.Dp (C.Ary C.Int)
+qIPGray :: C.Dp (C.Ary C.Word32) -> C.Dp (C.Ary C.Word32)
 qIPGray = C.simplifyF (C.normaliseF True (Q.translateF IPGrayQ.ipgray))
 
-cIPGray :: C.Dp (C.Ary C.Int) -> C.Dp (C.Ary C.Int)
+cIPGray :: C.Dp (C.Ary C.Word32) -> C.Dp (C.Ary C.Word32)
 cIPGray = C.simplifyF (C.normaliseF True IPGrayC.ipgray)
 
 qFFT :: C.Dp (C.Ary (Complex Float)) -> C.Dp (C.Ary (Complex Float))
@@ -41,10 +41,10 @@ qFFT = C.simplifyF (C.normaliseF True (Q.translateF FFTQ.fft))
 cFFT :: C.Dp (C.Ary (Complex Float)) -> C.Dp (C.Ary (Complex Float))
 cFFT = C.simplifyF (C.normaliseF True FFTC.fft)
 
-qCRC :: C.Dp (C.Ary C.Int) -> C.Dp C.Int
+qCRC :: C.Dp (C.Ary C.Word32) -> C.Dp C.Word32
 qCRC = C.simplifyF (C.normaliseF True (Q.translateF CRCQ.crc))
 
-cCRC :: C.Dp (C.Ary C.Int) -> C.Dp C.Int
+cCRC :: C.Dp (C.Ary C.Word32) -> C.Dp C.Word32
 cCRC = C.simplifyF (C.normaliseF True CRCC.crc)
 
 qW :: C.Dp (C.Ary (Complex Float)) -> C.Dp (C.Ary (Complex Float))

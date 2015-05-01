@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-unused-binds -fno-warn-name-shadowing #-}
 module QFeldspar.QDSL
   (Qt,FO,Type,Num,Eq,Ord,
-   Int,Float,Bool(..),while,fst,snd,Ary,mkArr,lnArr,ixArr,
+   Word32,Float,Bool(..),while,fst,snd,Ary,mkArr,lnArr,ixArr,
    Vec(..),Complex(..),Maybe(..),(*),(+),(-),(==),(<),save,
    realPart,imagPart,div,(/),(.&.),(.|.),xor,shfRgt,shfLft,
    complement,i2f,cis,ilog2,sqrt,hashTable,
@@ -48,14 +48,14 @@ type C    = String
 type Type a = HasSin TFG.Typ a
 
 class    FO a                              where {}
-instance FO MP.Bol                         where {}
-instance FO MP.Int                         where {}
-instance FO MP.Flt                         where {}
+instance FO MP.Bool                        where {}
+instance FO MP.Word32                      where {}
+instance FO MP.Float                       where {}
 instance (FO a , FO b) => FO (a , b)       where {}
 instance FO a => FO (MP.Ary a)             where {}
-instance FO MP.Cmx                         where {}
+instance FO (MP.Complex MP.Float)          where {}
 
-while :: FO a => (a -> MP.Bol) -> (a -> a) -> a -> a
+while :: FO a => (a -> MP.Bool) -> (a -> a) -> a -> a
 while = MP.while
 
 save :: FO a => a -> a
@@ -79,14 +79,14 @@ wrp = expand
          '(.)        := [|| \f -> \g -> \x -> f (g x) ||],
          'realPart   := [|| \x -> PHE.realPart x ||],
          'imagPart   := [|| \x -> PHE.imagPart x ||],
-         'div        := [|| \x -> \y -> PHE.divInt x y ||],
+         'div        := [|| \x -> \y -> PHE.divWrd x y ||],
          '(/)        := [|| \x -> \y -> PHE.divFlt x y ||],
-         '(.&.)      := [|| \x -> \y -> PHE.andInt x y ||],
-         '(.|.)      := [|| \x -> \y -> PHE.orInt  x y ||],
-         'xor        := [|| \x -> \y -> PHE.xorInt x y ||],
-         'shfRgt     := [|| \x -> \y -> PHE.shrInt x y ||],
-         'shfLft     := [|| \x -> \y -> PHE.shlInt x y ||],
-         'complement := [|| \x -> PHE.cmpInt   x ||],
+         '(.&.)      := [|| \x -> \y -> PHE.andWrd x y ||],
+         '(.|.)      := [|| \x -> \y -> PHE.orWrd  x y ||],
+         'xor        := [|| \x -> \y -> PHE.xorWrd x y ||],
+         'shfRgt     := [|| \x -> \y -> PHE.shrWrd x y ||],
+         'shfLft     := [|| \x -> \y -> PHE.shlWrd x y ||],
+         'complement := [|| \x -> PHE.cmpWrd   x ||],
          'i2f        := [|| \x -> PHE.i2f  x ||],
          'cis        := [|| \x -> PHE.cis      x ||],
          'ilog2      := [|| \x -> PHE.ilog2    x ||],

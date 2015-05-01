@@ -10,7 +10,7 @@ data Var :: [k] -> k -> * where
 deriving instance Eq   (Var e t)
 deriving instance Ord  (Var e t)
 
-int :: Var r t -> Int
+int :: Var r t -> Word32
 int Zro     = 0
 int (Suc x) = 1 + int x
 

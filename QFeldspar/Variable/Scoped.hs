@@ -12,7 +12,7 @@ data Var :: NA.Nat -> * where
 deriving instance Eq   (Var n)
 deriving instance Ord  (Var n)
 
-int :: Var n -> Int
+int :: Var n -> Word32
 int Zro     = 0
 int (Suc x) = 1 + int x
 

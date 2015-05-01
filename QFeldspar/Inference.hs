@@ -4,7 +4,7 @@ import QFeldspar.MyPrelude
 
 import QFeldspar.Nat.ADT
 import qualified QFeldspar.Type.Herbrand as TH
-import QFeldspar.Type.Herbrand hiding (Tpl,May,Cmx,Ary,App,Int)
+import QFeldspar.Type.Herbrand hiding (Tpl,May,Cmx,Ary,App)
 import QFeldspar.Solver
 import QFeldspar.Conversion
 import QFeldspar.Nat.Conversion ()
@@ -60,7 +60,7 @@ typChk e r = do r' :: ES.Env n TypFld <- traverse
 collect :: Exp n TypFld -> ES.Env n TypFld ->
          InfM (EnvFld '[]) TypFld
 collect ee r = case ee of
-    ConI _         -> return TH.Int
+    ConI _         -> return TH.Wrd
     ConB _         -> return Bol
     ConF _         -> return Flt
     Var x          -> return (get x r)
@@ -102,37 +102,37 @@ collect ee r = case ee of
                          return ts
     Ary el ef      -> do tl  <- collect el r
                          tf  <- collect ef r
-                         addC (tl :~: TH.Int)
+                         addC (tl :~: TH.Wrd)
                          ta  <- newMT
-                         addC (tf :~: Arr TH.Int ta)
+                         addC (tf :~: Arr TH.Wrd ta)
                          return (TH.Ary ta)
     Len t e        -> do te  <- collect e r
                          ta  <- newMT
                          addC (te :~: TH.Ary ta)
                          addC (t  :~: ta)
-                         return TH.Int
+                         return TH.Wrd
     Ind ea ei      -> do ta  <- collect ea r
                          taa <- newMT
                          addC (ta :~: TH.Ary taa)
                          ti  <- collect ei r
-                         addC (ti :~: TH.Int)
+                         addC (ti :~: TH.Wrd)
                          return taa
     AryV el ef     -> do tl  <- collect el r
                          tf  <- collect ef r
-                         addC (tl :~: TH.Int)
+                         addC (tl :~: TH.Wrd)
                          ta  <- newMT
-                         addC (tf :~: Arr TH.Int ta)
+                         addC (tf :~: Arr TH.Wrd ta)
                          return (TH.Vec ta)
     LenV t e       -> do te  <- collect e r
                          ta  <- newMT
                          addC (te :~: TH.Vec ta)
                          addC (t  :~: ta)
-                         return TH.Int
+                         return TH.Wrd
     IndV ea ei     -> do ta  <- collect ea r
                          taa <- newMT
                          addC (ta :~: TH.Vec taa)
                          ti  <- collect ei r
-                         addC (ti :~: TH.Int)
+                         addC (ti :~: TH.Wrd)
                          return taa
     Let t  el eb   -> do tl  <- collect el r
                          tb  <- collect eb (Ext tl r)

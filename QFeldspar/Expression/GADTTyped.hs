@@ -6,7 +6,7 @@ import QFeldspar.Variable.Scoped
 import qualified QFeldspar.Nat.ADT as NA
 
 data Exp :: NA.Nat -> * -> * where
-  ConI :: Int     -> Exp n t
+  ConI :: Word32  -> Exp n t
   ConB :: Bool    -> Exp n t
   ConF :: Float   -> Exp n t
   Var  :: Var n   -> Exp n t
@@ -34,7 +34,7 @@ data Exp :: NA.Nat -> * -> * where
   Sub  :: Exp n t  -> Exp n t -> Exp n t
   Eql  :: t -> Exp n t -> Exp n t -> Exp n t
   Ltd  :: t -> Exp n t -> Exp n t -> Exp n t
-  Int  :: Int -> Exp n t
+  Int  :: Word32 -> Exp n t
   Mem  :: Exp n t -> Exp n t
   Fix  :: Exp n t -> Exp n t
 

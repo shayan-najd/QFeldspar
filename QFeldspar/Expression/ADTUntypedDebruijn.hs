@@ -10,7 +10,7 @@ data Fun = Fun Exp
 deriving instance Eq   Fun
 deriving instance Show Fun
 
-data Exp = ConI Int
+data Exp = ConI Word32
          | ConB Bool
          | ConF Float
          | Var  Var
@@ -38,7 +38,7 @@ data Exp = ConI Int
          | Sub  Exp Exp
          | Eql  Exp Exp
          | Ltd  Exp Exp
-         | Int  Int
+         | Int  Word32
          | Mem  Exp
          | Fix  Exp
 

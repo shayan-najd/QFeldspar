@@ -3,10 +3,10 @@ import Prelude hiding (Int,foldl)
 import QFeldspar.CDSL
 import Examples.Prelude.CDSL
 
-crcVec :: Vec (Dp Int) -> Dp Int
+crcVec :: Vec (Dp Word32) -> Dp Word32
 crcVec = foldl updCrc 0
 
-updCrc :: Dp Int -> Dp Int -> Dp Int
+updCrc :: Dp Word32 -> Dp Word32 -> Dp Word32
 updCrc = \ ccc -> \ ch -> share ccc (\ cc ->
           xorE
           (xorE
@@ -15,8 +15,8 @@ updCrc = \ ccc -> \ ch -> share ccc (\ cc ->
            (shfRgtE (xorE cc 0xFFFFFFFF) 8))
           0xFFFFFFFF)
 
-tbl :: Dp Int -> Dp Int
+tbl :: Dp Word32 -> Dp Word32
 tbl = \ i -> case frmExp hashTableE of (Vec _ f) -> f i
 
-crc :: Dp (Ary Int) -> Dp Int
+crc :: Dp (Ary Word32) -> Dp Word32
 crc = toExpF crcVec

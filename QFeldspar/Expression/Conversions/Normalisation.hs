@@ -18,7 +18,7 @@ instance (HasSin TFG.Typ t , t ~ t' , r ~ r') =>
          Cnv (FGHO.Exp r t , rr) (FMWS.Exp r' t') where
   cnv (ee , r) = let ?r = r in let t = (sin :: TFG.Typ t) in case ee of
     FGHO.Var v                -> case sin :: TFG.Typ t of
-      TFG.Int                 -> pure (FMWS.AppV v Emp)
+      TFG.Wrd                 -> pure (FMWS.AppV v Emp)
       TFG.Bol                 -> pure (FMWS.AppV v Emp)
       TFG.Flt                 -> pure (FMWS.AppV v Emp)
       TFG.Tpl _ _             -> pure (FMWS.AppV v Emp)
@@ -48,7 +48,7 @@ instance (HasSin TFG.Typ t , t ~ t' , r ~ r') =>
      ,'FGHO.AryV,'FGHO.LenV,'FGHO.IndV,'FGHO.Int,'FGHO.Fix] (trvWrp 't) (const [| cnvImp |]))
 
 instance (HasSin TFG.Typ a , HasSin TFG.Typ b, a ~ a' , b ~ b' , r ~ r') =>
-    Cnv (FGHO.Exp r' (Arr a' b') , rr) (FMWS.Exp r a -> FMWS.Exp r b)  where
+    Cnv (FGHO.Exp r' (a' -> b') , rr) (FMWS.Exp r a -> FMWS.Exp r b)  where
     cnv (ee , r) = case ee of
       FGHO.Abs e -> cnv (e , r)
       _          -> fail "Normalisation Error!"
@@ -67,7 +67,7 @@ instance (HasSin TFG.Typ t , t' ~ t , r' ~ r) =>
       (TFG.Arr _ _ , Ext _ _) -> do Exs1 e te <- fldApp (FGHO.Var v) es
                                     Rfl <- lift (eqlSin te t)
                                     pure e
-      (TFG.Int     , Emp)     -> pure (FGHO.Var v)
+      (TFG.Wrd     , Emp)     -> pure (FGHO.Var v)
       (TFG.Bol     , Emp)     -> pure (FGHO.Var v)
       (TFG.Flt     , Emp)     -> pure (FGHO.Var v)
       (TFG.Tpl _ _ , Emp)     -> pure (FGHO.Var v)
@@ -80,7 +80,7 @@ instance (HasSin TFG.Typ t , t' ~ t , r' ~ r) =>
                               (trvWrp 't) (const [| cnvImp |]))
 
 instance (HasSin TFG.Typ a , HasSin TFG.Typ b, a ~ a' , b ~ b' , r ~ r') =>
-    Cnv (FMWS.Exp r a -> FMWS.Exp r b , rr) (FGHO.Exp r' (Arr a' b')) where
+    Cnv (FMWS.Exp r a -> FMWS.Exp r b , rr) (FGHO.Exp r' (a' -> b')) where
     cnv (ee , r) = fmap FGHO.Abs (cnv (ee , r))
 
 instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb, ta ~ ta' , tb ~ tb' , r ~ r') =>
@@ -90,7 +90,7 @@ instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb, ta ~ ta' , tb ~ tb' , r ~ r') =
   cnv (ee , r) = let ?r = r in
                  pure (frmRgtZro . cnvImp . ee . frmRgtZro . cnvImp)
 
-fldApp :: forall r t ta tb . (t ~ (Arr ta tb) , HasSin TFG.Typ t) =>
+fldApp :: forall r t ta tb . (t ~ (ta -> tb) , HasSin TFG.Typ t) =>
           FGHO.Exp r t ->
           Env (FMWS.Exp r) (ta ': TFG.Arg tb) ->
           NamM ErrM (Exs1 (FGHO.Exp r) TFG.Typ)

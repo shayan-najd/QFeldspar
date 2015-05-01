@@ -19,7 +19,7 @@ data Stmt =
 
 data Exp =
    Var String
- | Num Int
+ | Num Word32
  | Flt Float
  | App String [Exp]
  deriving Eq

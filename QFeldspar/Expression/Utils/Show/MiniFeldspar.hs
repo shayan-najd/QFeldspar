@@ -26,7 +26,7 @@ m <$+> n = do m' <- m
 data TT a b = TT {unTT :: a}
 
 showM :: forall g t.
-         Exp g t -> State Int String
+         Exp g t -> State Word32 String
 showM e = case e of
   AppV v es -> (pure ("AppV " ++ show v)) <$+> fmap show (TFG.mapMC (sinTyp v) (fmap TT . showM) es)
   Tmp  x    -> pure x
@@ -37,7 +37,7 @@ showM e = case e of
     | matchQ tt [t| Exp t t |]            -> [| showM  |]
     | otherwise                           -> [| (pure . show) |]))
 
-showMF :: (Exp g a -> Exp g b) -> State Int String
+showMF :: (Exp g a -> Exp g b) -> State Word32 String
 showMF f = do i  <- getState
               put (i+1)
               let v = "x" ++ show i

@@ -10,14 +10,14 @@ fftVec = \ (Vec ll f) ->
          let steps = $shared (ilog2E l - 1) in
          bitRev steps (fftCore steps (Vec l (\ i -> f i)))
 
-fftCore :: Dp Int -> Vec (Dp (Complex Float)) -> Vec (Dp (Complex Float))
+fftCore :: Dp Word32 -> Vec (Dp (Complex Float)) -> Vec (Dp (Complex Float))
 fftCore = \ n -> \ (Vec l f) ->
           for (n + 1) (Vec l (\ i -> f i))
                 (\ j -> \ v ->
                         Vec l (\ i -> ixf v (n - j) i))
 
 ixf :: Vec (Dp (Complex Float))
-    -> Dp Int -> Dp Int -> Dp (Complex Float)
+    -> Dp Word32 -> Dp Word32 -> Dp (Complex Float)
 ixf = \ (Vec _l f) -> \ kk -> \ i -> share kk (\ k ->
       share (shfLftE 1 k) (\ k2 ->
       share (cisE ((pi * (i2fE (lsbs k i))) / (i2fE k2))) (\ twid ->
@@ -26,11 +26,11 @@ ixf = \ (Vec _l f) -> \ kk -> \ i -> share kk (\ k ->
         (testBit i k) ?
            (twid * (b - a) , a + b))))))
 
-bitRev :: Dp Int -> Vec (Dp (Complex Float)) -> Vec (Dp (Complex Float))
+bitRev :: Dp Word32 -> Vec (Dp (Complex Float)) -> Vec (Dp (Complex Float))
 bitRev = \ n -> \ x ->
          for n x (\ i -> permute (\ _j -> rotBit (i + 1)))
 
-rotBit :: Dp Int -> Dp Int -> Dp Int
+rotBit :: Dp Word32 -> Dp Word32 -> Dp Word32
 rotBit = \ kk -> \ i ->
          share kk (\ k ->
          (shfLftE ((shfLftE (shfRgtE (shfRgtE i 1) k) 1) .|..

@@ -10,14 +10,14 @@ data Nat =
 deriving instance Eq   Nat
 deriving instance Ord  Nat
 
-int :: Nat -> Int
+int :: Nat -> Word32
 int Zro     = 0
 int (Suc x) = 1 + int x
 
 instance Show Nat where
   show v = show (int v)
 
-nat :: Int -> Nat
+nat :: Word32 -> Nat
 nat 0 = Zro
 nat n = Suc (nat (n - 1))
 

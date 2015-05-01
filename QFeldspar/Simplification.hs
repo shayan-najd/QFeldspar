@@ -25,7 +25,7 @@ smpOne ee = let t = sin :: TFG.Typ a in case ee of
     Ary el ef       -> case TFG.getPrfHasSinAry t of
       PrfHasSin     -> case el of
         Len (e :: Exp g (Ary te)) -> case ef of
-          Abs (Ind (e' :: Exp (Int ': g) (Ary te')) (Var Zro)) -> case eqlSin (sin :: TFG.Typ te) (sin :: TFG.Typ te') of
+          Abs (Ind (e' :: Exp (Word32 ': g) (Ary te')) (Var Zro)) -> case eqlSin (sin :: TFG.Typ te) (sin :: TFG.Typ te') of
             Rgt Rfl -> do if eql (sucAll e) e'
                           then chg e
                           else Ary <$> smpOne el <*> smpOne ef

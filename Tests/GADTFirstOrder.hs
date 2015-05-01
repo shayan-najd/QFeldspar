@@ -12,25 +12,23 @@ import QFeldspar.Environment.Typed
 
 import qualified QFeldspar.Type.GADT as TFG
 
-dbl :: Exp (Arr Int (Arr Int Int) ': '[])
-       (Arr Int Int)
+dbl :: Exp '[Word32 -> Word32 -> Word32] (Word32 -> Word32)
 dbl = Abs (App (App (Var (Suc Zro)) (Var Zro)) (Var Zro))
 
 compose :: (HasSin TFG.Typ ta , HasSin TFG.Typ tb , HasSin TFG.Typ tc) =>
-           Exp r (Arr (Arr tb tc) (Arr (Arr ta tb)
-                   (Arr ta tc)))
+           Exp r ((tb -> tc) -> ((ta -> tb) -> (ta -> tc)))
 compose = Abs (Abs (Abs
                     (App (Var (Suc (Suc Zro)))
                      (App (Var (Suc Zro)) (Var Zro)))))
 
-four :: Exp (Arr Int (Arr Int Int) ': '[]) Int
+four :: Exp '[Word32 -> Word32 -> Word32] Word32
 four = App (App (App compose dbl) dbl) (ConI 1)
 
 test :: Bool
 test = case runNamM (cnv (four
                 , Ext
                   (FGV.Exp (+)
-                   :: FGV.Exp (Arr Int (Arr Int Int))) Emp))
+                   :: FGV.Exp (Word32 -> Word32 -> Word32)) Emp))
        of
   Rgt (FGV.Exp x) -> x == 4
   Lft _           -> False

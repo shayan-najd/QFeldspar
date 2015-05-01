@@ -4,7 +4,7 @@ module QFeldspar.Expression.ADTUntypedNamed
 import QFeldspar.MyPrelude
 import qualified QFeldspar.Type.ADT as TFA
 
-data Exp x = ConI Int
+data Exp x = ConI Word32
            | ConB Bool
            | ConF Float
            | Var x
@@ -32,7 +32,7 @@ data Exp x = ConI Int
            | Sub (Exp x) (Exp x)
            | Eql (Exp x) (Exp x)
            | Ltd (Exp x) (Exp x)
-           | Int Int
+           | Int Word32
            | Mem (Exp x)
            | Fix (Exp x)
 

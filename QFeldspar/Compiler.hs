@@ -20,7 +20,7 @@ import QFeldspar.Expression.Conversions.CodeGeneration (pretty)
 
 import QFeldspar.Singleton
 
-type CompileMonad a = StateT (Int,[Var],[Var]) ErrM a
+type CompileMonad a = StateT (Word32,[Var],[Var]) ErrM a
 
 newName :: CompileMonad String
 newName = do
@@ -38,7 +38,7 @@ addVar v = do
   (i , ps , vs) <- getState
   put (i , ps , v:vs)
 
-runCompileMonad :: TFA.Typ -> CompileMonad (Exp , [Stmt]) -> Int ->
+runCompileMonad :: TFA.Typ -> CompileMonad (Exp , [Stmt]) -> Word32 ->
                    ErrM Func
 runCompileMonad ty m i = do ((exp,stmts),(_,ps,vs)) <- runStateT m (i,[],[])
                             pure (Func ty "func" ps
@@ -155,11 +155,11 @@ instance (HasSin TFG.Typ t, n ~ Len r) =>
       FMWS.Ary l f             -> case TFG.getPrfHasSinAry t of
         PrfHasSin              -> do let TFA.Ary ta = t'
                                      xl <- newName
-                                     addVar (xl , TFA.Int)
+                                     addVar (xl , TFA.Wrd)
                                      xa <- newName
                                      addVar (xa , t')
                                      xi <- newName
-                                     addVar (xi , TFA.Int)
+                                     addVar (xi , TFA.Wrd)
                                      (el , sl) <- cmpImp l
                                      (ef , sf) <- cmpImp (f (FMWS.Tmp xi))
                                      return ( Var xa
@@ -194,21 +194,21 @@ instance (HasSin TFG.Typ t, n ~ Len r) =>
       FMWS.Mul er ei           -> do (er' , sr) <- cmpImp er
                                      (ei' , si) <- cmpImp ei
                                      case t of
-                                       TFG.Int -> return (App "mulInt" [er' , ei'] , sr ++ si)
+                                       TFG.Wrd -> return (App "mulInt" [er' , ei'] , sr ++ si)
                                        TFG.Flt -> return (App "mulFlt" [er' , ei'] , sr ++ si)
                                        TFG.Cmx -> return (App "mulCmx" [er' , ei'] , sr ++ si)
                                        _       -> fail "Type Error in Mul"
       FMWS.Add er ei           -> do (er' , sr) <- cmpImp er
                                      (ei' , si) <- cmpImp ei
                                      case t of
-                                       TFG.Int -> return (App "addInt" [er' , ei'] , sr ++ si)
+                                       TFG.Wrd -> return (App "addInt" [er' , ei'] , sr ++ si)
                                        TFG.Flt -> return (App "addFlt" [er' , ei'] , sr ++ si)
                                        TFG.Cmx -> return (App "addCmx" [er' , ei'] , sr ++ si)
                                        _       -> fail "Type Error in Add"
       FMWS.Sub er ei           -> do (er' , sr) <- cmpImp er
                                      (ei' , si) <- cmpImp ei
                                      case t of
-                                       TFG.Int -> return (App "subInt" [er' , ei'] , sr ++ si)
+                                       TFG.Wrd -> return (App "subInt" [er' , ei'] , sr ++ si)
                                        TFG.Flt -> return (App "subFlt" [er' , ei'] , sr ++ si)
                                        TFG.Cmx -> return (App "subCmx" [er' , ei'] , sr ++ si)
                                        _       -> fail "Type Error in Sub"
@@ -216,7 +216,7 @@ instance (HasSin TFG.Typ t, n ~ Len r) =>
       FMWS.Eql er ei           -> do (er' , sr) <- cmpImp er
                                      (ei' , si) <- cmpImp ei
                                      case sinTyp er of
-                                       TFG.Int -> return (App "eqlInt" [er' , ei'] , sr ++ si)
+                                       TFG.Wrd -> return (App "eqlInt" [er' , ei'] , sr ++ si)
                                        TFG.Flt -> return (App "eqlFlt" [er' , ei'] , sr ++ si)
                                        TFG.Bol -> return (App "eqlBol" [er' , ei'] , sr ++ si)
                                        _       -> fail "Type Error in Eql"
@@ -224,7 +224,7 @@ instance (HasSin TFG.Typ t, n ~ Len r) =>
       FMWS.Ltd er ei           -> do (er' , sr) <- cmpImp er
                                      (ei' , si) <- cmpImp ei
                                      case sinTyp er of
-                                       TFG.Int -> return (App "ltdInt" [er' , ei'] , sr ++ si)
+                                       TFG.Wrd -> return (App "ltdInt" [er' , ei'] , sr ++ si)
                                        TFG.Flt -> return (App "ltdFlt" [er' , ei'] , sr ++ si)
                                        TFG.Bol -> return (App "ltdBol" [er' , ei'] , sr ++ si)
                                        _       -> fail "Type Error in Ltd"
@@ -250,7 +250,7 @@ cnvETEnv _                 ET.Emp         = return ([],[])
 cnvETEnv _                 _              = impossibleM
 
 scompileWith :: Compilable (a , ES.Env n String) =>
-                [Var] -> TFG.Typ t -> ES.Env n String -> Int -> a -> ErrM String
+                [Var] -> TFG.Typ t -> ES.Env n String -> Word32 -> a -> ErrM String
 scompileWith vs t r i e = let ?r = r in
                         do t' :: TFA.Typ <- runNamM (cnvImp t)
                            c <- runCompileMonad t'
@@ -264,5 +264,5 @@ scompile :: Compilable (a , ES.Env n String) =>
 scompile t r e = scompileWith [] t r 0 e
 
 icompileWith :: Compilable (a , ES.Env n String) =>
-                [Var] -> TFG.Typ t -> ES.Env n String -> Int -> a -> IO ()
+                [Var] -> TFG.Typ t -> ES.Env n String -> Word32 -> a -> IO ()
 icompileWith vs t r i e = (putStrLn . frmRgt . scompileWith vs t r i) e

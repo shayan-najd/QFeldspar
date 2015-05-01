@@ -8,7 +8,7 @@ import QFeldspar.Expression.GADTFirstOrder as FGFO
 import QFeldspar.Variable.Typed
 import QFeldspar.Expression.Utils.Common
 import QFeldspar.Singleton
-import QFeldspar.Type.GADT hiding (Int,May,Cmx,Ary,Tpl)
+import QFeldspar.Type.GADT hiding (May,Cmx,Ary,Tpl)
 
 tagFree :: Exp r t -> Exp r t
 tagFree (Tag _ e) = tagFree e
@@ -64,14 +64,14 @@ replaceOne :: Exp (tl ': n) t -> Exp (tl ': tl1 ': n) t
 replaceOne = mapVar rp
 
 cntVar :: forall r t t'. (HasSin Typ t' , HasSin Typ t) =>
-          Var r t' -> Exp r t -> Int
+          Var r t' -> Exp r t -> Word32
 cntVar v ee = let t = sin :: Typ t in case ee of
   Var x     -> case eqlSin t (sinTyp v) of
     Rgt Rfl -> if x == v
                then 1
                else 0
     _       -> 0
-  _         -> $(recAppMQ 'ee ''Exp (const [| (0 :: Int) |]) ['Var]
+  _         -> $(recAppMQ 'ee ''Exp (const [| (0 :: Word32) |]) ['Var]
     [| \ _x -> 0 |] [| (+) |] [| (+) |] (trvWrp 't)
    (\ tt -> if
     | matchQ tt [t| Exp (t ': t) t |]     -> [| cntVar (Suc v) |]

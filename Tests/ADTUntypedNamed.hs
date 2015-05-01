@@ -29,6 +29,6 @@ four :: Exp Var
 four = App (App (App compose dbl) dbl) (ConI 1)
 
 test :: Bool
-test = (case runNamM (cnv (four , [((stripNameSpace 'add) , V.lft ((+) :: Int -> Int -> Int))])) of
-          Rgt (V.colft -> Rgt (4 :: Int)) -> True
+test = (case runNamM (cnv (four , [((stripNameSpace 'add) , V.lft ((+) :: Word32 -> Word32 -> Word32))])) of
+          Rgt (V.colft -> Rgt (4 :: Word32)) -> True
           _                               -> False)

@@ -21,7 +21,7 @@ instance (r ~ r' , n ~ Len r , HasSin TFG.Typ t) =>
              (FGFO.Exp r' t) where
   cnv (ee , r) = let ?r = r in let t = sin :: TFG.Typ t in case ee of
     FGTD.ConI i       -> case t of
-      TFG.Int         -> pure (FGFO.ConI i)
+      TFG.Wrd         -> pure (FGFO.ConI i)
       _               -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
     FGTD.ConB b       -> case t of
       TFG.Bol         -> pure (FGFO.ConB b)
@@ -42,7 +42,7 @@ instance (r ~ r' , n ~ Len r , HasSin TFG.Typ t) =>
        PrfHasSin      -> FGFO.Ary <$@> el <*@> ef
       _               -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
     FGTD.Len ta e     -> case t of
-      TFG.Int         -> do ExsSin ta' :: ExsTyp <- cnv ta
+      TFG.Wrd         -> do ExsSin ta' :: ExsTyp <- cnv ta
                             PrfHasSin <- getPrfHasSinM ta'
                             e' <- cnvImp e
                             FGFO.Len <$> pure
@@ -53,7 +53,7 @@ instance (r ~ r' , n ~ Len r , HasSin TFG.Typ t) =>
        PrfHasSin      -> FGFO.AryV <$@> el <*@> ef
       _               -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
     FGTD.LenV ta e    -> case t of
-      TFG.Int         -> do ExsSin ta' :: ExsTyp <- cnv ta
+      TFG.Wrd         -> do ExsSin ta' :: ExsTyp <- cnv ta
                             PrfHasSin <- getPrfHasSinM ta'
                             e' <- cnvImp e
                             FGFO.LenV <$> pure
@@ -64,18 +64,18 @@ instance (r ~ r' , n ~ Len r , HasSin TFG.Typ t) =>
       _               -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
 
     FGTD.Mul er ei    -> case t of
-      TFG.Int         -> FGFO.Mul <$@> er <*@> ei
+      TFG.Wrd         -> FGFO.Mul <$@> er <*@> ei
       TFG.Flt         -> FGFO.Mul <$@> er <*@> ei
       TFG.Cmx         -> FGFO.Mul <$@> er <*@> ei
       _               -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
 
     FGTD.Add er ei    -> case t of
-      TFG.Int         -> FGFO.Add <$@> er <*@> ei
+      TFG.Wrd         -> FGFO.Add <$@> er <*@> ei
       TFG.Flt         -> FGFO.Add <$@> er <*@> ei
       TFG.Cmx         -> FGFO.Add <$@> er <*@> ei
       _               -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
     FGTD.Sub er ei    -> case t of
-      TFG.Int         -> FGFO.Sub <$@> er <*@> ei
+      TFG.Wrd         -> FGFO.Sub <$@> er <*@> ei
       TFG.Flt         -> FGFO.Sub <$@> er <*@> ei
       TFG.Cmx         -> FGFO.Sub <$@> er <*@> ei
       _               -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
@@ -116,7 +116,7 @@ instance (r ~ r' , n ~ Len r , HasSin TFG.Typ t) =>
                             case tl' of
                               TFG.Bol -> do el' <- cnvImp el
                                             FGFO.Eql <$> pure (samTyp tl' el') <*@> eb
-                              TFG.Int -> do el' <- cnvImp el
+                              TFG.Wrd -> do el' <- cnvImp el
                                             FGFO.Eql <$> pure (samTyp tl' el') <*@> eb
                               TFG.Flt -> do el' <- cnvImp el
                                             FGFO.Eql <$> pure (samTyp tl' el') <*@> eb
@@ -128,7 +128,7 @@ instance (r ~ r' , n ~ Len r , HasSin TFG.Typ t) =>
                             case tl' of
                               TFG.Bol -> do el' <- cnvImp el
                                             FGFO.Ltd <$> pure (samTyp tl' el') <*@> eb
-                              TFG.Int -> do el' <- cnvImp el
+                              TFG.Wrd -> do el' <- cnvImp el
                                             FGFO.Ltd <$> pure (samTyp tl' el') <*@> eb
                               TFG.Flt -> do el' <- cnvImp el
                                             FGFO.Ltd <$> pure (samTyp tl' el') <*@> eb
@@ -142,7 +142,7 @@ instance (r ~ r' , n ~ Len r , HasSin TFG.Typ t) =>
                                        <*@> en <*@> es
     FGTD.Typ _ e      -> cnvImp e
     FGTD.Int i        -> case t of
-      TFG.Int         -> pure (FGFO.Int i)
+      TFG.Wrd         -> pure (FGFO.Int i)
       TFG.Flt         -> pure (FGFO.Int i)
       _               -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
     FGTD.Mem e        -> FGFO.Mem <$@> e

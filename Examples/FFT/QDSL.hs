@@ -10,13 +10,13 @@ fftVec = [|| \ (Vec ll f) ->
               let steps = ilog2 l - 1 in
               $$bitRev steps ($$fftCore steps (Vec l (\ i -> f i))) ||]
 
-fftCore :: Qt (Int -> Vec (Complex Float) -> Vec (Complex Float))
+fftCore :: Qt (Word32 -> Vec (Complex Float) -> Vec (Complex Float))
 fftCore = [|| \ n -> \ (Vec l f) ->
               $$forVec (n + 1) (Vec l (\ i -> f i))
                       (\ j -> \ v ->
                          Vec l (\ i -> $$ixf v (n - j) i)) ||]
 
-ixf :: Qt (Vec (Complex Float) -> Int -> Int -> (Complex Float))
+ixf :: Qt (Vec (Complex Float) -> Word32 -> Word32 -> (Complex Float))
 ixf = [|| \ (Vec _l f) -> \ k -> \ i ->
           let k2   = shfLft 1 k in
           let twid = cis (($$pi *
@@ -26,12 +26,12 @@ ixf = [|| \ (Vec _l f) -> \ k -> \ i ->
             if $$testBit i k then twid * (b - a)
                              else a + b ||]
 
-bitRev :: Qt (Int -> Vec (Complex Float) -> Vec (Complex Float))
+bitRev :: Qt (Word32 -> Vec (Complex Float) -> Vec (Complex Float))
 bitRev = [|| \ n -> \ x ->
              $$forVec n x
               (\ i -> $$permute (\ _j -> $$rotBit (i + 1))) ||]
 
-rotBit :: Qt (Int -> Int -> Int)
+rotBit :: Qt (Word32 -> Word32 -> Word32)
 rotBit = [|| \ k -> \ i ->
           (shfLft ((shfLft (shfRgt (shfRgt i 1) k) 1) .|.
                   (i .&. 1)) k) .|.

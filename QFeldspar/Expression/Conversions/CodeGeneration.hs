@@ -47,7 +47,7 @@ instance Pretty Var where
 
 instance Pretty TFA.Typ where
   pretty t = case t of
-    TFA.Int     -> text "Int"
+    TFA.Wrd     -> text "Int"
     TFA.Bol     -> text "Bol"
     TFA.Flt     -> text "Flt"
     TFA.Cmx     -> text "Cmx"

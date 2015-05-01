@@ -22,32 +22,32 @@ instance (HasSin TFG.Typ t , t' ~ t) =>
     Som _                    -> impossibleM
     May _ _ _                -> impossibleM
     Mul er ei                -> case t of
-      TFG.Int                -> FGV.mul  <$@> er <*@> ei
+      TFG.Wrd                -> FGV.mul  <$@> er <*@> ei
       TFG.Flt                -> FGV.mul  <$@> er <*@> ei
       TFG.Cmx                -> FGV.mul  <$@> er <*@> ei
       _                      -> fail "Type Error in Mul"
     Add er ei                -> case t of
-      TFG.Int                -> FGV.add  <$@> er <*@> ei
+      TFG.Wrd                -> FGV.add  <$@> er <*@> ei
       TFG.Flt                -> FGV.add  <$@> er <*@> ei
       TFG.Cmx                -> FGV.add  <$@> er <*@> ei
       _                      -> fail "Type Error in Add"
     Sub er ei                -> case t of
-      TFG.Int                -> FGV.sub  <$@> er <*@> ei
+      TFG.Wrd                -> FGV.sub  <$@> er <*@> ei
       TFG.Flt                -> FGV.sub  <$@> er <*@> ei
       TFG.Cmx                -> FGV.sub  <$@> er <*@> ei
       _                      -> fail "Type Error in Sub"
     Eql er ei                -> case sinTyp er of
-      TFG.Int                -> FGV.eql  <$@> er <*@> ei
+      TFG.Wrd                -> FGV.eql  <$@> er <*@> ei
       TFG.Flt                -> FGV.eql  <$@> er <*@> ei
       TFG.Bol                -> FGV.eql  <$@> er <*@> ei
       _                      -> fail "Type Error in Eql"
     Ltd er ei                -> case sinTyp er of
-      TFG.Int                -> FGV.ltd  <$@> er <*@> ei
+      TFG.Wrd                -> FGV.ltd  <$@> er <*@> ei
       TFG.Flt                -> FGV.ltd  <$@> er <*@> ei
       TFG.Bol                -> FGV.ltd  <$@> er <*@> ei
       _                      -> fail "Type Error in Ltd"
     Int i                    -> case t of
-      TFG.Int                -> pure (FGV.conI i)
+      TFG.Wrd                -> pure (FGV.conI i)
       TFG.Flt                -> pure (FGV.conF (fromIntegral i))
       _                      -> fail "Type Error in Int"
     Let el eb                -> FGV.leT <$@> el <*@> eb
@@ -57,7 +57,7 @@ instance (HasSin TFG.Typ t , t' ~ t) =>
      (trvWrp 't) (const [| cnvImp |]))
 
 instance (ta' ~ ta , tb' ~ tb , HasSin TFG.Typ ta , HasSin TFG.Typ tb) =>
-         Cnv (Exp (ta ': r) tb , Env FGV.Exp r)  (FGV.Exp (Arr ta' tb'))
+         Cnv (Exp (ta ': r) tb , Env FGV.Exp r)  (FGV.Exp (ta' -> tb'))
          where
   cnv  (e , r) = (pure . FGV.Exp)
                   (FGV.getTrm . frmRgtZro . curry cnv e

@@ -1,6 +1,6 @@
 module Examples.Power.QDSL where
 import Prelude
-import QFeldspar.QDSL hiding (div,Int)
+import QFeldspar.QDSL hiding (div)
 
 power :: Int -> Qt (Float -> Float)
 power n =

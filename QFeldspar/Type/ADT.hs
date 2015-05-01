@@ -3,7 +3,7 @@ module QFeldspar.Type.ADT where
 import QFeldspar.MyPrelude
 
 data Typ =
-    Int
+    Wrd
   | Bol
   | Flt
   | Arr Typ Typ

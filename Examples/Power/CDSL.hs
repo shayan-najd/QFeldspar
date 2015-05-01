@@ -1,6 +1,6 @@
 module Examples.Power.CDSL where
 import Prelude
-import QFeldspar.CDSL hiding (Int)
+import QFeldspar.CDSL
 
 power :: Int -> Dp Float -> Dp Float
 power n xx =

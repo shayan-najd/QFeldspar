@@ -22,33 +22,33 @@ esTH = fmap stripNameSpace esTH'
 epTH :: EP.Env TH.Name
 epTH = frmRgtZro (cnv (esTH , ()))
 
-type Prelude = [Cmx -> Flt          ,
-                Cmx -> Flt          ,
-                Int -> (Int -> Int) ,
-                Flt -> (Flt -> Flt) ,
-                Int -> (Int -> Int) ,
-                Int -> (Int -> Int) ,
-                Int -> (Int -> Int) ,
-                Int -> (Int -> Int) ,
-                Int -> (Int -> Int) ,
-                Int -> Int          ,
-                Int -> Flt          ,
-                Flt -> Cmx          ,
-                Int -> Int          ,
-                Flt -> Flt          ,
-                Ary Int             ]
+type Prelude = [Complex Float -> Float          ,
+                Complex Float -> Float          ,
+                Word32 -> (Word32 -> Word32) ,
+                Float -> (Float -> Float) ,
+                Word32 -> (Word32 -> Word32) ,
+                Word32 -> (Word32 -> Word32) ,
+                Word32 -> (Word32 -> Word32) ,
+                Word32 -> (Word32 -> Word32) ,
+                Word32 -> (Word32 -> Word32) ,
+                Word32 -> Word32          ,
+                Word32 -> Float          ,
+                Float -> Complex Float          ,
+                Word32 -> Word32          ,
+                Float -> Float          ,
+                Ary Word32             ]
 
 esTH' :: ES.Env (Len Prelude) TH.Name
 esTH' = 'realPart
     <+> 'imagPart
-    <+> 'divInt
+    <+> 'divWrd
     <+> 'divFlt
-    <+> 'andInt
-    <+> 'orInt
-    <+> 'xorInt
-    <+> 'shrInt
-    <+> 'shlInt
-    <+> 'cmpInt
+    <+> 'andWrd
+    <+> 'orWrd
+    <+> 'xorWrd
+    <+> 'shrWrd
+    <+> 'shlWrd
+    <+> 'cmpWrd
     <+> 'i2f
     <+> 'cis
     <+> 'ilog2
@@ -56,47 +56,47 @@ esTH' = 'realPart
     <+> 'hshTbl
     <+> ES.Emp
 
-realPart :: Cmx -> Flt
+realPart :: Complex Float -> Float
 realPart = MP.realPart
 
-imagPart :: Cmx -> Flt
+imagPart :: Complex Float -> Float
 imagPart = MP.imagPart
 
-divInt :: Int -> (Int -> Int)
-divInt =  div
+divWrd :: Word32 -> (Word32 -> Word32)
+divWrd =  div
 
-divFlt :: Flt -> (Flt -> Flt)
+divFlt :: Float -> (Float -> Float)
 divFlt = (/)
 
-andInt :: Int -> (Int -> Int)
-andInt = (.&.)
+andWrd :: Word32 -> (Word32 -> Word32)
+andWrd = (.&.)
 
-orInt :: Int -> (Int -> Int)
-orInt = (.|.)
+orWrd :: Word32 -> (Word32 -> Word32)
+orWrd = (.|.)
 
-xorInt :: Int -> (Int -> Int)
-xorInt = xor
+xorWrd :: Word32 -> (Word32 -> Word32)
+xorWrd = xor
 
-shrInt :: Int -> (Int -> Int)
-shrInt = shfRgt
+shrWrd :: Word32 -> (Word32 -> Word32)
+shrWrd = shfRgt
 
-shlInt :: Int -> (Int -> Int)
-shlInt = shfLft
+shlWrd :: Word32 -> (Word32 -> Word32)
+shlWrd = shfLft
 
-cmpInt :: Int -> Int
-cmpInt = complement
+cmpWrd :: Word32 -> Word32
+cmpWrd = complement
 
-i2f :: Int -> Flt
+i2f :: Word32 -> Float
 i2f = MP.i2f
 
-cis :: Flt -> Cmx
+cis :: Float -> Complex Float
 cis = MP.cis
 
-ilog2 :: Int -> Int
+ilog2 :: Word32 -> Word32
 ilog2 = MP.ilog2
 
-sqrtFlt :: Flt -> Flt
+sqrtFlt :: Float -> Float
 sqrtFlt = sqrt
 
-hshTbl :: Ary Int
+hshTbl :: Ary Word32
 hshTbl = hashTable

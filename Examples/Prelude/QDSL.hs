@@ -16,7 +16,7 @@ fromArr      =   [|| \ aa -> let a = aa in
 toArrF ::  Qt ((Vec a -> Vec b) -> Ary a -> Ary b)
 toArrF =   [|| \ f a -> $$toArr (f ($$fromArr a)) ||]
 
-frmTo :: Qt (Int -> Int -> Vec Int)
+frmTo :: Qt (Word32 -> Word32 -> Vec Word32)
 frmTo = [|| \ mm -> \ nn -> let n = nn in
                             let m = mm in
                             Vec
@@ -25,7 +25,7 @@ frmTo = [|| \ mm -> \ nn -> let n = nn in
                              else n - m + 1)
                             (\ i -> i + m) ||]
 
-permute :: FO t => Qt ((Int -> Int -> Int) -> Vec t -> Vec t)
+permute :: FO t => Qt ((Word32 -> Word32 -> Word32) -> Vec t -> Vec t)
 permute = [|| \ f -> \ (Vec l g) -> let lv = l in
                             Vec lv (\ i -> g (f lv i)) ||]
 
@@ -43,17 +43,17 @@ zipWith = [|| \ f -> \ (Vec l1 g1) -> \ (Vec l2 g2) ->
                     (\ ii -> let i = ii in
                              f (g1 i) (g2 i)) ||]
 
-sum :: Qt (Vec Int -> Int)
+sum :: Qt (Vec Word32 -> Word32)
 sum = [|| $$foldl (+) 0 ||]
 
-scalarProd :: Qt (Vec Int -> Vec Int -> Int)
+scalarProd :: Qt (Vec Word32 -> Vec Word32 -> Word32)
 scalarProd  = [|| \ v1 -> \ v2 -> $$sum ($$zipWith (*) v1 v2) ||]
 
 fmap :: (FO a , FO b) => Qt ((a -> b) -> Vec a -> Vec b)
 fmap = [|| \ f -> \ (Vec l g) -> Vec l (\ i -> f (g i)) ||]
 
 forVec :: FO s =>
-          Qt (Int -> Vec s -> (Int -> Vec s -> Vec s) -> Vec s)
+          Qt (Word32 -> Vec s -> (Word32 -> Vec s -> Vec s) -> Vec s)
 forVec = [|| \ l -> \ init -> \ step ->
              let init' = $$toArr init in
              let step' = \ i a -> $$toArr (step i ($$fromArr a)) in
@@ -66,7 +66,7 @@ forVec = [|| \ l -> \ init -> \ step ->
                              (0 , init')))
           ||]
 
-replicate :: FO a => Qt (Int -> a -> Vec a)
+replicate :: FO a => Qt (Word32 -> a -> Vec a)
 replicate = [|| \ n -> \ x -> Vec n (\ _i -> x) ||]
 
 append :: FO a => Qt (Vec a -> Vec a -> Vec a)
@@ -78,7 +78,7 @@ append = [|| \ (Vec l1 f1) -> \ (Vec l2 f2) ->
                           then f1 i
                           else f2 i) ||]
 
-for :: FO s => Qt (Int -> s -> (Int -> s -> s) -> s)
+for :: FO s => Qt (Word32 -> s -> (Word32 -> s -> s) -> s)
 for = [|| \ l -> \ init -> \ step ->
               snd (while (\ t  -> fst t < l)
                          (\ tt -> let t  = tt    in
@@ -122,13 +122,13 @@ pi :: Qt Float
 pi =  let p = (P.negate P.pi) :: Float
       in  [|| p ||]
 
-testBit    :: Qt (Int -> Int -> Bool)
+testBit    :: Qt (Word32 -> Word32 -> Bool)
 testBit    = [|| \ i -> \ j -> if (i .&. (shfLft 1 j)) == 0
                                   then False
                                   else True ||]
 
-oneBits :: Qt (Int -> Int)
+oneBits :: Qt (Word32 -> Word32)
 oneBits    =  [|| \ n -> complement (shfLft (complement 0) n) ||]
 
-lsbs :: Qt (Int -> Int -> Int)
+lsbs :: Qt (Word32 -> Word32 -> Word32)
 lsbs       = [|| \ k -> \ i -> i .&. ($$oneBits k) ||]

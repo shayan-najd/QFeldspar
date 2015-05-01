@@ -36,7 +36,7 @@ module QFeldspar.MyPrelude
         module Control.Applicative,
         module Control.Monad,
         module Data.Array,
-        Bol,Ary,May,Cmx,Flt,Int,Arr,Tpl,Vec(..),
+        Ary,Vec(..),
         cnd,while,whileM,tpl,mkArr,lnArr,ixArr,non,som,may,save,fix,
         fixM)
        where
@@ -83,15 +83,8 @@ badTypValM = fail "Value of wrong type!"
 getState :: MonadState s m => m s
 getState = get
 
-type Int     = Word32
-type Flt     = Float
-type Bol     = Bool
 type Ary a   = Array Word32 a
-type May a   = Maybe a
-type Cmx     = Complex Flt
-type Arr a b = a -> b
-type Tpl a b = (a , b)
-data Vec a   = Vec Int (Int -> a)
+data Vec a   = Vec Word32 (Word32 -> a)
 
 cnd :: Bool -> s -> s -> s
 cnd c t f = if c then t else f
@@ -109,13 +102,13 @@ whileM fc fb v = do b' <- fc v
 tpl :: a -> b -> (a , b)
 tpl = ((,))
 
-mkArr :: Int -> (Int -> a) -> Array Int a
+mkArr :: Word32 -> (Word32 -> a) -> Array Word32 a
 mkArr  l f = fmap f (listArray (0 , l - 1) [0 .. l - 1])
 
-lnArr :: Array Int a -> Int
+lnArr :: Array Word32 a -> Word32
 lnArr = (1 +) . uncurry (flip (-)) . bounds
 
-ixArr :: Array Int a -> Int -> a
+ixArr :: Array Word32 a -> Word32 -> a
 ixArr = (!)
 {-
 cmx :: Float -> Float -> Complex Float
@@ -133,19 +126,19 @@ may em en es = maybe en es em
 save :: a -> a
 save = id
 
-shfRgt :: Int -> (Int -> Int)
+shfRgt :: Word32 -> (Word32 -> Word32)
 shfRgt i j = shiftR i (fromIntegral j)
 
-shfLft :: Int -> (Int -> Int)
+shfLft :: Word32 -> (Word32 -> Word32)
 shfLft i j = shiftL i (fromIntegral j)
 
-i2f :: Int -> Flt
+i2f :: Word32 -> Float
 i2f i = fromIntegral i
 
-ilog2 :: Int -> Int
+ilog2 :: Word32 -> Word32
 ilog2 x = floor (log (fromIntegral x) / log (2 :: Float))
 
-hashTable :: Array Int Int
+hashTable :: Array Word32 Word32
 hashTable = listArray (0,255) [
   0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419,
   0x706af48f, 0xe963a535, 0x9e6495a3, 0x0edb8832, 0x79dcb8a4,

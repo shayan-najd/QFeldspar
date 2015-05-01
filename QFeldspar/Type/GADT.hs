@@ -5,31 +5,31 @@ import qualified QFeldspar.Environment.Typed as ET
 import QFeldspar.Singleton
 
 data Typ :: * -> * where
-  Int :: Typ Int
-  Bol :: Typ Bol
-  Flt :: Typ Flt
+  Wrd :: Typ Word32
+  Bol :: Typ Bool
+  Flt :: Typ Float
   Arr :: Typ ta -> Typ tb -> Typ (ta -> tb)
-  Tpl :: Typ tf -> Typ ts -> Typ ((tf , ts))
+  Tpl :: Typ tf -> Typ ts -> Typ (tf , ts)
   Ary :: Typ t  -> Typ (Ary t)
   Vct :: Typ t  -> Typ (Vec t)
-  May :: Typ t  -> Typ (May t)
-  Cmx :: Typ Cmx
+  May :: Typ t  -> Typ (Maybe t)
+  Cmx :: Typ (Complex Float)
 
 deriving instance Show (Typ t)
 
-instance HasSin Typ Int where
-  sin = Int
+instance HasSin Typ Word32 where
+  sin = Wrd
 
-instance HasSin Typ Bol where
+instance HasSin Typ Bool where
   sin = Bol
 
-instance HasSin Typ Flt where
+instance HasSin Typ Float where
   sin = Flt
 
-instance (HasSin Typ ta , HasSin Typ tb) => HasSin Typ (Arr ta tb) where
+instance (HasSin Typ ta , HasSin Typ tb) => HasSin Typ (ta -> tb) where
   sin = Arr sin sin
 
-instance (HasSin Typ tf , HasSin Typ ts) => HasSin Typ (Tpl tf ts) where
+instance (HasSin Typ tf , HasSin Typ ts) => HasSin Typ (tf , ts) where
   sin = Tpl sin sin
 
 instance HasSin Typ ta => HasSin Typ (Ary ta) where
@@ -38,14 +38,14 @@ instance HasSin Typ ta => HasSin Typ (Ary ta) where
 instance HasSin Typ ta => HasSin Typ (Vec ta) where
   sin = Vct sin
 
-instance HasSin Typ ta => HasSin Typ (May ta) where
+instance HasSin Typ ta => HasSin Typ (Maybe ta) where
   sin = May sin
 
-instance HasSin Typ Cmx where
+instance HasSin Typ (Complex Float) where
   sin = Cmx
 
 instance EqlSin Typ where
-  eqlSin Int         Int           = return Rfl
+  eqlSin Wrd         Wrd           = return Rfl
   eqlSin Bol         Bol           = return Rfl
   eqlSin Flt         Flt           = return Rfl
   eqlSin (Arr ta tb) (Arr ta' tb') = do Rfl <- eqlSin ta ta'
@@ -65,7 +65,7 @@ instance EqlSin Typ where
 
 instance GetPrfHasSin Typ where
   getPrfHasSin t  = case t of
-    Int       -> PrfHasSin
+    Wrd       -> PrfHasSin
     Bol       -> PrfHasSin
     Flt       -> PrfHasSin
     Arr ta tb -> case (getPrfHasSin ta , getPrfHasSin tb) of
@@ -80,14 +80,14 @@ instance GetPrfHasSin Typ where
       PrfHasSin -> PrfHasSin
     Cmx       -> PrfHasSin
 
-getPrfHasSinArr :: forall ta tb t. HasSin Typ (Arr ta tb) =>
-                   t (Arr ta tb) -> (PrfHasSin Typ ta , PrfHasSin Typ tb)
-getPrfHasSinArr _ = case sin :: Typ (Arr ta tb) of
+getPrfHasSinArr :: forall ta tb t. HasSin Typ (ta -> tb) =>
+                   t (ta -> tb) -> (PrfHasSin Typ ta , PrfHasSin Typ tb)
+getPrfHasSinArr _ = case sin :: Typ (ta -> tb) of
   Arr ta tb -> (getPrfHasSin ta , getPrfHasSin tb)
 
-getPrfHasSinTpl :: forall tf ts t. HasSin Typ (Tpl tf ts) =>
-                   t (Tpl tf ts) -> (PrfHasSin Typ tf , PrfHasSin Typ ts)
-getPrfHasSinTpl _ = case sin :: Typ (Tpl tf ts) of
+getPrfHasSinTpl :: forall tf ts t. HasSin Typ (tf , ts) =>
+                   t (tf , ts) -> (PrfHasSin Typ tf , PrfHasSin Typ ts)
+getPrfHasSinTpl _ = case sin :: Typ (tf , ts) of
   Tpl tf ts -> (getPrfHasSin tf , getPrfHasSin ts)
 
 getPrfHasSinAry :: forall ta t. HasSin Typ (Ary ta) =>
@@ -101,17 +101,17 @@ getPrfHasSinVec _ = case sin :: Typ (Vec ta) of
   Vct ta    -> getPrfHasSin ta
 
 
-getPrfHasSinMay :: forall ta t. HasSin Typ (May ta) =>
-                   t (May ta) -> PrfHasSin Typ ta
-getPrfHasSinMay _ = case sin :: Typ (May ta) of
+getPrfHasSinMay :: forall ta t. HasSin Typ (Maybe ta) =>
+                   t (Maybe ta) -> PrfHasSin Typ ta
+getPrfHasSinMay _ = case sin :: Typ (Maybe ta) of
   May ta    -> getPrfHasSin ta
 
-getPrfHasSinArrM :: HasSin Typ (Arr ta tb) =>
-                    t (Arr ta tb) -> ErrM (PrfHasSin Typ ta , PrfHasSin Typ tb)
+getPrfHasSinArrM :: HasSin Typ (ta -> tb) =>
+                    t (ta -> tb) -> ErrM (PrfHasSin Typ ta , PrfHasSin Typ tb)
 getPrfHasSinArrM = return . getPrfHasSinArr
 
-getPrfHasSinTplM :: HasSin Typ (Tpl tf ts) =>
-                    t (Tpl tf ts) -> ErrM (PrfHasSin Typ tf , PrfHasSin Typ ts)
+getPrfHasSinTplM :: HasSin Typ (tf , ts) =>
+                    t (tf , ts) -> ErrM (PrfHasSin Typ tf , PrfHasSin Typ ts)
 getPrfHasSinTplM = return . getPrfHasSinTpl
 
 getPrfHasSinAryM :: HasSin Typ (Ary ta) =>
@@ -122,8 +122,8 @@ getPrfHasSinVecM :: HasSin Typ (Vec ta) =>
                    t (Vec ta) -> ErrM (PrfHasSin Typ ta)
 getPrfHasSinVecM = return  . getPrfHasSinVec
 
-getPrfHasSinMayM :: HasSin Typ (May ta) =>
-                   t (May ta) -> ErrM (PrfHasSin Typ ta)
+getPrfHasSinMayM :: HasSin Typ (Maybe ta) =>
+                   t (Maybe ta) -> ErrM (PrfHasSin Typ ta)
 getPrfHasSinMayM = return  . getPrfHasSinMay
 
 type family Out (t :: *) :: * where
@@ -134,7 +134,7 @@ data EqlOut :: * -> * -> * where
   EqlOut :: EqlOut (Out t2) t2
 
 eqlOut :: Typ t1 -> Typ t2 -> ErrM (EqlOut t1 t2)
-eqlOut Int         Int           = return EqlOut
+eqlOut Wrd         Wrd           = return EqlOut
 eqlOut Bol         Bol           = return EqlOut
 eqlOut Flt         Flt           = return EqlOut
 eqlOut t           (Arr _ tb)    = do EqlOut <- eqlOut t tb
@@ -159,7 +159,7 @@ data EqlArg :: [*] -> * -> * where
   EqlArg :: EqlArg (Arg t2) t2
 
 eqlArg :: ET.Env Typ r -> Typ t -> ErrM (EqlArg r t)
-eqlArg ET.Emp         Int          = return EqlArg
+eqlArg ET.Emp         Wrd          = return EqlArg
 eqlArg ET.Emp         Bol          = return EqlArg
 eqlArg ET.Emp         Flt          = return EqlArg
 eqlArg (ET.Ext ta ts) (Arr ta' tb) = do Rfl    <- eqlSin ta ta'
@@ -196,16 +196,16 @@ fld f z (Arr a b) (ET.Ext e es) = case getPrfHasSin a of
     PrfHasSin -> f (fld f z b es) e
 fld _ _  _             _        = impossible
 
-getArgTyp :: Typ (Arr ta tb) -> Typ ta
+getArgTyp :: Typ (ta -> tb) -> Typ ta
 getArgTyp (Arr ta _) = ta
 
-getBdyTyp :: Typ (Arr ta tb) -> Typ tb
+getBdyTyp :: Typ (ta -> tb) -> Typ tb
 getBdyTyp (Arr _ tb) = tb
 
-getFstTyp :: Typ (Tpl tf ts) -> Typ tf
+getFstTyp :: Typ (tf , ts) -> Typ tf
 getFstTyp (Tpl tf _) = tf
 
-getSndTyp :: Typ (Tpl tf ts) -> Typ ts
+getSndTyp :: Typ (tf , ts) -> Typ ts
 getSndTyp (Tpl _  ts) = ts
 
 getAryTyp :: Typ (Ary ta) -> Typ ta
@@ -214,12 +214,12 @@ getAryTyp (Ary ta) = ta
 getVecTyp :: Typ (Vec ta) -> Typ ta
 getVecTyp (Vct ta) = ta
 
-getMayTyp :: Typ (May ta) -> Typ ta
+getMayTyp :: Typ (Maybe ta) -> Typ ta
 getMayTyp (May ta) = ta
 
 prfHasSinOut :: forall t. PrfHasSin Typ t -> PrfHasSin Typ (Out t)
 prfHasSinOut PrfHasSin = case sin :: Typ t of
-  Int       -> PrfHasSin
+  Wrd       -> PrfHasSin
   Bol       -> PrfHasSin
   Flt       -> PrfHasSin
   Arr ta tb -> case (getPrfHasSin ta , getPrfHasSin tb) of
@@ -250,7 +250,7 @@ getSinDiff _          _             _               = impossible
 
 getPrf :: (Arg t ~ Add ra (tb ': rb)) =>
           Typ t -> ET.Env tf ra -> ET.Env tf (tb ': rb) -> PrfHasSin Typ tb
-getPrf Int                   _          _           = impossible
+getPrf Wrd                   _          _           = impossible
 getPrf Bol                   _          _           = impossible
 getPrf Flt                   _          _           = impossible
 getPrf (Tpl _ _)             _          _           = impossible
@@ -258,8 +258,8 @@ getPrf (Ary _)               _          _           = impossible
 getPrf (Vct _)               _          _           = impossible
 getPrf Cmx                   _          _           = impossible
 getPrf (May _)               _          _           = impossible
-getPrf (Arr t Int)       ET.Emp        (ET.Ext _ ET.Emp) = getPrfHasSin t
-getPrf (Arr _ Int)       _          _           = impossible
+getPrf (Arr t Wrd)       ET.Emp        (ET.Ext _ ET.Emp) = getPrfHasSin t
+getPrf (Arr _ Wrd)       _          _           = impossible
 getPrf (Arr t Bol)       ET.Emp        (ET.Ext _ ET.Emp) = getPrfHasSin t
 getPrf (Arr _ Bol)       _          _           = impossible
 getPrf (Arr t Flt)       ET.Emp        (ET.Ext _ ET.Emp) = getPrfHasSin t

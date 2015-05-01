@@ -15,8 +15,8 @@ import QFeldspar.Type.Conversion ()
 instance Cnv (DTH.MExp , r) (AUN.Exp TH.Name) where
   cnv (ee , r) = let ?r = r in case ee of
     DTH.MLitE l         -> case l of
-      TH.IntegerL  i    -> pure (AUN.Int  (fromInteger  i :: Int))
-      TH.RationalL i    -> pure (AUN.ConF (fromRational i :: Flt))
+      TH.IntegerL  i    -> pure (AUN.Int  (fromInteger  i :: Word32))
+      TH.RationalL i    -> pure (AUN.ConF (fromRational i :: Float))
       _                 -> fail "Not Supported!"
     DTH.MVarE n
       | n === 'fst          -> do vv1 <- newTHVar
@@ -237,27 +237,19 @@ instance Cnv ((TH.Name , DTH.MExp) , r) (TH.Name , AUN.Exp TH.Name) where
 instance Cnv (DTH.DType , r) TA.Typ where
   cnv (th , r) = let ?r = r in case th of
    DTH.DConT n
-       | n == ''Word32                     -> pure TA.Int
-       | n == ''Int                        -> pure TA.Int
-       | n == ''Bol                        -> pure TA.Bol
+       | n == ''Word32                     -> pure TA.Wrd
        | n == ''Bool                       -> pure TA.Bol
        | n == ''Float                      -> pure TA.Flt
-       | n == ''Flt                        -> pure TA.Flt
-       | n == ''Cmx                        -> pure TA.Cmx
    DTH.DAppT (DTH.DAppT (DTH.DConT n) (DTH.DConT m)) a
        | n == ''Array && m == ''Word32     -> TA.Ary <$@> a
-       | n == ''Array && m == ''Int        -> TA.Ary <$@> a
    DTH.DAppT (DTH.DAppT DTH.DArrowT   a) b -> TA.Arr <$@> a <*@> b
    DTH.DAppT (DTH.DAppT (DTH.DConT n) a) b
-       | n == ''Arr                        -> TA.Arr <$@> a <*@> b
+       | n == ''(->)                       -> TA.Arr <$@> a <*@> b
        | n == ''(,)                        -> TA.Tpl <$@> a <*@> b
-       | n == ''Tpl                        -> TA.Tpl <$@> a <*@> b
    DTH.DAppT (DTH.DConT n) (DTH.DConT m)
        | n == ''Complex && m == ''Float    -> pure TA.Cmx
-       | n == ''Complex && m == ''Flt      -> pure TA.Cmx
    DTH.DAppT (DTH.DConT n) a
        | n == ''Maybe                      -> TA.May <$@> a
-       | n == ''May                        -> TA.May <$@> a
        | n == ''Ary                        -> TA.Ary <$@> a
        | n == ''Vec                        -> TA.Vec <$@> a
    _            -> fail ("Syntax not supported:\n" ++ show th)

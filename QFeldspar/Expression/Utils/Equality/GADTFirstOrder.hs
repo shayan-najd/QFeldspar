@@ -42,13 +42,13 @@ eql (Whl _  _  _ ) _                 = False
 eql (Tpl ef es)    (Tpl ef' es')     = eql ef ef' && eql es es'
 eql (Tpl _  _ )    _                 = False
 
-eql (Fst (e :: Exp r (Tpl t ts))) (Fst (e' :: Exp r (Tpl t ts'))) =
+eql (Fst (e :: Exp r (t , ts))) (Fst (e' :: Exp r (t  , ts'))) =
   case eqlSin (sin :: TFG.Typ ts) (sin :: TFG.Typ ts') of
     Rgt Rfl -> eql e e'
     _       -> False
 eql (Fst _)     _               = False
 
-eql (Snd (e :: Exp r (Tpl tf t))) (Snd (e' :: Exp r (Tpl tf' t))) =
+eql (Snd (e :: Exp r (tf , t))) (Snd (e' :: Exp r (tf' , t))) =
   case eqlSin (sin :: TFG.Typ tf) (sin :: TFG.Typ tf') of
     Rgt Rfl -> eql e e'
     _       -> False

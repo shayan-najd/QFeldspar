@@ -14,7 +14,7 @@ import QFeldspar.Conversion
 ---------------------------------------------------------------------------------
 
 instance Cnv (TFA.Typ) (ExsSin TFG.Typ) where
-  cnv TFA.Int         = return (ExsSin TFG.Int)
+  cnv TFA.Wrd         = return (ExsSin TFG.Wrd)
   cnv TFA.Bol         = return (ExsSin TFG.Bol)
   cnv TFA.Flt         = return (ExsSin TFG.Flt)
 
@@ -34,7 +34,7 @@ instance Cnv (TFA.Typ) (ExsSin TFG.Typ) where
 
 instance Cnv (TFA.Typ , r) (HR.Typ (HR.EnvFld '[])) where
   cnv (th , r) = let ?r = r in case th of
-    TFA.Int       -> pure HR.Int
+    TFA.Wrd       -> pure HR.Wrd
     TFA.Bol       -> pure HR.Bol
     TFA.Flt       -> pure HR.Flt
     TFA.Arr ta tb -> HR.Arr <$@> ta <*@> tb
@@ -46,19 +46,19 @@ instance Cnv (TFA.Typ , r) (HR.Typ (HR.EnvFld '[])) where
 
 instance Cnv (TFA.Typ , r) TH.Type where
   cnv (th , r) = let ?r = r in case th of
-    TFA.Int       -> pure (TH.ConT ''Int)
-    TFA.Bol       -> pure (TH.ConT ''Bol)
-    TFA.Flt       -> pure (TH.ConT ''Flt)
+    TFA.Wrd       -> pure (TH.ConT ''Word32)
+    TFA.Bol       -> pure (TH.ConT ''Bool)
+    TFA.Flt       -> pure (TH.ConT ''Float)
     TFA.Arr ta tb -> do ta' <- cnvImp ta
                         tb' <- cnvImp tb
-                        pure (TH.AppT (TH.AppT (TH.ConT ''Arr) ta') tb')
+                        pure (TH.AppT (TH.AppT (TH.ConT ''(->)) ta') tb')
     TFA.Tpl tf ts -> do ta' <- cnvImp tf
                         tb' <- cnvImp ts
-                        pure (TH.AppT (TH.AppT (TH.ConT ''Tpl) ta') tb')
+                        pure (TH.AppT (TH.AppT (TH.ConT ''(,)) ta') tb')
     TFA.Ary ta    -> TH.AppT (TH.ConT ''Ary) <$@> ta
     TFA.Vec ta    -> TH.AppT (TH.ConT ''Vec) <$@> ta
-    TFA.May ta    -> TH.AppT (TH.ConT ''May) <$@> ta
-    TFA.Cmx       -> pure (TH.ConT ''Cmx)
+    TFA.May ta    -> TH.AppT (TH.ConT ''Maybe) <$@> ta
+    TFA.Cmx       -> pure (TH.AppT (TH.ConT ''Complex) (TH.ConT ''Float))
 
 ---------------------------------------------------------------------------------
 --  Conversion from TFG.Typ
@@ -66,7 +66,7 @@ instance Cnv (TFA.Typ , r) TH.Type where
 
 instance Cnv (TFG.Typ a , r) TFA.Typ where
   cnv (tt , r) = let ?r = r in case tt of
-    TFG.Int       -> pure TFA.Int
+    TFG.Wrd       -> pure TFA.Wrd
     TFG.Bol       -> pure TFA.Bol
     TFG.Flt       -> pure TFA.Flt
     TFG.Arr ta tb -> TFA.Arr <$@> ta <*@> tb
@@ -87,7 +87,7 @@ instance Cnv (TFG.Typ a , r) TH.Type where
 
 instance Cnv (HR.Typ (HR.EnvFld '[]) , r) TFA.Typ where
   cnv (th , r) = let ?r = r in case th of
-    HR.Int       -> pure TFA.Int
+    HR.Wrd       -> pure TFA.Wrd
     HR.Bol       -> pure TFA.Bol
     HR.Flt       -> pure TFA.Flt
     HR.Arr ta tb -> TFA.Arr <$@> ta <*@> tb

@@ -7,7 +7,7 @@ module Examples.Prelude.CDSL
 import qualified Prelude as P
 import QFeldspar.CDSL
 
-frmTo :: Dp Int -> Dp Int -> Vec (Dp Int)
+frmTo :: Dp Word32 -> Dp Word32 -> Vec (Dp Word32)
 frmTo = \ mm -> \ nn -> let n = $shared nn in
                         let m = $shared mm in
                         Vec
@@ -16,7 +16,7 @@ frmTo = \ mm -> \ nn -> let n = $shared nn in
                           n - m + 1))
                         (\ i -> i + m)
 
-permute :: (Dp Int -> Dp Int -> Dp Int)
+permute :: (Dp Word32 -> Dp Word32 -> Dp Word32)
            -> Vec t -> Vec t
 permute = \ f -> \ (Vec l g) -> let lv = $shared l in
                                 Vec lv (\ i -> g (f lv i))
@@ -39,13 +39,13 @@ zipWith = \ f -> \ (Vec l1 g1) -> \ (Vec l2 g2) ->
 sum :: (Syn a , Num a , Type (InT a)) => Vec a -> a
 sum = foldl (+) 0
 
-scalarProd :: Vec (Dp Int) -> Vec (Dp Int) -> Dp Int
+scalarProd :: Vec (Dp Word32) -> Vec (Dp Word32) -> Dp Word32
 scalarProd = \ v1 -> \ v2 -> sum (zipWith (*) v1 v2)
 
 instance P.Functor Vec where
     fmap f (Vec n g) = Vec n (f . g)
 
-replicate :: Dp Int -> a -> Vec a
+replicate :: Dp Word32 -> a -> Vec a
 replicate = \ n -> \ x -> Vec n (\ _i -> x)
 
 append :: Syn a => Vec a -> Vec a -> Vec a
@@ -58,7 +58,7 @@ append  = \ (Vec l1 f1) -> \ (Vec l2 f2) ->
                           f2 i)))
 
 for :: (Type (InT a) , Syn a) =>
-           Dp Int -> a -> (Dp Int -> a -> a) -> a
+           Dp Word32 -> a -> (Dp Word32 -> a -> a) -> a
 for l init step = snd (while (\ t -> fst t <. l)
                              (\ tt -> share tt (\ t ->
                                       share (fst t) (\ ft ->
@@ -100,13 +100,13 @@ min xx yy = share xx (\ x ->
 pi :: Dp Float
 pi = conF ((P.negate P.pi) :: Float)
 
-testBit    :: Dp Int -> Dp Int -> Dp Bool
+testBit    :: Dp Word32 -> Dp Word32 -> Dp Bool
 testBit    = \ i -> \ j -> ((i .&.. (shfLftE 1 j)) ==. 0) ?
                            (FalseE
                            ,TrueE)
 
-lsbs :: Dp Int -> Dp Int -> Dp Int
+lsbs :: Dp Word32 -> Dp Word32 -> Dp Word32
 lsbs       = \ k -> \ i ->  i .&.. (oneBits k)
 
-oneBits :: Dp Int -> Dp Int
+oneBits :: Dp Word32 -> Dp Word32
 oneBits    = \ n -> complementE (shfLftE (complementE 0) n)

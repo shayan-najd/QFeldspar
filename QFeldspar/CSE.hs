@@ -240,21 +240,21 @@ absSubterm xx ex ee = let t = sin :: TFG.Typ t in
 
 
 hasSubterm :: (HasSin TFG.Typ t,HasSin TFG.Typ a) => Exp g t -> Exp g a -> Bool
-hasSubterm ex ee = numSubterm ex ee /= (0 :: Int)
+hasSubterm ex ee = numSubterm ex ee /= (0 :: Word32)
 
 numSubterm :: forall a t g. (HasSin TFG.Typ a , HasSin TFG.Typ t) =>
-              Exp g t -> Exp g a -> Int
+              Exp g t -> Exp g a -> Word32
 numSubterm ex ee = let t = sin :: TFG.Typ a in
                    (case eqlSin (sinTyp ex) t of
                        Rgt Rfl  -> if eql ex ee
-                                   then (1 :: Int)
+                                   then (1 :: Word32)
                                    else 0
-                       _        -> 0) + $(recAppMQ 'ee ''Exp (const [| 0 :: Int |]) []
-     [| \ _x -> (0 :: Int) |] [| (+) |] [| (+) |] (trvWrp 't)
+                       _        -> 0) + $(recAppMQ 'ee ''Exp (const [| 0 :: Word32 |]) []
+     [| \ _x -> (0 :: Word32) |] [| (+) |] [| (+) |] (trvWrp 't)
     (\ tt -> if
      | matchQ tt [t| Exp (t ': t) t |]     -> [| numSubterm (sucAll ex) |]
      | matchQ tt [t| Exp a a |]            -> [| numSubterm ex |]
-     | otherwise                           -> [| const (0 :: Int)  |]))
+     | otherwise                           -> [| const (0 :: Word32)  |]))
 
 findSubterms :: forall g t. HasSin TFG.Typ t =>
                 Exp g t -> [Exs1 (Exp g) TFG.Typ]
