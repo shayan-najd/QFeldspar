@@ -1,8 +1,8 @@
 module QFeldspar.MyPrelude
        (Num(..),pi,fromIntegral,toRational
        ,floor,log,sqrt,
-        Word32,Rational,
-        Float,
+        Word32,Rational,Integer,
+        Float,Char,
         Bool(..),(&&),(||),not,
         Complex(..),realPart,imagPart,cis,magnitude,
         (.&.),(.|.),xor,shiftR,shiftL,complement,popCountDefault,
