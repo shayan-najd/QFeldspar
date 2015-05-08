@@ -5,13 +5,13 @@ import QFeldspar.MyPrelude hiding (fst,snd)
 import QFeldspar.Expression.C
 import qualified QFeldspar.Expression.MiniFeldspar as FMWS
 
-import qualified QFeldspar.Type.ADT                  as TFA
-import qualified QFeldspar.Type.GADT                 as TFG
+import qualified QFeldspar.Type.ADT as TFA
+import qualified QFeldspar.Type.GADT as TFG
 
-import qualified QFeldspar.Environment.Scoped                 as ES
-import qualified QFeldspar.Environment.Typed                  as ET
+import qualified QFeldspar.Environment.Scoped as ES
+import qualified QFeldspar.Environment.Typed as ET
 
-import qualified QFeldspar.Variable.Scoped                    as VS
+import qualified QFeldspar.Variable.Scoped as VS
 
 import QFeldspar.Conversion
 import QFeldspar.Type.Conversion ()
@@ -53,48 +53,65 @@ cmpImp :: (Compilable (t, r), ?r :: r) =>
           t -> CompileMonad (Exp , [Stmt])
 cmpImp e = compile (e , ?r)
 
-addInt :: Exp -> Exp -> Exp
-addInt el er    = App "addInt" [el , er]
+prm0 :: String -> Exp
+prm0         = Var
+
+prm1 :: String -> Exp -> Exp
+prm1 x l     = App x [l]
+
+prm2 :: String -> Exp -> Exp -> Exp
+prm2 x l m   = App x [l , m]
+
+prm3 :: String -> Exp -> Exp -> Exp -> Exp
+prm3 x l m n = App x [l , m , n]
 
 fls :: Exp
-fls          = Var "false"
+fls = prm0 "false"
 
 tru :: Exp
-tru          = Var "true"
+tru = prm0 "true"
 
-newTpl :: TFA.Typ -> TFA.Typ -> Exp -> Exp -> Exp
-newTpl tf ts ef es = App ("newTpl" ++ show (pretty tf) ++ show (pretty ts))
-                     [ef , es]
+fst :: Exp -> Exp
+fst = prm1 "fst"
 
-fst :: TFA.Typ -> TFA.Typ -> Exp -> Exp
-fst tf ts e = App ("fstTpl" ++ show (pretty tf) ++ show (pretty ts)) [e]
+snd :: Exp -> Exp
+snd = prm1 "snd"
 
-snd :: TFA.Typ -> TFA.Typ -> Exp -> Exp
-snd tf ts e = App ("sndTpl" ++ show (pretty tf) ++ show (pretty ts)) [e]
+len :: Exp -> Exp
+len = prm1 "len"
 
-newAry :: TFA.Typ -> Exp -> Exp
-newAry  t e  = App ("newAry" ++ show (pretty t)) [e]
+ind :: Exp -> Exp -> Exp
+ind = prm2 "ind"
 
-len :: TFA.Typ -> Exp -> Exp
-len t e      = App ("lenAry"++ show (pretty t)) [e]
-
-ind :: TFA.Typ -> Exp -> Exp -> Exp
-ind t ea ei  = App ("indAry"++ show (pretty t)) [ea , ei]
-
-setAry :: TFA.Typ -> Exp -> Exp -> Exp -> Exp
-setAry t ea ei ex = App ("setAry" ++ show (pretty t)) [ea , ei , ex]
-
-ltdInt :: Exp -> Exp -> Exp
-ltdInt el er    = App "ltdInt" [el , er]
+setAry :: Exp -> Exp -> Exp -> Exp
+setAry = prm3 "setAry"
 
 cmx :: Exp -> Exp -> Exp
-cmx er ei    = App "cmx" [er , ei]
+cmx = prm2 "cmx"
 
-non :: TFA.Typ -> Exp
-non  t        = Var ("non" ++ show (pretty t))
+mul :: Exp -> Exp -> Exp
+mul = prm2 "mul"
 
-som :: TFA.Typ -> Exp -> Exp
-som  t e = App ("som" ++ show (pretty t)) [e]
+add :: Exp -> Exp -> Exp
+add = prm2 "add"
+
+sub :: Exp -> Exp -> Exp
+sub = prm2 "sub"
+
+eql :: Exp -> Exp -> Exp
+eql = prm2 "eql"
+
+ltd :: Exp -> Exp -> Exp
+ltd = prm2 "ltd"
+
+newTpl :: TFA.Typ -> Exp -> Exp -> Exp
+newTpl (TFA.Tpl tf ts) ef es = App "newTpl"
+                               [Var (show (pretty tf) ++ show (pretty ts)) , ef , es]
+newTpl _ _ _  = impossible
+
+newAry :: TFA.Typ -> Exp -> Exp
+newAry (TFA.Ary t) e  = App "newAry" [Var (show (pretty t)) , e]
+newAry _           _  = impossible
 
 class Compilable t where
  compile :: t -> CompileMonad (Exp , [Stmt])
@@ -107,23 +124,23 @@ instance (HasSin TFG.Typ t, n ~ Len r) =>
     case ee of
       FMWS.Tag _ e       -> cmpImp e
       FMWS.Mem e         -> cmpImp e
-      FMWS.Tmp  x        -> pure (Var x , [])
-      FMWS.ConI i        -> pure (Num i , [])
-      FMWS.ConB True     -> pure (tru   , [])
-      FMWS.ConB False    -> pure (fls   , [])
-      FMWS.ConF f        -> pure (Flt f , [])
+      FMWS.Tmp  x        -> return (Var x , [])
+      FMWS.ConI i        -> return (Wrd i , [])
+      FMWS.ConB True     -> return (tru   , [])
+      FMWS.ConB False    -> return (fls   , [])
+      FMWS.ConF f        -> return (Flt f , [])
       FMWS.AppV v ET.Emp -> do v' :: VS.Var n <- cnvImpLft v
                                let ve = ES.get v' r
-                               pure (Var ve , [])
+                               return (Var ve , [])
       FMWS.AppV v es     -> do v' :: VS.Var n <- cnvImpLft v
                                let ve         = ES.get v' r
                                (es' , ss)     <- cnvETEnv (sinTypOf v t) es
-                               pure (App ve es' ,concat ss)
-      FMWS.Cnd ec et ef  -> do v <- newName
-                               addVar (v , t')
-                               (ec' , sc) <- cmpImp ec
+                               return (App ve es' ,concat ss)
+      FMWS.Cnd ec et ef  -> do (ec' , sc) <- cmpImp ec
                                (et' , st) <- cmpImp et
                                (ef' , sf) <- cmpImp ef
+                               v <- newName
+                               addVar (v , t')
                                return (Var v
                                       , sc ++
                                         [If ec'
@@ -142,19 +159,15 @@ instance (HasSin TFG.Typ t, n ~ Len r) =>
                                         (sb ++
                                          [Assign xs eb'] ++ sc)])
       FMWS.Tpl ef es           -> case TFG.getPrfHasSinTpl t of
-       (PrfHasSin , PrfHasSin) -> do let TFA.Tpl tf ts = t'
-                                     (ef' , sf) <- cmpImp ef
+       (PrfHasSin , PrfHasSin) -> do (ef' , sf) <- cmpImp ef
                                      (es' , ss) <- cmpImp es
-                                     return (newTpl tf ts ef' es', sf ++ ss)
-      FMWS.Fst e               -> do TFA.Tpl tf ts <- cnvImpLft (sinTypOf e t)
-                                     (e'  , se) <- cmpImp e
-                                     return (fst tf ts e' , se)
-      FMWS.Snd e               -> do TFA.Tpl tf ts <- cnvImpLft (sinTypOf e t)
-                                     (e' , se) <- cmpImp e
-                                     return (snd tf ts e' , se)
+                                     return (newTpl t' ef' es', sf ++ ss)
+      FMWS.Fst e               -> do (e'  , se) <- cmpImp e
+                                     return (fst e' , se)
+      FMWS.Snd e               -> do (e' , se) <- cmpImp e
+                                     return (snd e' , se)
       FMWS.Ary l f             -> case TFG.getPrfHasSinAry t of
-        PrfHasSin              -> do let TFA.Ary ta = t'
-                                     xl <- newName
+        PrfHasSin              -> do xl <- newName
                                      addVar (xl , TFA.Wrd)
                                      xa <- newName
                                      addVar (xa , t')
@@ -165,21 +178,19 @@ instance (HasSin TFG.Typ t, n ~ Len r) =>
                                      return ( Var xa
                                             ,   sl ++
                                               [ Assign xl el
-                                              , Assign xa (newAry ta (Var xl))
-                                              , Assign xi (Num 0)
-                                              , Whl (ltdInt (Var xi) (Var xl))
+                                              , Assign xa (newAry t' (Var xl))
+                                              , Assign xi (Wrd 0)
+                                              , Whl (ltd (Var xi) (Var xl))
                                                 (sf ++
-                                                 [ Assign xa (setAry ta (Var xa)
+                                                 [ Assign xa (setAry (Var xa)
                                                                (Var xi) ef)
-                                                 , Assign xi (addInt (Var xi)
-                                                              (Num 1))])])
-      FMWS.Len e               -> do TFA.Ary ta <- cnvImpLft (sinTypOf e t)
-                                     (e'  , se) <- cmpImp e
-                                     return (len ta e' , se)
-      FMWS.Ind ea ei           -> do TFA.Ary ta <- cnvImpLft (sinTypOf ea t)
-                                     (ea' , sa) <- cmpImp ea
+                                                 , Assign xi (add (Var xi)
+                                                              (Wrd 1))])])
+      FMWS.Len e               -> do (e'  , se) <- cmpImp e
+                                     return (len e' , se)
+      FMWS.Ind ea ei           -> do (ea' , sa) <- cmpImp ea
                                      (ei' , si) <- cmpImp ei
-                                     return (ind ta ea' ei' , sa ++ si)
+                                     return (ind ea' ei' , sa ++ si)
       FMWS.Let el eb           -> do xl <- newName
                                      tl <- cnvImpLft (sinTypOf el t)
                                      addVar (xl , tl)
@@ -194,39 +205,38 @@ instance (HasSin TFG.Typ t, n ~ Len r) =>
       FMWS.Mul er ei           -> do (er' , sr) <- cmpImp er
                                      (ei' , si) <- cmpImp ei
                                      case t of
-                                       TFG.Wrd -> return (App "mulInt" [er' , ei'] , sr ++ si)
-                                       TFG.Flt -> return (App "mulFlt" [er' , ei'] , sr ++ si)
-                                       TFG.Cmx -> return (App "mulCmx" [er' , ei'] , sr ++ si)
+                                       TFG.Wrd -> return (mul er' ei' , sr ++ si)
+                                       TFG.Flt -> return (mul er' ei' , sr ++ si)
+                                       TFG.Cmx -> return (mul er' ei' , sr ++ si)
                                        _       -> fail "Type Error in Mul"
       FMWS.Add er ei           -> do (er' , sr) <- cmpImp er
                                      (ei' , si) <- cmpImp ei
                                      case t of
-                                       TFG.Wrd -> return (App "addInt" [er' , ei'] , sr ++ si)
-                                       TFG.Flt -> return (App "addFlt" [er' , ei'] , sr ++ si)
-                                       TFG.Cmx -> return (App "addCmx" [er' , ei'] , sr ++ si)
+                                       TFG.Wrd -> return (add er' ei' , sr ++ si)
+                                       TFG.Flt -> return (add er' ei' , sr ++ si)
+                                       TFG.Cmx -> return (add er' ei' , sr ++ si)
                                        _       -> fail "Type Error in Add"
       FMWS.Sub er ei           -> do (er' , sr) <- cmpImp er
                                      (ei' , si) <- cmpImp ei
                                      case t of
-                                       TFG.Wrd -> return (App "subInt" [er' , ei'] , sr ++ si)
-                                       TFG.Flt -> return (App "subFlt" [er' , ei'] , sr ++ si)
-                                       TFG.Cmx -> return (App "subCmx" [er' , ei'] , sr ++ si)
+                                       TFG.Wrd -> return (sub er' ei' , sr ++ si)
+                                       TFG.Flt -> return (sub er' ei' , sr ++ si)
+                                       TFG.Cmx -> return (sub er' ei' , sr ++ si)
                                        _       -> fail "Type Error in Sub"
-
       FMWS.Eql er ei           -> do (er' , sr) <- cmpImp er
                                      (ei' , si) <- cmpImp ei
                                      case sinTyp er of
-                                       TFG.Wrd -> return (App "eqlInt" [er' , ei'] , sr ++ si)
-                                       TFG.Flt -> return (App "eqlFlt" [er' , ei'] , sr ++ si)
-                                       TFG.Bol -> return (App "eqlBol" [er' , ei'] , sr ++ si)
+                                       TFG.Wrd -> return (eql er' ei' , sr ++ si)
+                                       TFG.Flt -> return (eql er' ei' , sr ++ si)
+                                       TFG.Bol -> return (eql er' ei' , sr ++ si)
                                        _       -> fail "Type Error in Eql"
 
       FMWS.Ltd er ei           -> do (er' , sr) <- cmpImp er
                                      (ei' , si) <- cmpImp ei
                                      case sinTyp er of
-                                       TFG.Wrd -> return (App "ltdInt" [er' , ei'] , sr ++ si)
-                                       TFG.Flt -> return (App "ltdFlt" [er' , ei'] , sr ++ si)
-                                       TFG.Bol -> return (App "ltdBol" [er' , ei'] , sr ++ si)
+                                       TFG.Wrd -> return (ltd er' ei' , sr ++ si)
+                                       TFG.Flt -> return (ltd er' ei' , sr ++ si)
+                                       TFG.Bol -> return (ltd er' ei' , sr ++ si)
                                        _       -> fail "Type Error in Ltd"
 
 

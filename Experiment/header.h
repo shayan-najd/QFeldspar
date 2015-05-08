@@ -8,209 +8,69 @@
 #ifndef Feldspar_Header
 #define Feldspar_Header
 
-#define Int int
+#define Wrd unsigned int
 #define Flt float
 #define Bol bool
 #define Cmx float complex
 
 #define cmx(X,Y) (X + Y * I)
-#define realPart(X) crealf(X)
-#define imagPart(X) cimagf(X)
+#define realPart(X) (crealf(X))
+#define imagPart(X) (cimagf(X))
 
-#define eqlBol(X,Y) (X == Y)
-#define eqlInt(X,Y) (X == Y)
-#define eqlFlt(X,Y) (X == Y)
+#define mul(X,Y) (X * Y)
+#define add(X,Y) (X + Y)
+#define sub(X,Y) (X - Y)
+#define eql(X,Y) (X == Y)
+#define ltd(X,Y) (X < Y)
 
-#define ltdBol(X,Y) (X < Y)
-#define ltdInt(X,Y) (X < Y)
-#define ltdFlt(X,Y) (X < Y)
-
-#define addInt(X,Y) (X + Y)
-#define subInt(X,Y) (X - Y)
-#define mulInt(X,Y) (X * Y)
-#define divInt(X,Y) (X / Y)
-
-#define addFlt(X,Y) (X + Y)
-#define subFlt(X,Y) (X - Y)
-#define mulFlt(X,Y) (X * Y)
+#define divWrd(X,Y) (X / Y)
 #define divFlt(X,Y) (X / Y)
-
-#define addCmx(X,Y) (X + Y)
-#define subCmx(X,Y) (X - Y)
-#define mulCmx(X,Y) (X * Y)
 #define divCmx(X,Y) (X / Y)
 
-#define andInt(X,Y) (X & Y)
-#define orInt(X,Y) (X | Y)
-#define xorInt(X,Y) (X ^ Y)
-#define shrInt(X,Y) (X >> Y)
-#define shlInt(X,Y) (X << Y)
-#define cmpInt(X) (~ X)
+#define andWrd(X,Y) (X & Y)
+#define orWrd(X,Y) (X | Y)
+#define xorWrd(X,Y) (X ^ Y)
+#define shrWrd(X,Y) (X >> Y)
+#define shlWrd(X,Y) (X << Y)
+#define cmpWrd(X) (~ X)
 #define i2f(X) ((float) X)
+#define mem(X) (X)
+#define sqrtFlt(X) (sqrtf(X))
+
+
+#define fst(X) (X.fst)
+#define snd(X) (X.snd)
+#define len(X) (X.size)
+#define ind(X,Y) (X.elems[Y])
+#define newTpl(X,Y,Z) (((Tpl##X) {.fst = Y , .snd = Z}))
+#define newAry(X,Y) (((Ary##X) {.size = Y , .elems = malloc(Y * sizeof(X))}))
+#define setAry(X,Y,Z) (({X.elems [Y] = Z;X;}))
 
 Cmx cis (Flt f)
 {
   return cosf(f) + sinf(f) * I;
 }
 
-Int ilog2 (Int i)
+Wrd ilog2 (Wrd i)
 {
-  return ((Int)(floorf(log2f(i2f(i)))));
+  return ((Wrd)(floorf(log2f(i2f(i)))));
 }
 
-#define sqrtFlt(X) (sqrtf(X))
+typedef struct {Wrd size; Wrd* elems;} AryWrd;
 
-typedef struct
-{
-  Int fst;
-  Int snd;
-} TplIntInt;
+typedef struct {Wrd size; Cmx* elems;} AryCmx;
 
-TplIntInt newTplIntInt(Int f , Int s)
-{
-  return ((TplIntInt) {.fst = f , .snd = s});
-}
+typedef struct {Wrd size; Flt* elems;} AryFlt;
 
-Int fstTplIntInt(TplIntInt t)
-{
-  return t.fst;
-}
+typedef struct {Wrd fst; Wrd snd;} TplWrdWrd;
 
-Int sndTplIntInt(TplIntInt t)
-{
-  return t.snd;
-}
+typedef struct {Wrd fst; Flt snd;} TplWrdFlt;
 
-typedef struct
-{
-  Int fst;
-  Flt snd;
-} TplIntFlt;
-
-TplIntFlt newTplIntFlt(Int f , Flt s)
-{
-  return ((TplIntFlt) {.fst = f , .snd = s});
-}
-
-Int fstTplIntFlt(TplIntFlt t)
-{
-  return t.fst;
-}
-
-Flt sndTplIntFlt(TplIntFlt t)
-{
-  return t.snd;
-}
-
-typedef struct
-{
-  Int   size;
-  Int*  elems;
-} AryInt;
-
-Int lenAryInt(AryInt a)
-{
-  return a.size;
-}
-
-Int indAryInt(AryInt a , Int i)
-{
-  return a.elems[i];
-}
-
-AryInt setAryInt(AryInt a , Int i , Int e)
-{
-  a.elems [i] = e;
-  return a;
-}
-
-AryInt newAryInt(Int s)
-{
-  return ((AryInt) {.size = s , .elems = malloc(s * sizeof(Int))});
-}
-
-typedef struct
-{
-  Int   size;
-  Cmx*  elems;
-} AryCmx;
-
-Int lenAryCmx(AryCmx a)
-{
-  return a.size;
-}
-
-Cmx indAryCmx(AryCmx a , Int i)
-{
-  return a.elems[i];
-}
-
-AryCmx setAryCmx(AryCmx a , Int i , Cmx e)
-{
-  a.elems [i] = e;
-  return a;
-}
-
-AryCmx newAryCmx(Int s)
-{
-  return ((AryCmx) {.size = s , .elems = malloc(s * sizeof(Cmx))});
-}
-
-typedef struct
-{
-  Int fst;
-  AryCmx snd;
-} TplIntAryCmx;
-
-TplIntAryCmx newTplIntAryCmx(Int f , AryCmx s)
-{
-  return ((TplIntAryCmx) {.fst = f , .snd = s});
-}
-
-Int fstTplIntAryCmx(TplIntAryCmx t)
-{
-  return t.fst;
-}
-
-AryCmx sndTplIntAryCmx(TplIntAryCmx t)
-{
-  return t.snd;
-}
-
-typedef struct
-{
-  Int   size;
-  Flt*  elems;
-} AryFlt;
-
-Int lenAryFlt(AryFlt a)
-{
-  return a.size;
-}
-
-Flt indAryFlt(AryFlt a , Int i)
-{
-  return a.elems[i];
-}
-
-AryFlt setAryFlt(AryFlt a , Int i , Flt e)
-{
-  a.elems [i] = e;
-  return a;
-}
-
-AryFlt newAryFlt(Int s)
-{
-  return ((AryFlt) {.size = s , .elems = malloc(s * sizeof(Flt))});
-}
-
-AryFlt mem(AryFlt a)
-{
-  return a;
-}
+typedef struct {Wrd fst; AryCmx snd;} TplWrdAryCmx;
 
 
-Int _pp[256] = {0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419,
+
+Wrd _pp[256] = {0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419,
 	     0x706af48f, 0xe963a535, 0x9e6495a3, 0x0edb8832, 0x79dcb8a4,
 	     0xe0d5e91e, 0x97d2d988, 0x09b64c2b, 0x7eb17cbd, 0xe7b82d07,
 	     0x90bf1d91, 0x1db71064, 0x6ab020f2, 0xf3b97148, 0x84be41de,
@@ -263,7 +123,6 @@ Int _pp[256] = {0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419,
 	     0x5d681b02, 0x2a6f2b94, 0xb40bbe37, 0xc30c8ea1, 0x5a05df1b,
 	     0x2d02ef8d};
 
-
-AryInt hshTbl = {.size = 256 , .elems = _pp};
+AryWrd hshTbl = {.size = 256 , .elems = _pp};
 
 #endif

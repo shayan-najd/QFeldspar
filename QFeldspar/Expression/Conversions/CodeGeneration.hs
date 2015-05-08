@@ -14,7 +14,7 @@ class Pretty a where
 instance Pretty Exp where
  pretty (Var x)     = text x
  pretty (Flt f)     = text (show f++"f")
- pretty (Num i)     = text (show i++"u")
+ pretty (Wrd i)     = text (show i++"u")
  pretty (App op es) = text op <+> parens (commaCat (fmap pretty es))
 
 instance Pretty Stmt where
@@ -47,7 +47,7 @@ instance Pretty Var where
 
 instance Pretty TFA.Typ where
   pretty t = case t of
-    TFA.Wrd     -> text "Int"
+    TFA.Wrd     -> text "Wrd"
     TFA.Bol     -> text "Bol"
     TFA.Flt     -> text "Flt"
     TFA.Cmx     -> text "Cmx"
