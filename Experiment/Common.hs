@@ -5,6 +5,7 @@ import Prelude
 header :: String
 header = "#include\"ppm.h\"\n"
 
+-- expects 1377979715
 loaderCRC :: String
 loaderCRC = "\nint main()\
 \\n{\

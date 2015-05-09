@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 module QFeldspar.Compiler where
 
 import QFeldspar.MyPrelude hiding (fst,snd)
@@ -17,7 +18,7 @@ import QFeldspar.Conversion
 import QFeldspar.Type.Conversion ()
 import QFeldspar.Variable.Conversion ()
 import QFeldspar.Expression.Conversions.CodeGeneration (pretty)
-
+import QFeldspar.Expression.Utils.Common
 import QFeldspar.Singleton
 
 type CompileMonad a = StateT (Word32,[Var],[Var]) ErrM a
@@ -259,7 +260,39 @@ cnvETEnv t@(TFG.Arr _  tb) (ET.Ext e ess) = case TFG.getPrfHasSinArr t of
 cnvETEnv _                 ET.Emp         = return ([],[])
 cnvETEnv _                 _              = impossibleM
 
-scompileWith :: Compilable (a , ES.Env n String) =>
+class TypeCollectable a where
+  collectTypes :: a -> [TFA.Typ]
+
+instance HasSin TFG.Typ a => TypeCollectable (FMWS.Exp g a) where
+  collectTypes ee  = let t  = sin :: TFG.Typ a in
+                     (frmRgt (runNamM (cnv (t , ())))) : (case ee of
+  -- type of primitive does not matter, but type of its darguemtns does
+   FMWS.AppV v es -> TFG.fld (\ ls e -> ls ++ collectTypes e) [] (sinTyp v) es
+   _         -> $(recAppMQ 'ee ''FMWS.Exp (const [| [] |]) ['FMWS.AppV]
+     [| \ _x -> [] |] [| (++) |] [| (++) |] (trvWrp 't)
+    (\ tt -> if
+     | matchQ tt [t| FMWS.Exp a a -> FMWS.Exp a a |] -> [| collectTypes |]
+     | matchQ tt [t| FMWS.Exp a a |]                 -> [| collectTypes |]
+     | otherwise                                     -> [| const []     |])))
+
+instance (HasSin TFG.Typ a , TypeCollectable b) =>
+         TypeCollectable (FMWS.Exp g a -> b) where
+  collectTypes f = let t  = sin :: TFG.Typ a in
+                   (frmRgt (runNamM (cnv (t , ())))) :
+                   collectTypes (f (FMWS.Tmp "_dummy"))
+
+genStructs :: [TFA.Typ] -> String
+genStructs ts = concat (
+                ["typedef struct {Wrd size; "++s++"* elems;} Ary"++s++";\n"
+                | TFA.Ary a <- ts,
+                  a /= TFA.Wrd,
+                  let s = show (pretty a)] ++
+                ["typedef struct {"++sa++" fst; "++sb++" snd;} Tpl"++sa++sb++";\n"
+                | TFA.Tpl a b <- ts,
+                let sa = show (pretty a),
+                let sb = show (pretty b)])
+
+scompileWith :: (TypeCollectable a , Compilable (a , ES.Env n String)) =>
                 [Var] -> TFG.Typ t -> ES.Env n String -> Word32 -> a -> ErrM String
 scompileWith vs t r i e = let ?r = r in
                         do t' :: TFA.Typ <- runNamM (cnvImp t)
@@ -267,12 +300,13 @@ scompileWith vs t r i e = let ?r = r in
                                 (do mapM_ addParam vs
                                     cmpImp e) i
                            return ("#include \"header.h\"\n\n" ++
+                                   genStructs (nub (collectTypes e)) ++ "\n" ++
                                    ((show . pretty) c))
 
-scompile :: Compilable (a , ES.Env n String) =>
+scompile :: (TypeCollectable a , Compilable (a , ES.Env n String)) =>
                 TFG.Typ t -> ES.Env n String -> a -> ErrM String
 scompile t r e = scompileWith [] t r 0 e
 
-icompileWith :: Compilable (a , ES.Env n String) =>
+icompileWith :: (TypeCollectable a , Compilable (a , ES.Env n String)) =>
                 [Var] -> TFG.Typ t -> ES.Env n String -> Word32 -> a -> IO ()
 icompileWith vs t r i e = (putStrLn . frmRgt . scompileWith vs t r i) e

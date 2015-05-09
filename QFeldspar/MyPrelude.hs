@@ -14,7 +14,7 @@ module QFeldspar.MyPrelude
         (.),flip,curry,uncurry,id,const,
         (++),zip,head,dropWhile,iterate,length,zipWith,filter,(!!),
         delete,init,
-        ord,
+        ord,nub,
         Maybe(..),fromJust,maybe,
         Enum(..),
         Ord(..),
