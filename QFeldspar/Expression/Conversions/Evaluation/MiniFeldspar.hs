@@ -35,6 +35,7 @@ instance (HasSin TFG.Typ t, r' ~ r , t' ~ t) =>
     Eql er ei                -> case sinTyp er of
       TFG.Wrd                -> FGV.eql  <$@> er <*@> ei
       TFG.Flt                -> FGV.eql  <$@> er <*@> ei
+      TFG.Cmx                -> FGV.eql  <$@> er <*@> ei
       TFG.Bol                -> FGV.eql  <$@> er <*@> ei
       _                      -> fail "Type Error in Eql"
     Ltd er ei                -> case sinTyp er of
