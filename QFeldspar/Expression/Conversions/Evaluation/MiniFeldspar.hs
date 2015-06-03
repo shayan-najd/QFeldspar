@@ -43,11 +43,10 @@ instance (HasSin TFG.Typ t, r' ~ r , t' ~ t) =>
       TFG.Flt                -> FGV.ltd  <$@> er <*@> ei
       TFG.Bol                -> FGV.ltd  <$@> er <*@> ei
       _                      -> fail "Type Error in Ltd"
-    AppV (v :: Var rv tv) es -> appV (T :: T tv) (get v r) <$@>
-                                (T :: T tv , es)
+    Prm (v :: Var rv tv) es  -> FGV.prm (get v r) <$> TFG.mapMC (sinTyp v) cnvImp  es
     Tag _  e                 -> cnvImp e
     Let el eb                -> FGV.leT  <$@> el <*@> eb
-    _  -> $(biGenOverloadedMWL 'ee ''Exp "FGV" ['Tmp,'Mul,'Add,'Sub,'Eql,'Ltd,'AppV,'Tag,'Let]
+    _  -> $(biGenOverloadedMWL 'ee ''Exp "FGV" ['Tmp,'Mul,'Add,'Sub,'Eql,'Ltd,'Prm,'Tag,'Let]
             (trvWrp 't)
             (\ _tt ->  [| flip (curry cnv) r |]))
 
@@ -60,45 +59,6 @@ instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb , ta' ~ ta , tb' ~ tb) =>
                                              . frmRgtZro . cnvImp
                                              . FGV.Exp ))
 
-instance (HasSin TFG.Typ t , t' ~ TFG.Arg t) =>
-         Cnv ((T t , Env (Exp r) t') , Env FGV.Exp r) (Env FGV.Exp   t')
-         where
-  cnv ((T , vss) , r) = let ?r = r in let t = sin :: TFG.Typ t in
-                                      case (t , vss) of
-    (TFG.Arr ta tb , Ext v vs) -> case TFG.getPrfHasSinArr t of
-      (PrfHasSin , PrfHasSin)  -> Ext <$@> samTyp ta v <*@> (samTyp tb T , vs)
-    (TFG.Arr _ _   , _)        -> impossibleM
-    (TFG.Wrd       , Emp)      -> pure Emp
-    (TFG.Wrd       , _)        -> impossibleM
-    (TFG.Bol       , Emp)      -> pure Emp
-    (TFG.Bol       , _)        -> impossibleM
-    (TFG.Flt       , Emp)      -> pure Emp
-    (TFG.Flt       , _)        -> impossibleM
-    (TFG.Tpl _  _  , Emp)      -> pure Emp
-    (TFG.Tpl _  _  , _)        -> impossibleM
-    (TFG.Ary _     , Emp)      -> pure Emp
-    (TFG.Ary _     , _)        -> impossibleM
-    (TFG.Vct _     , Emp)      -> pure Emp
-    (TFG.Vct _     , _)        -> impossibleM
-    (TFG.Cmx       , Emp)      -> pure Emp
-    (TFG.Cmx       , _)        -> impossibleM
-    (TFG.May _     , Emp)      -> pure Emp
-    (TFG.May _     , _)        -> impossibleM
-
-appV :: forall t. HasSin TFG.Typ t => T t ->
-          FGV.Exp t -> Env FGV.Exp (TFG.Arg t) -> FGV.Exp (TFG.Out t)
-appV T vv vss  = let t = sin :: TFG.Typ t in case (t , vss) of
-  (TFG.Arr _ tb , Ext v vs) -> case TFG.getPrfHasSinArr t of
-    (PrfHasSin , PrfHasSin) -> appV T (samTyp tb (FGV.app vv v)) vs
-  (TFG.Wrd       , Emp)     -> vv
-  (TFG.Bol       , Emp)     -> vv
-  (TFG.Flt       , Emp)     -> vv
-  (TFG.Tpl _  _  , Emp)     -> vv
-  (TFG.Ary _     , Emp)     -> vv
-  (TFG.Cmx       , Emp)     -> vv
-  (TFG.May _     , Emp)     -> vv
-  (TFG.Vct _     , Emp)     -> vv
-
 instance (HasSin TFG.Typ t , r ~ r' , t ~ t') =>
          Cnv (FGV.Exp t' , Env FGV.Exp r') (Exp r t)
          where
@@ -106,9 +66,9 @@ instance (HasSin TFG.Typ t , r ~ r' , t ~ t') =>
     TFG.Wrd                   -> pure (ConI v)
     TFG.Bol                   -> pure (ConB v)
     TFG.Flt                   -> pure (ConF v)
-    TFG.Tpl _ _               -> case TFG.getPrfHasSinTpl (T :: T t) of
+    TFG.Tpl _ _               -> case TFG.getPrfHasSinTpl t of
      (PrfHasSin , PrfHasSin)  -> Tpl  <$@> FGV.Exp (fst v) <*@> FGV.Exp (snd v)
-    TFG.Ary ta                -> case TFG.getPrfHasSinAry (T :: T t) of
+    TFG.Ary ta                -> case TFG.getPrfHasSinAry t of
       PrfHasSin
         | fst (bounds v) == 0 -> Ary  <$@> (FGV.Exp . (+ 1) . snd . bounds) v
                                       <*@> samTyp (TFG.Arr TFG.Wrd ta)

@@ -1,5 +1,5 @@
 module QFeldspar.CDSL
-  (module QFeldspar.Prelude.MiniFeldspar,shared,(.),
+  (module QFeldspar.Prelude.MiniFeldspar{-,shared-},(.),
    evaluate,compile,compileF,normalise,normaliseF,
    simplify,simplifyF,cdsl) where
 
@@ -19,7 +19,7 @@ import QFeldspar.Compiler(scompile)
 import QFeldspar.Normalisation (nrm)
 -- import QFeldspar.ChangeMonad
 import QFeldspar.Expression.Utils.Reuse.MiniFeldspar
-import QFeldspar.Expression.Utils.MiniFeldspar(shared)
+-- import QFeldspar.Expression.Utils.MiniFeldspar(shared)
 import QFeldspar.CSE(cse,remTag)
 import QFeldspar.Simplification (smp)
 

@@ -8,8 +8,8 @@ import qualified Prelude as P
 import QFeldspar.CDSL
 
 frmTo :: Dp Word32 -> Dp Word32 -> Vec (Dp Word32)
-frmTo = \ mm -> \ nn -> let n = $shared nn in
-                        let m = $shared mm in
+frmTo = \ mm -> \ nn -> let n = nn in
+                        let m = mm in
                         Vec
                         ((n <. m) ?
                          (0 ,
@@ -18,7 +18,7 @@ frmTo = \ mm -> \ nn -> let n = $shared nn in
 
 permute :: (Dp Word32 -> Dp Word32 -> Dp Word32)
            -> Vec t -> Vec t
-permute = \ f -> \ (Vec l g) -> let lv = $shared l in
+permute = \ f -> \ (Vec l g) -> let lv = l in
                                 Vec lv (\ i -> g (f lv i))
 
 reverse :: Vec t -> Vec t
@@ -50,7 +50,7 @@ replicate = \ n -> \ x -> Vec n (\ _i -> x)
 
 append :: Syn a => Vec a -> Vec a -> Vec a
 append  = \ (Vec l1 f1) -> \ (Vec l2 f2) ->
-          let lv1 = $shared l1 in
+          let lv1 = l1 in
           Vec (lv1 + l2)
               (\ ii -> share ii (\ i ->
                        (i <. lv1) ?

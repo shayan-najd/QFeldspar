@@ -8,6 +8,7 @@ data Exp x = ConI Word32
            | ConB Bool
            | ConF Float
            | Var x
+           | Prm x [Exp x]
            | Abs (x , Exp x)
            | App (Exp x) (Exp x)
            | Cnd (Exp x) (Exp x) (Exp x)

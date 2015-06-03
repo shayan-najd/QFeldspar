@@ -2,6 +2,7 @@ module QFeldspar.Expression.Utils.Equality.GADTFirstOrder (eql) where
 
 import QFeldspar.MyPrelude
 
+import QFeldspar.Environment.Typed
 import QFeldspar.Expression.GADTFirstOrder
 import QFeldspar.Singleton
 import qualified QFeldspar.Type.GADT as TFG
@@ -9,7 +10,7 @@ import qualified QFeldspar.Type.GADT as TFG
 tt :: TFG.Typ a
 tt = tt
 
-eql :: forall r t .  Exp r t -> Exp r t -> Bool
+eql :: forall s g a.  Exp s g a -> Exp s g a -> Bool
 eql (ConI i)    (ConI i')     = i == i'
 eql (ConI _)    _             = False
 
@@ -21,6 +22,11 @@ eql (ConF _)    _             = False
 
 eql (Var  v)    (Var  v')     = v == v'
 eql (Var  _)    _             = False
+
+eql (Prm x ns)  (Prm x' ns')  = case eqlSin (sinTypOf x tt) (sinTypOf x' tt) of
+                                  Rgt Rfl -> x == x' && eqlEnv ns ns'
+                                  Lft _   -> False
+eql (Prm _ _)   _             = False
 
 eql (Abs  f)    (Abs  f')     = eql f f'
 eql (Abs  _)    _             = False
@@ -42,13 +48,13 @@ eql (Whl _  _  _ ) _                 = False
 eql (Tpl ef es)    (Tpl ef' es')     = eql ef ef' && eql es es'
 eql (Tpl _  _ )    _                 = False
 
-eql (Fst (e :: Exp r (t , ts))) (Fst (e' :: Exp r (t  , ts'))) =
+eql (Fst (e :: Exp s g (t , ts))) (Fst (e' :: Exp s g (t  , ts'))) =
   case eqlSin (sin :: TFG.Typ ts) (sin :: TFG.Typ ts') of
     Rgt Rfl -> eql e e'
     _       -> False
 eql (Fst _)     _               = False
 
-eql (Snd (e :: Exp r (tf , t))) (Snd (e' :: Exp r (tf' , t))) =
+eql (Snd (e :: Exp s g (tf , t))) (Snd (e' :: Exp s g (tf' , t))) =
   case eqlSin (sin :: TFG.Typ tf) (sin :: TFG.Typ tf') of
     Rgt Rfl -> eql e e'
     _       -> False
@@ -129,3 +135,9 @@ eql (Mem _)     _             = False
 
 eql (Fix e)     (Fix e')      = eql e e'
 eql (Fix _)     _             = False
+
+eqlEnv :: Env (Exp s g) g' ->  Env (Exp s g) g' -> Bool
+eqlEnv Emp        Emp          = True
+eqlEnv Emp        _            = False
+eqlEnv (Ext x xs) (Ext x' xs') = eql x x' && eqlEnv xs xs'
+eqlEnv (Ext _ _)  _            = False

@@ -27,8 +27,8 @@ mapVar :: forall r r' t.
           (forall t'. Var r' t' -> Var r  t') ->
           Exp r t -> Exp r' t
 mapVar f g ee = case ee of
-  AppV v es -> AppV (f v) (ET.fmap (mapVar f g) es)
-  _         ->  $(genOverloaded 'ee ''Exp ['AppV]
+  Prm v es -> Prm (f v) (ET.fmap (mapVar f g) es)
+  _         ->  $(genOverloaded 'ee ''Exp ['Prm]
    (\ t -> if
     | matchQ t [t| Exp t t -> Exp t t |] ->
         [| \ ff -> mapVar f g . ff . mapVar g f |]
@@ -40,13 +40,13 @@ mapVar f g ee = case ee of
 absTmp :: forall r t t'. (HasSin TFG.Typ t', HasSin TFG.Typ t) =>
           Exp r t' -> String -> Exp r t -> Exp r t
 absTmp xx s ee = let t = sin :: TFG.Typ t in case ee of
-  AppV v es     -> AppV v (TFG.mapC (sinTyp v) (absTmp xx s) es)
+  Prm v es     -> Prm v (TFG.mapC (sinTyp v) (absTmp xx s) es)
   Tmp x
     | s == x    -> case eqlSin (sinTyp xx) (sin :: TFG.Typ t) of
       Rgt Rfl   -> xx
       _         -> ee
     | otherwise -> ee
-  _             -> $(genOverloadedW 'ee ''Exp  ['AppV,'Tmp] (trvWrp 't)
+  _             -> $(genOverloadedW 'ee ''Exp  ['Prm,'Tmp] (trvWrp 't)
    (\ tt -> if
     | matchQ tt [t| Exp t t -> Exp t t |] -> [| (absTmp xx s .) |]
     | matchQ tt [t| Exp t t |]            -> [| absTmp xx s |]
@@ -54,9 +54,9 @@ absTmp xx s ee = let t = sin :: TFG.Typ t in case ee of
 
 remTag :: forall r t. Exp r t -> Exp r t
 remTag ee = case ee of
-  AppV v es -> AppV v (TFG.mapC (sinTyp v) remTag es)
+  Prm v es -> Prm v (TFG.mapC (sinTyp v) remTag es)
   Tag _  e  -> remTag e
-  _         -> $(genOverloaded 'ee ''Exp  ['AppV,'Tag]
+  _         -> $(genOverloaded 'ee ''Exp  ['Prm,'Tag]
    (\ tt -> if
     | matchQ tt [t| Exp t t -> Exp t t |] -> [| remTagF |]
     | matchQ tt [t| Exp t t |]            -> [| remTag  |]
@@ -65,6 +65,6 @@ remTag ee = case ee of
 remTagF :: (Exp r a -> Exp r b) -> (Exp r a -> Exp r b)
 remTagF = (remTag .)
 
-shared :: TH.Q TH.Exp
-shared = [| Tag $(do s <- fmap show (TH.newName "v")
-                     [|s|]) |]
+-- shared :: TH.Q TH.Exp
+-- shared = [| Tag $(do s <- fmap show (TH.newName "v")
+   --                  [|s|]) |]

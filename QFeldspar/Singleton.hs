@@ -1,6 +1,7 @@
 module QFeldspar.Singleton where
 
 import QFeldspar.MyPrelude
+import Unsafe.Coerce
 
 import qualified QFeldspar.Nat.ADT as NA
 
@@ -48,3 +49,8 @@ type family Len (l :: [k]) :: NA.Nat where
 type family Add (ll :: [k]) (lr :: [k]) :: [k]  where
   Add '[]       lr = lr
   Add (x ': xs) lr = x ': Add xs lr
+
+type a :~: b = Eql a b
+
+obvious :: a :~: b
+obvious = unsafeCoerce Rfl

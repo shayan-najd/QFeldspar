@@ -21,19 +21,19 @@ import QFeldspar.Environment.Typed (Env(Emp,Ext))
 import QFeldspar.Prelude.Environment
 import QFeldspar.Prelude.HaskellEnvironment hiding (cis,ilog2,i2f)
 import qualified QFeldspar.Variable.Typed as VT
-import QFeldspar.Expression.Utils.MiniFeldspar (shared)
+-- import QFeldspar.Expression.Utils.MiniFeldspar (shared)
 
 prm0 :: (Type t, TFG.Arg t ~ '[]) =>
         VT.Var Prelude t -> Dp (TFG.Out t)
-prm0 v = AppV v Emp
+prm0 v = Prm v Emp
 
 prm1 :: (Type t, TFG.Arg t ~ '[t1]) =>
         VT.Var Prelude t -> Dp t1 -> Dp (TFG.Out t)
-prm1 v e = AppV v (Ext e Emp)
+prm1 v e = Prm v (Ext e Emp)
 
 prm2 :: (Type t, TFG.Arg t ~ '[t1, t2]) =>
         VT.Var Prelude t -> Dp t1 -> Dp t2 -> Dp (TFG.Out t)
-prm2 v e1 e2 = AppV v (Ext e1 (Ext e2 Emp))
+prm2 v e1 e2 = Prm v (Ext e1 (Ext e2 Emp))
 
 trmEql ::  HasSin TFG.Typ a => Dp a -> Dp a -> MP.Bool
 trmEql  = FMWS.eql
@@ -78,7 +78,7 @@ while c b i = frmExp (Whl (toExpF c) (toExpF b) (toExp i))
 instance (Syn a , Syn b) => Syn (a , b) where
     type InT (a , b) = (InT a , InT b)
     toExp (x , y)    = Tpl (toExp x) (toExp y)
-    frmExp ee        = let e = $shared ee in
+    frmExp ee        = let e = ee in
                        (frmExp (Fst e) , frmExp (Snd e))
 
 mkArr :: Dp Word32 -> (Dp Word32 -> Dp t) -> Dp (Ary t)
@@ -95,7 +95,7 @@ data Vec t = Vec (Dp Word32) (Dp Word32 -> t)
 instance Syn a => Syn (Vec a) where
   type InT (Vec a)  = Ary (InT a)
   toExp  (Vec l f)  = Ary l (\ i -> toExp (f i))
-  frmExp aa         = let a = $shared aa in
+  frmExp aa         = let a = aa in
                       Vec (Len a) (\ i -> frmExp (Ind a i))
 
 pattern x :+. y = Cmx x y
@@ -123,7 +123,7 @@ data Opt_R a = Opt_R { def :: Dp Bool, val :: a }
 instance Syn a => Syn (Opt_R a) where
   type InT (Opt_R a) =  (Bool, InT a)
   toExp (Opt_R b x)  =  Tpl b (toExp x)
-  frmExp pp          =  let p = $shared pp in
+  frmExp pp          =  let p = pp in
                         Opt_R (Fst p) (frmExp (Snd p))
 
 some_R            ::  a -> Opt_R a

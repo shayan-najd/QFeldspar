@@ -1,5 +1,5 @@
 module QFeldspar.Environment.Typed
-    (Env(Emp,Ext),fmap,foldMap,foldl,traverse,len,lenNat,get,add,Get) where
+    (Env(Emp,Ext),fmap,mapM,foldMap,foldl,traverse,len,lenNat,get,add,Get) where
 
 import QFeldspar.MyPrelude hiding (mapM,fmap,traverse,foldMap,foldl)
 
@@ -16,6 +16,11 @@ data Env :: (k -> *) -> [k] -> * where
 fmap :: (forall t. tfa t -> tfb t) -> Env tfa r -> Env tfb r
 fmap _ Emp        = Emp
 fmap f (Ext x xs) = Ext (f x) (fmap f xs)
+
+mapM :: (Applicative m , Monad m) => (forall a. f a -> m (f' a)) -> Env f g -> m (Env f' g)
+mapM _ Emp        = return Emp
+mapM f (Ext x xs) = Ext <$> f x <*> mapM f xs
+
 
 foldMap :: Monoid m  =>
            (forall t. tfa t -> m) -> Env tfa r -> m

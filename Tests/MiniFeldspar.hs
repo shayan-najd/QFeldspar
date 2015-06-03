@@ -13,7 +13,7 @@ type Add = Word32 -> Word32 -> Word32
 type EnvAdd = '[Add]
 
 (+.) :: Exp EnvAdd Word32 -> Exp EnvAdd Word32 -> Exp EnvAdd Word32
-e1 +. e2 = AppV Zro (Ext e1 (Ext e2 Emp))
+e1 +. e2 = Prm Zro (Ext e1 (Ext e2 Emp))
 
 dbl :: Exp EnvAdd Word32 -> Exp EnvAdd Word32
 dbl x = x +. x

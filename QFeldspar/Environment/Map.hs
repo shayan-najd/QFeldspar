@@ -14,5 +14,5 @@ len Emp        = NA.Zro
 len (Ext _ xs) = NA.Suc (len xs)
 len _          = impossible
 
-get :: (Monad m , Eq a) => a -> Env a b -> m b
-get = (maybe (fail "Scope Error!") return . ) . lookup
+get :: (Monad m , Eq a , Show a) => a -> Env a b -> m b
+get x xs = maybe (fail ("Scope Error: cannot find '"++ show x ++ "'")) return (lookup x xs)

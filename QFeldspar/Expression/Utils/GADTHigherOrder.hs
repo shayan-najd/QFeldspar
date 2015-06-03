@@ -7,6 +7,7 @@ import QFeldspar.Expression.GADTHigherOrder
 import QFeldspar.Variable.Typed
 import qualified QFeldspar.Type.GADT as TFG
 import QFeldspar.Singleton
+import qualified QFeldspar.Environment.Typed as ET
 
 sucAll :: Exp r t' -> Exp (t ': r) t'
 sucAll = mapVar Suc prd
@@ -19,8 +20,8 @@ mapVar :: forall t r r'.
           (forall t'. Var r' t' -> Var r  t') ->
           Exp r t -> Exp r' t
 mapVar f g ee = case ee of
-  Var v -> Var (f v)
-  _     -> $(genOverloaded 'ee ''Exp ['Var]
+  Prm v ns -> Prm (f v) (ET.fmap (mapVar f g) ns)
+  _     -> $(genOverloaded 'ee ''Exp ['Prm]
    (\ t -> if
     | matchQ t [t| Exp t t -> Exp t t |] ->
         [| \ ff -> mapVar f g . ff . mapVar g f |]

@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
-module QFeldspar.Expression.Conversions.Lifting (cnvHOFOF,cnvFOHOF) where
+module QFeldspar.Expression.Conversions.Lifting (cnvHOFOF,cnvFOHO,cnvFOHOF) where
 
 import QFeldspar.MyPrelude
 import QFeldspar.Conversion
@@ -12,88 +12,68 @@ import qualified QFeldspar.Expression.GADTHigherOrder       as FGHO
 import qualified QFeldspar.Type.GADT                        as TFG
 import qualified QFeldspar.Environment.Plain                as EP
 import qualified QFeldspar.Nat.ADT                          as NA
-import qualified QFeldspar.Expression.Utils.GADTHigherOrder as FGHO
-                 (sucAll,prdAll)
 import QFeldspar.Variable.Conversion ()
 
-instance (t ~ t' , r ~ r') =>
-         Cnv (FGFO.Exp r t , Env TFG.Typ r) (FGHO.Exp r' t') where
-  cnv (e , r) = pure (cnvFOHO r e)
+instance (a ~ a' , s ~ s') =>
+         Cnv (FGFO.Exp s '[] a , r) (FGHO.Exp s' a') where
+  cnv (e , _) = pure (cnvFOHO e)
 
-instance (HasSin TFG.Typ t , t ~ t' , r ~ r') =>
-         Cnv (FGHO.Exp r t , Env TFG.Typ r) (FGFO.Exp r' t') where
-  cnv (e , r) = pure (cnvHOFO r e)
+instance (HasSin TFG.Typ a , a ~ a' , s ~ s') =>
+         Cnv (FGHO.Exp s a , Env TFG.Typ s) (FGFO.Exp s' '[] a') where
+  cnv (e , s) = pure (cnvHOFO s e)
 
-cnvFOHO :: Env tf r -> FGFO.Exp r t -> FGHO.Exp r t
-cnvFOHO r e = cnvFOHO' ((ET.fmap FGHO.Var . cnvGEnvtoGVar) r) e
+cnvFOHO :: FGFO.Exp s '[] a -> FGHO.Exp s a
+cnvFOHO e = cnvFOHO' Emp e
 
-cnvFOHOF :: Env tf g -> FGFO.Exp (a ': g) b ->
-         (FGHO.Exp g a -> FGHO.Exp g b)
-cnvFOHOF r e = cnvFOHO'F ((ET.fmap FGHO.Var . cnvGEnvtoGVar) r) e
+cnvFOHOF :: FGFO.Exp s '[a] b ->
+            (FGHO.Exp s a -> FGHO.Exp s b)
+cnvFOHOF e = cnvFOHO'F Emp e
 
-cnvHOFO :: (HasSin TFG.Typ t) =>
-           Env TFG.Typ r -> FGHO.Exp r t -> FGFO.Exp r t
-cnvHOFO r e = cnvHOFO' (genEnv r) r e
+cnvHOFO :: HasSin TFG.Typ a =>
+           Env TFG.Typ s -> FGHO.Exp s a -> FGFO.Exp s '[] a
+cnvHOFO s e = cnvHOFO' [] s e
 
 cnvHOFOF :: (HasSin TFG.Typ a, HasSin TFG.Typ b) =>
-            Env TFG.Typ r' -> (FGHO.Exp r' a -> FGHO.Exp r' b) -> FGFO.Exp (a ': r') b
-cnvHOFOF r f = cnvHOFO'F (genEnv r) r f
-
-fmapVarEnv :: (forall a. Var r a -> Var r' a) -> VarEnv r -> VarEnv r'
-fmapVarEnv _ EP.Emp                 = EP.Emp
-fmapVarEnv f (EP.Ext (Exs1 v t) vs) = EP.Ext (Exs1 (f v) t) (fmapVarEnv f vs)
-
-genEnv :: Env TFG.Typ r -> VarEnv r
-genEnv ET.Emp        = EP.Emp
-genEnv (ET.Ext t ts) = EP.Ext (Exs1 VT.Zro t) (fmapVarEnv VT.Suc (genEnv ts))
-
-cnvGEnvtoGVar :: Env tf r -> Env (VT.Var r) r
-cnvGEnvtoGVar ET.Emp        = ET.Emp
-cnvGEnvtoGVar (ET.Ext _ xs) = ET.Ext VT.Zro
-                              (ET.fmap VT.Suc (cnvGEnvtoGVar xs))
+            Env TFG.Typ s -> (FGHO.Exp s a -> FGHO.Exp s b) -> FGFO.Exp s '[a] b
+cnvHOFOF s f = cnvHOFO'F [] s f
 
 type VarEnv g = EP.Env (Exs1 (Var g) TFG.Typ)
 
-incEP :: VarEnv g -> VarEnv (t ': g)
+incEP :: VarEnv g -> VarEnv (a ': g)
 incEP []                = []
 incEP ((Exs1 v t) : vs) = (Exs1 (Suc v) t) : incEP vs
 
-cnvFOHO' :: forall r t.
-        Env (FGHO.Exp r) r -> FGFO.Exp r t -> FGHO.Exp r t
-cnvFOHO' r ee  = case ee of
-  FGFO.Var v -> ET.get v r
+cnvFOHO' :: forall s g a.
+            Env (FGHO.Exp s) g -> FGFO.Exp s g a -> FGHO.Exp s a
+cnvFOHO' g ee  = case ee of
+  FGFO.Var x -> ET.get x g
   _          -> $(biGenOverloaded 'ee ''FGFO.Exp "FGHO" ['FGFO.Var]
    (\ tt -> if
-    | matchQ tt [t| FGFO.Exp (t ': t) t |] -> [| cnvFOHO'F r |]
-    | matchQ tt [t| FGFO.Exp t t |]        -> [| cnvFOHO'  r |]
-    | otherwise                            -> [| id |]))
+    | matchQ tt [t| Env (FGFO.Exp a a)  a |] -> [| ET.fmap (cnvFOHO' g) |]
+    | matchQ tt [t| FGFO.Exp a (a ': a) a |] -> [| cnvFOHO'F g |]
+    | matchQ tt [t| FGFO.Exp a a a |]        -> [| cnvFOHO'  g |]
+    | otherwise                              -> [| id |]))
 
-cnvFOHO'F :: Env (FGHO.Exp r) r -> FGFO.Exp (ta ': r) tb ->
-         (FGHO.Exp r ta -> FGHO.Exp r tb)
-cnvFOHO'F r f = (\ x ->
-            FGHO.prdAll
-            (cnvFOHO' (ET.fmap FGHO.sucAll
-                      (Ext x r)) f))
+cnvFOHO'F :: Env (FGHO.Exp s) g -> FGFO.Exp s (a ': g) b ->
+             (FGHO.Exp s a -> FGHO.Exp s b)
+cnvFOHO'F g f = (\ x -> cnvFOHO' (Ext x g) f)
 
-cnvHOFO' :: forall r r' t. (HasSin TFG.Typ t) =>
-           VarEnv r -> Env TFG.Typ r' -> FGHO.Exp r' t -> FGFO.Exp r t
-cnvHOFO' r r' ee  = let t = sin :: TFG.Typ t in case ee of
-  FGHO.Var v -> case frmRgt (EP.get (let n :: NA.Nat = (frmRgtZro (cnv (v,())))
-                                     in  ((EP.len r) `NA.sub` (ET.lenNat r')) `NA.add` n) r) of
+cnvHOFO' :: forall s g a. HasSin TFG.Typ a =>
+            VarEnv g -> Env TFG.Typ s -> FGHO.Exp s a -> FGFO.Exp s g a
+cnvHOFO' g s ee  = let t = sin :: TFG.Typ a in case ee of
+  FGHO.Tmp x -> case frmRgt (EP.get (let v' :: NA.Nat = NA.natStr x
+                                     in  ((EP.len g) `NA.sub` (NA.Suc NA.Zro)) `NA.sub` v') g) of
                   Exs1 v' t' -> case frmRgt (eqlSin t t') of
                     Rfl      -> FGFO.Var v'
-  FGHO.Tmp s -> case frmRgt (EP.get (let v' :: NA.Nat = NA.natStr s
-                                     in  ((EP.len r) `NA.sub` (NA.Suc NA.Zro)) `NA.sub` v') r) of
-                  Exs1 v' t' -> case frmRgt (eqlSin t t') of
-                    Rfl      -> FGFO.Var v'
-  _          -> $(biGenOverloadedW 'ee ''FGHO.Exp "FGFO" ['FGHO.Var,'FGHO.Tmp] (trvWrp 't)
+  FGHO.Prm v es -> FGFO.Prm v (TFG.mapC (sinTyp v) (cnvHOFO' g s) es)
+  _          -> $(biGenOverloadedW 'ee ''FGHO.Exp "FGFO" ['FGHO.Prm,'FGHO.Tmp] (trvWrp 't)
    (\ tt -> if
-    | matchQ tt [t| FGHO.Exp t t -> FGHO.Exp t t |] -> [| cnvHOFO'F r r' |]
-    | matchQ tt [t| FGHO.Exp t t |]        -> [| cnvHOFO' r r' |]
-    | otherwise                            -> [| id |]))
+    | matchQ tt [t| FGHO.Exp a a -> FGHO.Exp a a |] -> [| cnvHOFO'F g s |]
+    | matchQ tt [t| FGHO.Exp a a |]                 -> [| cnvHOFO'  g s |]
+    | otherwise                                     -> [| id |]))
 
-cnvHOFO'F :: forall ta tb r r'.
-            (HasSin TFG.Typ ta, HasSin TFG.Typ tb) =>
-            VarEnv r -> Env TFG.Typ r' -> (FGHO.Exp r' ta -> FGHO.Exp r' tb) -> FGFO.Exp (ta ': r) tb
-cnvHOFO'F r r' f =  let tag  = FGHO.Tmp (show (EP.len r))
-                in  cnvHOFO' (EP.Ext (Exs1 Zro (sin :: TFG.Typ ta)) (incEP r)) r' (f tag)
+cnvHOFO'F :: forall a b s g.
+            (HasSin TFG.Typ a, HasSin TFG.Typ b) =>
+            VarEnv g -> Env TFG.Typ s -> (FGHO.Exp s a -> FGHO.Exp s b) -> FGFO.Exp s (a ': g) b
+cnvHOFO'F g s f =  let tag  = FGHO.Tmp (show (EP.len g))
+                   in  cnvHOFO' (EP.Ext (Exs1 Zro (sin :: TFG.Typ a)) (incEP g)) s (f tag)

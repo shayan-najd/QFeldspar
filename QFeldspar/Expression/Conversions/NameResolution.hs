@@ -10,23 +10,24 @@ import QFeldspar.Variable.Plain
 import QFeldspar.Conversion
 import QFeldspar.Variable.Conversion    ()
 
-instance Eq x =>
-         Cnv (FAUN.Exp x , EP.Env x) FAUD.Exp where
-  cnv (e , r) = cnv (e , zip r [Zro ..])
+instance (Show x , Eq x) =>
+         Cnv (FAUN.Exp x , (EP.Env x , EP.Env x)) FAUD.Exp where
+  cnv (e , (s , g)) = cnv (e , (zip s [Zro ..] , zip g [Zro ..]))
 
-instance Eq x =>
-         Cnv (FAUN.Exp x , EM.Env x Var) FAUD.Exp where
-  cnv (ee , r) = let ?r = r in case ee of
-    FAUN.Var v -> FAUD.Var <$> EM.get v r
-    _          -> $(biGenOverloadedM 'ee ''FAUN.Exp "FAUD" ['FAUN.Var]
-     (\ _tt -> [| flip (curry cnv) r |]))
+instance (Show x , Eq x) =>
+         Cnv (FAUN.Exp x , (EM.Env x Var , EM.Env x Var)) FAUD.Exp where
+  cnv (ee , (s , g)) = case ee of
+    FAUN.Var x      -> FAUD.Var <$> EM.get x g
+    FAUN.Prm x ns   -> FAUD.Prm <$> EM.get x s <*> mapM (\m -> cnv (m , (s , g))) ns
+    _               -> $(biGenOverloadedM 'ee ''FAUN.Exp "FAUD" ['FAUN.Var,'FAUN.Prm]
+     (\ _tt -> [| \ m -> cnv (m , (s , g)) |]))
 
 
-instance Eq x =>
-         Cnv ((x , FAUN.Exp x) , EM.Env x Var)
+instance (Show x , Eq x) =>
+         Cnv ((x , FAUN.Exp x) ,(EM.Env x Var , EM.Env x Var))
          FAUD.Fun where
-  cnv ((x , e) , r) = fmap FAUD.Fun
-                      (cnv (e , (x , Zro) : fmap (fmap Suc) r))
+  cnv ((x , m) , (s , g)) = fmap FAUD.Fun
+                            (cnv (m , (s , (x , Zro) : fmap (fmap Suc) g)))
 {-
 instance Cnv (Var, (EP.Env x', EM.Env Var x')) x' where
   cnv (v , r) = EM.get v (snd r)

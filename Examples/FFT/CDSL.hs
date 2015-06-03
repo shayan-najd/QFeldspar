@@ -6,8 +6,8 @@ import Examples.Prelude.CDSL
 
 fftVec :: Vec (Dp (Complex Float)) -> Vec (Dp (Complex Float))
 fftVec = \ (Vec ll f) ->
-         let l     = $shared ll in
-         let steps = $shared (ilog2E l - 1) in
+         let l     = ll in
+         let steps = (ilog2E l - 1) in
          bitRev steps (fftCore steps (Vec l (\ i -> f i)))
 
 fftCore :: Dp Word32 -> Vec (Dp (Complex Float)) -> Vec (Dp (Complex Float))

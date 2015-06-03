@@ -7,7 +7,8 @@ module QFeldspar.QDSL
    complement,i2f,cis,ilog2,sqrt,hashTable,
    maybe,return,(>>=),(.),
    qdsl,evaluate,translate,translateF,compile,compileF,
-   dbg,dbgF,testQt,testNrmQt,testNrmSmpQt,testDpF,toDp,wrp,
+   dbg1,dbg1F,dbg2,dbg2F,
+   testQt,testNrmQt,testNrmSmpQt,testDpF,toDp,wrp,
    ghoF{-,nghoF-},gho{-,ngho-},trmEql) where
 
 import QFeldspar.MyPrelude hiding (while,save)
@@ -28,18 +29,20 @@ import QFeldspar.Expression.Utils.TemplateHaskell
 import QFeldspar.Conversion
 import QFeldspar.Expression.Conversion ()
 import QFeldspar.Expression.Conversions.Evaluation.MiniFeldspar ()
-import QFeldspar.Expression.Conversions.Lifting(cnvFOHOF)
+import QFeldspar.Expression.Conversions.Lifting(cnvFOHO)
 
 import qualified QFeldspar.Expression.ADTUntypedNamed as FAUN
+import qualified QFeldspar.Expression.ADTUntypedDebruijn as FAUD
 import qualified QFeldspar.Expression.Utils.ADTUntypedNamed as FAUN
 import qualified QFeldspar.Expression.GADTHigherOrder as FGHO
 import qualified QFeldspar.Expression.GADTFirstOrder as GFO
+import qualified QFeldspar.Expression.GADTHigherOrder as GHO
 import qualified Language.Haskell.TH.Syntax as TH
 
 import qualified QFeldspar.Type.GADT as TFG
 import qualified QFeldspar.Normalisation as GFO
 
-import QFeldspar.Prelude.Environment (etTFG,(<:>))
+import QFeldspar.Prelude.Environment (etTFG)
 import qualified QFeldspar.Prelude.HaskellEnvironment as PHE
 
 type Data a = TH.Q (TH.TExp a)
@@ -107,11 +110,11 @@ translate f = frmRgtZro (cnv (wrp f , etTFG , PHE.esTH))
 translateF :: forall a b.
              (Type a , Type b) =>
              Qt (a -> b) -> Dp a -> Dp b
-translateF f = let e :: GFO.Exp (a ': PHE.Prelude) b =
-                    frmRgtZro (cnv (wrp
-                      ([|| $$f $$dummy ||])
-                      , (sin :: TFG.Typ a) <:> etTFG, dn PHE.<+> PHE.esTH))
-               in frmRgtZro (cnv (cnvFOHOF etTFG (GFO.nrm e) , ()))
+translateF f = let e :: GFO.Exp PHE.Prelude '[] (a -> b) =
+                    frmRgtZro (cnv (wrp f , etTFG , PHE.esTH))
+                   e' :: GHO.Exp PHE.Prelude (a -> b)    =
+                    cnvFOHO (GFO.nrm e)
+               in frmRgtZro (cnv (e' , ()))
 
 evaluate ::  forall a.
              (Type a , FO a) =>
@@ -128,11 +131,17 @@ compileF :: forall a b.
              Bool -> Bool -> Qt (a -> b) -> C
 compileF b1 b2 = CDSL.compileF b1 b2 . translateF
 
-dbg :: Type a => Qt a -> FAUN.Exp TH.Name
-dbg e = frmRgtZro (cnv(wrp e,etTFG , PHE.esTH))
+dbg1 :: Type a => Qt a -> FAUN.Exp TH.Name
+dbg1 e = wrp e
 
-dbgF :: (Type a , Type b) => Qt (a -> b) -> FAUN.Exp TH.Name
-dbgF e = frmRgtZro (cnv(wrp e,etTFG , PHE.esTH))
+dbg1F :: (Type a , Type b) => Qt (a -> b) -> FAUN.Exp TH.Name
+dbg1F e = wrp e
+
+dbg2 :: Type a => Qt a -> FAUD.Exp
+dbg2 e = frmRgtZro (cnv(wrp e,etTFG , PHE.esTH))
+
+dbg2F :: (Type a , Type b) => Qt (a -> b) -> FAUD.Exp
+dbg2F e = frmRgtZro (cnv(wrp e,etTFG , PHE.esTH))
 
 gho :: Type a => Qt a -> FGHO.Exp PHE.Prelude a
 gho e = frmRgtZro (cnv(wrp e,etTFG , PHE.esTH))
@@ -170,8 +179,7 @@ testDpF = CDSL.trmEqlF
 
 toFAUN :: Qt a -> MP.ErrM (FAUN.Exp TH.Name)
 toFAUN ee = MP.evalStateT
-            (do ee' :: TH.Exp <- MP.lift (TH.runQ (TH.unTypeQ ee))
-                cnv (ee',())) 0
+            (cnv (ee,etTFG , PHE.esTH)) 0
 
 data Sbs where
   (:=) :: TH.Name -> Qt a -> Sbs

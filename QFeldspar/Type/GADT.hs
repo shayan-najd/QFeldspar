@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 module QFeldspar.Type.GADT where
 
 import QFeldspar.MyPrelude
@@ -16,6 +17,8 @@ data Typ :: * -> * where
   Cmx :: Typ (Complex Float)
 
 deriving instance Show (Typ t)
+
+type Type a = HasSin Typ a
 
 instance HasSin Typ Word32 where
   sin = Wrd
@@ -216,6 +219,11 @@ getVecTyp (Vct ta) = ta
 
 getMayTyp :: Typ (Maybe ta) -> Typ ta
 getMayTyp (May ta) = ta
+
+getOutTyp :: forall a. Typ a -> Typ (Out a)
+getOutTyp (Arr _ b) = getOutTyp b
+getOutTyp a         = case obvious :: a :~: Out a of
+  Rfl              -> a
 
 prfHasSinOut :: forall t. PrfHasSin Typ t -> PrfHasSin Typ (Out t)
 prfHasSinOut PrfHasSin = case sin :: Typ t of

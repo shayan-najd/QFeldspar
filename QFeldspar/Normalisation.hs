@@ -1,21 +1,41 @@
+{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 module QFeldspar.Normalisation (nrm) where
 
-import QFeldspar.MyPrelude
+import QFeldspar.MyPrelude hiding (fmap,foldl)
 
 import QFeldspar.Expression.GADTFirstOrder
 import QFeldspar.Expression.Utils.GADTFirstOrder
-    (sucAll,sbs,replaceOne,cntVar,pattern TF,pattern V,pattern NV)
+    (sucAll,sbs,replaceOne,cntVar,pattern TF,pattern V,pattern NV,isVal)
 import QFeldspar.Variable.Typed
 import QFeldspar.Singleton
 import QFeldspar.ChangeMonad
 import QFeldspar.Expression.Utils.Common
 import qualified QFeldspar.Type.GADT as TFG
+import QFeldspar.Environment.Typed
 
-nrm :: HasSin TFG.Typ a => Exp g a -> Exp g a
+nrm :: HasSin TFG.Typ a => Exp s g a -> Exp s g a
 nrm = tilNotChg nrmOne
 
-nrmOne :: forall g a. HasSin TFG.Typ a => Exp g a -> Chg (Exp g a)
+cmt :: forall a s g d d'.
+       (TFG.Type a , TFG.Arg a ~ Add d d') =>
+       Var s a -> Env (Exp s g) d -> Env (Exp s g) d' -> Chg (Exp s g (TFG.Out a))
+cmt x d d' = case d' of
+  Emp           -> return (Prm x (add d d'))
+  Ext (NV e) es -> case TFG.getPrf (sinTyp x) (fmap (\ _ -> T) d) (fmap (\ _ -> T) d') of
+    PrfHasSin   -> chg (Let e (Prm x (add (fmap sucAll d) (Ext (Var Zro) (fmap sucAll es)))))
+  Ext (e :: Exp s g te) (es :: Env (Exp s g) tes) ->
+    case obvious :: Add (Add d (te ': '[])) tes :~: Add d (te ': tes) of
+      Rfl  -> cmt x (add d (Ext e Emp)) es
+
+hasNV :: Env (Exp s g) d -> Bool
+hasNV = foldl (\ b e -> b || (not (isVal e))) False
+
+nrmOne :: forall s g a. HasSin TFG.Typ a => Exp s g a -> Chg (Exp s g a)
 nrmOne ee = let t = sin :: TFG.Typ a in case ee of
+    Prm x es
+      | hasNV es    -> cmt x Emp es
+      | otherwise   -> Prm x <$> TFG.mapMC (sinTyp x) nrmOne es
+
     App ef                      (NV ea) -> chg (Let ea (App (sucAll ef) (Var Zro)))
     App (TF (Abs eb))           (V  ea) -> chg (sbs ea eb)
     App (TF (Cnd (V ec) et ef)) (V  ea) -> chg (Cnd ec (App et ea) (App ef ea))
@@ -102,7 +122,7 @@ nrmOne ee = let t = sin :: TFG.Typ a in case ee of
 
     Mem (NV e)                   -> chg (Let e (Mem (Var Zro)))
 
-    _                            -> $(genOverloadedMW 'ee ''Exp  [] (trvWrp 't)
+    _                            -> $(genOverloadedMW 'ee ''Exp  ['Prm] (trvWrp 't)
      (\ tt -> if
-      | matchQ tt [t| Exp a a |] -> [| nrmOne |]
-      | otherwise                -> [| pure   |]))
+      | matchQ tt [t| Exp a a a |] -> [| nrmOne |]
+      | otherwise                  -> [| pure   |]))

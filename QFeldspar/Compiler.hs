@@ -130,10 +130,10 @@ instance (HasSin TFG.Typ t, n ~ Len r) =>
       FMWS.ConB True     -> return (tru   , [])
       FMWS.ConB False    -> return (fls   , [])
       FMWS.ConF f        -> return (Flt f , [])
-      FMWS.AppV v ET.Emp -> do v' :: VS.Var n <- cnvImpLft v
+      FMWS.Prm  v ET.Emp -> do v' :: VS.Var n <- cnvImpLft v
                                let ve = ES.get v' r
                                return (Var ve , [])
-      FMWS.AppV v es     -> do v' :: VS.Var n <- cnvImpLft v
+      FMWS.Prm  v es     -> do v' :: VS.Var n <- cnvImpLft v
                                let ve         = ES.get v' r
                                (es' , ss)     <- cnvETEnv (sinTypOf v t) es
                                return (App ve es' ,concat ss)
@@ -267,8 +267,8 @@ instance HasSin TFG.Typ a => TypeCollectable (FMWS.Exp g a) where
   collectTypes ee  = let t  = sin :: TFG.Typ a in
                      (frmRgt (runNamM (cnv (t , ())))) : (case ee of
   -- type of primitive does not matter, but type of its darguemtns does
-   FMWS.AppV v es -> TFG.fld (\ ls e -> ls ++ collectTypes e) [] (sinTyp v) es
-   _         -> $(recAppMQ 'ee ''FMWS.Exp (const [| [] |]) ['FMWS.AppV]
+   FMWS.Prm v es -> TFG.fld (\ ls e -> ls ++ collectTypes e) [] (sinTyp v) es
+   _             -> $(recAppMQ 'ee ''FMWS.Exp (const [| [] |]) ['FMWS.Prm]
      [| \ _x -> [] |] [| (++) |] [| (++) |] (trvWrp 't)
     (\ tt -> if
      | matchQ tt [t| FMWS.Exp a a -> FMWS.Exp a a |] -> [| collectTypes |]

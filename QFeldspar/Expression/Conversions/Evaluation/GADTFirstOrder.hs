@@ -11,10 +11,10 @@ import QFeldspar.Variable.Conversion ()
 import QFeldspar.Singleton
 import QFeldspar.Expression.Utils.Common
 
-instance (HasSin TFG.Typ t , t' ~ t) =>
-         Cnv (Exp r t , Env FGV.Exp r) (FGV.Exp t') where
-  cnv (ee , r) = let ?r = r in let t = sin :: TFG.Typ t in case ee of
-    Var  v                   -> pure (get v r)
+instance (HasSin TFG.Typ a', a ~ a') =>
+         Cnv (Exp s g a , (Env FGV.Exp s, Env FGV.Exp g)) (FGV.Exp a') where
+  cnv (ee , r@(s , g)) = let ?r = r in let t = sin :: TFG.Typ a in case ee of
+    Var  v                   -> pure (get v g)
     AryV _ _                 -> impossibleM
     LenV _                   -> impossibleM
     IndV _ _                 -> impossibleM
@@ -51,14 +51,14 @@ instance (HasSin TFG.Typ t , t' ~ t) =>
       TFG.Flt                -> pure (FGV.conF (fromIntegral i))
       _                      -> fail "Type Error in Int"
     Let el eb                -> FGV.leT <$@> el <*@> eb
-    Tag s e                  -> FGV.tag s <$@> e
+    Tag x e                  -> FGV.tag x <$@> e
+    Prm v es                 -> FGV.prm (get v s) <$> TFG.mapMC (sinTyp v) cnvImp es
     _  -> $(biGenOverloadedMWL 'ee ''Exp "FGV"
-     ['Var,'AryV,'LenV,'IndV,'Non,'Som,'May,'Mul,'Add,'Sub,'Eql,'Ltd,'Let,'Int,'Tag]
+     ['Var,'AryV,'LenV,'IndV,'Non,'Som,'May,'Mul,'Add,'Sub,'Eql,'Ltd,'Let,'Int,'Tag,'Prm]
      (trvWrp 't) (const [| cnvImp |]))
 
-instance (ta' ~ ta , tb' ~ tb , HasSin TFG.Typ ta , HasSin TFG.Typ tb) =>
-         Cnv (Exp (ta ': r) tb , Env FGV.Exp r)  (FGV.Exp (ta' -> tb'))
+instance (a ~ a' , b ~ b' , HasSin TFG.Typ a' , HasSin TFG.Typ b') =>
+         Cnv (Exp s (a ': g) b , (Env FGV.Exp s , Env FGV.Exp g))  (FGV.Exp (a' -> b'))
          where
-  cnv  (e , r) = (pure . FGV.Exp)
-                  (FGV.getTrm . frmRgtZro . curry cnv e
-                   . flip Ext r . (FGV.Exp :: ta -> FGV.Exp ta))
+  cnv  (e , (s , g)) = (pure . FGV.Exp)
+                  (\ v -> FGV.getTrm (frmRgtZro (cnv (e , (s , Ext (FGV.Exp v :: FGV.Exp a) g)))))

@@ -1,6 +1,6 @@
 module QFeldspar.Expression.ADTValue
     (Exp
-    ,conI,conB,conF,var,abs,app,cnd,whl,tpl,fst,snd,ary,len,ind,leT
+    ,conI,conB,conF,prm,var,abs,app,cnd,whl,tpl,fst,snd,ary,len,ind,leT
     ,cmx,typ,mul,add,sub,eql,ltd,int,mem,fix
     ,Lft(..),CoLft(..)) where
 
@@ -104,6 +104,11 @@ instance ToHsk (Array Word32 Exp) where
 instance ToHsk (Complex Float) where
   toHsk (Cmx c)  = return c
   toHsk _        = badTypVal
+
+prm :: Exp -> [Exp] -> NamM ErrM Exp
+prm f []       = return f
+prm f (x : xs) =  do f' <- app f x
+                     prm f' xs
 
 prm0 :: Lft a => a -> ErrM Exp
 prm0 = return . lft

@@ -1,40 +1,37 @@
 module QFeldspar.Expression.MiniFeldspar
-      (Exp(..)) where
+       (Exp(..)) where
 
 import QFeldspar.MyPrelude
-import qualified QFeldspar.Type.GADT     as TFG
-
+import QFeldspar.Environment.Typed
 import QFeldspar.Variable.Typed
-
-import QFeldspar.Environment.Typed as ET
-import QFeldspar.Singleton
+import QFeldspar.Type.GADT
 
 data Exp :: [*] -> * -> * where
-  ConI  :: Word32      -> Exp r Word32
-  ConB  :: Bool     -> Exp r Bool
-  ConF  :: Float    -> Exp r Float
-  AppV  :: HasSin TFG.Typ t =>
-           Var r t  -> Env (Exp r) (TFG.Arg t) -> Exp r (TFG.Out t)
-  Cnd   :: Exp r Bool -> Exp r t -> Exp r t -> Exp r t
-  Whl   :: (Exp r t -> Exp r Bool) -> (Exp r t -> Exp r t) ->
-           Exp r t  -> Exp r t
-  Tpl   :: Exp r tf -> Exp r ts -> Exp r (tf , ts)
-  Fst   :: HasSin TFG.Typ ts =>
-           Exp r (tf , ts)-> Exp r tf
-  Snd   :: HasSin TFG.Typ tf =>
-           Exp r (tf , ts)-> Exp r ts
-  Ary   :: Exp r Word32 -> (Exp r Word32 -> Exp r t) -> Exp r (Ary t)
-  Len   :: HasSin TFG.Typ ta =>
-           Exp r (Ary ta) -> Exp r Word32
-  Ind   :: Exp r (Ary ta) -> Exp r Word32 -> Exp r ta
-  Let   :: HasSin TFG.Typ tl =>
-           Exp r tl -> (Exp r tl -> Exp r tb) -> Exp r tb
-  Cmx   :: Exp r Float -> Exp r Float -> Exp r (Complex Float)
-  Tmp   :: String -> Exp r t  -- dummy constructor
-  Tag   :: String -> Exp r t -> Exp r t
-  Mul   :: Exp r t -> Exp r t -> Exp r t
-  Add   :: Exp r t -> Exp r t -> Exp r t
-  Sub   :: Exp r t -> Exp r t -> Exp r t
-  Eql   :: HasSin TFG.Typ t => Exp r t -> Exp r t -> Exp r Bool
-  Ltd   :: HasSin TFG.Typ t => Exp r t -> Exp r t -> Exp r Bool
-  Mem   :: Exp r t -> Exp r t
+  ConI  :: Word32 -> Exp s Word32
+  ConB  :: Bool   -> Exp s Bool
+  ConF  :: Float  -> Exp s Float
+  Prm   :: Type a =>
+           Var s a  -> Env (Exp s) (Arg a) -> Exp s (Out a)
+  Cnd   :: Exp s Bool -> Exp s a -> Exp s a -> Exp s a
+  Whl   :: (Exp s a -> Exp s Bool) -> (Exp s a -> Exp s a) ->
+           Exp s a  -> Exp s a
+  Tpl   :: Exp s a -> Exp s b -> Exp s (a , b)
+  Fst   :: Type b =>
+           Exp s (a , b)-> Exp s a
+  Snd   :: Type a =>
+           Exp s (a , b)-> Exp s b
+  Ary   :: Exp s Word32 -> (Exp s Word32 -> Exp s a) -> Exp s (Ary a)
+  Len   :: Type a =>
+           Exp s (Ary a) -> Exp s Word32
+  Ind   :: Exp s (Ary a) -> Exp s Word32 -> Exp s a
+  Let   :: Type a =>
+           Exp s a -> (Exp s a -> Exp s b) -> Exp s b
+  Cmx   :: Exp s Float -> Exp s Float -> Exp s (Complex Float)
+  Tmp   :: String -> Exp s a  -- dummy constructor
+  Tag   :: String -> Exp s a -> Exp s a
+  Mul   :: Exp s a -> Exp s a -> Exp s a
+  Add   :: Exp s a -> Exp s a -> Exp s a
+  Sub   :: Exp s a -> Exp s a -> Exp s a
+  Eql   :: Type a => Exp s a -> Exp s a -> Exp s Bool
+  Ltd   :: Type a => Exp s a -> Exp s a -> Exp s Bool
+  Mem   :: Exp s a -> Exp s a

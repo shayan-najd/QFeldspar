@@ -6,25 +6,27 @@ import QFeldspar.Expression.Utils.Equality.GADTFirstOrder
 import QFeldspar.Expression.Utils.GADTFirstOrder(prdAllM,sucAll,isVal)
 import QFeldspar.Expression.Utils.Common
 
-import QFeldspar.MyPrelude hiding (foldl)
+import QFeldspar.MyPrelude hiding (foldl,fmap)
 
 import qualified QFeldspar.Type.GADT as TFG
 import QFeldspar.ChangeMonad
 import QFeldspar.Singleton
 import QFeldspar.Variable.Typed
+import QFeldspar.Environment.Typed
 
-type family Env a :: [*]
-type instance Env (Exp r t) = r
+-- type family Env a :: [*]
+-- type instance Env (Exp s g a) = g
 
-cse :: HasSin TFG.Typ t => Exp r t -> Exp r t
+cse :: HasSin TFG.Typ a => Exp s g a -> Exp s g a
 cse = tilNotChg cseOne
 
-cseOne :: forall g a. HasSin TFG.Typ a => Exp g a -> Chg (Exp g a)
+cseOne :: forall s g a. HasSin TFG.Typ a => Exp s g a -> Chg (Exp s g a)
 cseOne ee = let t = sin :: TFG.Typ a in case ee of
   ConI i                    -> pure (ConI i)
   ConB b                    -> pure (ConB b)
   ConF f                    -> pure (ConF f)
-  Var v                     -> pure (Var v)
+  Prm  x es                 -> cseOneEnv x Emp es
+  Var x                     -> pure (Var x)
   Abs eb                    -> case TFG.getPrfHasSinArr t of
     (PrfHasSin , PrfHasSin) -> Abs <$> cseOne eb
   App ef ea                 -> cseOne2 App ef ea
@@ -57,224 +59,145 @@ cseOne ee = let t = sin :: TFG.Typ a in case ee of
   Int  i                    -> pure (Int i)
   Mem  m                    -> Mem <$> cseOne m
 
-remTag :: forall r t. Exp r t -> Exp r t
+remTag :: forall s g a. Exp s g a -> Exp s g a
 remTag ee = case ee of
   Tag _  e  -> remTag e
   _         -> $(genOverloaded 'ee ''Exp  ['Tag]
    (\ tt -> if
-    | matchQ tt [t| Exp t t |]            -> [| remTag |]
-    | otherwise                           -> [| id |]))
+    | matchQ tt [t| Exp a a a |] -> [| remTag |]
+    | matchQ tt [t| Env (Exp a a) a |] -> [| fmap remTag |]
+    | otherwise                  -> [| id |]))
 
-remTheTag :: forall r t. String -> Exp r t -> Exp r t
+remTheTag :: forall s g a. String -> Exp s g a -> Exp s g a
 remTheTag x ee = case ee of
   Tag y e
       | x == y    -> e
       | otherwise -> Tag y (remTheTag x e)
   _               -> $(genOverloaded 'ee ''Exp  ['Tag]
    (\ tt -> if
-    | matchQ tt [t| Exp t t |]            -> [| remTheTag  x |]
-    | otherwise                           -> [| id |]))
-{-
-cseOne3 :: (HasSin TFG.Typ t , HasSin TFG.Typ a , HasSin TFG.Typ b , HasSin TFG.Typ c) =>
-           (Exp g a -> Exp g b -> Exp g c -> Exp g t) ->
-           Exp g a -> Exp g b -> Exp g c -> Chg (Exp g t)
-cseOne3 k l m n  = case findTags l of
-    tgs@(_:_) -> let f tss = case tss of
-                       [] ->  k <$> cseOne l <*> cseOne m <*> cseOne n
-                       ((x , Exs1 ex tx) : ts) -> case getPrfHasSin tx of
-                                     PrfHasSin -> if hasTag x ex m || hasTag x ex n
-                                                  then chg (Let ex (absTag (Var Zro) x (sucAll ex) (sucAll (k l m n))))
-                                                  else f ts
-                 in f tgs
-    []        -> case findTags m of
-      tgs@(_:_) -> let f tss = case tss of
-                        [] ->  k <$> cseOne l <*> cseOne m <*> cseOne n
-                        ((x , Exs1 ex tx) : ts) -> case getPrfHasSin tx of
-                                      PrfHasSin -> if hasTag x ex n
-                                                   then chg (Let ex (absTag (Var Zro) x (sucAll ex) (sucAll (k l m n))))
-                                                   else f ts
-                   in f tgs
-      [] -> k <$> cseOne l <*> cseOne m <*> cseOne n
+    | matchQ tt [t| Exp a a a |] -> [| remTheTag  x |]
+    | matchQ tt [t| Env (Exp a a) a |] -> [| fmap (remTheTag x) |]
+    | otherwise                  -> [| id |]))
 
-cseOne2 :: (HasSin TFG.Typ a, HasSin TFG.Typ b, HasSin TFG.Typ c) =>
-           (Exp g a -> Exp g b -> Exp g c) ->
-            Exp g a -> Exp g b -> Chg (Exp g c)
-cseOne2 k m n = case findTags m of
-    tgs@(_:_) -> let f tss = case tss of
-                       [] ->  k <$> cseOne m <*> cseOne n
-                       ((x , Exs1 ex tx) : ts) -> case getPrfHasSin tx of
-                                     PrfHasSin -> if hasTag x ex n
-                                                  then chg (Let ex (absTag (Var Zro) x (sucAll ex) (sucAll (k m n))))
-                                                  else f ts
-                 in f tgs
-    [] -> k <$> cseOne m <*> cseOne n
-
-cseOne2F :: (HasSin TFG.Typ a, HasSin TFG.Typ b, HasSin TFG.Typ c) =>
-           (Exp g a -> Exp (t ': g) b -> Exp g c) ->
-            Exp g a -> Exp (t ': g) b -> Chg (Exp g c)
-cseOne2F k m n = case findTags m of
-    tgs@(_:_) -> let f tss = case tss of
-                       [] ->  k <$> cseOne m <*> cseOne n
-                       ((x , Exs1 ex tx) : ts) -> case getPrfHasSin tx of
-                                     PrfHasSin -> if hasTag x (sucAll ex) n
-                                                  then chg (Let ex (absTag (Var Zro) x (sucAll ex) (sucAll (k m n))))
-                                                  else f ts
-                 in f tgs
-    [] -> k <$> cseOne m <*> cseOne n
-
-absTag :: forall t t' g.
-          (HasSin TFG.Typ t , HasSin TFG.Typ t') =>
-          Exp g t' -> String -> Exp g t' -> Exp g t -> Exp g t
-absTag xx s ex ee = let t = sin :: TFG.Typ t in case ee of
-  Tag x e
-   | s == x    -> case eqlSin (sinTyp xx) t of
-     Rgt Rfl   -> if eql e ex
-                  then xx
-                  else Tag x (absTag xx s ex e)
-     _         -> impossible
-   | otherwise -> Tag x (absTag xx s ex e)
-  _            -> $(genOverloadedW 'ee ''Exp  ['Tag] (trvWrp 't)
-   (\ tt -> if
-     | matchQ tt [t| Exp (t ': t) t |]     -> [| absTag (sucAll xx) s (sucAll ex) |]
-     | matchQ tt [t| Exp t t |]            -> [| absTag xx s ex |]
-     | otherwise                           -> [| id |]))
-
-hasTag :: (HasSin TFG.Typ t,HasSin TFG.Typ a) => String -> Exp g t -> Exp g a -> Bool
-hasTag s ex ee = numTag s ex ee /= 0
-
-numTag :: forall a t g. (HasSin TFG.Typ a , HasSin TFG.Typ t) =>
-          String -> Exp g t -> Exp g a -> Int
-numTag s ex ee = let t = sin :: TFG.Typ a in case ee of
-  Tag x e
-   | s == x    -> case eqlSin (sinTyp ex) t of
-      Rgt Rfl  -> if eql ex e
-                  then (1 :: Int)
-                  else numTag s ex e
-      _        -> impossible
-   | otherwise -> numTag s ex e
-  _            -> $(recAppMQ 'ee ''Exp (const [| 0 :: Int |]) ['Tag]
-     [| \ _x -> (0 :: Int) |] [| (+) |] [| (+) |] (trvWrp 't)
-    (\ tt -> if
-     | matchQ tt [t| Exp (t ': t) t |]     -> [| numTag s (sucAll ex) |]
-     | matchQ tt [t| Exp a a |]            -> [| numTag s ex |]
-     | otherwise                           -> [| const (0 :: Int)  |]))
+hasSubtermEnv :: HasSin TFG.Typ b => Exp s g b -> TFG.Typ a -> Env (Exp s g) (TFG.Arg a) -> Bool
+hasSubtermEnv ex = TFG.fld (\ b e -> b || hasSubterm ex e) False
 
 
-findTags :: forall g t. HasSin TFG.Typ t =>
-            Exp g t -> [(String , Exs1 (Exp g) TFG.Typ)]
-findTags ee = let t = sin :: TFG.Typ t in case ee of
-  Tag x e   -> (x , Exs1 e (sinTyp e)) : findTags e
-  _         -> $(recAppMQ 'ee ''Exp (const [| [] |]) ['Tag]
-    [| \ _x -> [] |] [| (++) |] [| (++) |] (trvWrp 't)
-   (\ tt -> if
-    | matchQ tt [t| Exp (t ': t) t |]     -> [| findTagsF |]
-    | matchQ tt [t| Exp t t |]            -> [| findTags |]
-    | otherwise                           -> [| const [] |]))
+cseOneEnv :: forall s g a d d'.
+       (TFG.Type a , TFG.Arg a ~ Add d d') =>
+       Var s a -> Env (Exp s g) d -> Env (Exp s g) d' ->
+                  Chg (Exp s g (TFG.Out a))
+cseOneEnv x d d' = case d' of
+  Emp           -> Prm x <$> TFG.mapMC (sinTyp x) cseOne (add d d')
+  Ext (e :: Exp s g te) (es :: Env (Exp s g) tes) -> case TFG.getPrf (sinTyp x) (fmap (\ _ -> T) d) (fmap (\ _ -> T) d') of
+    PrfHasSin     -> case obvious :: Add (Add d (te ': '[])) tes :~: Add d (te ': tes) of
+      Rfl         -> let f tss = case tss of
+                           []                -> cseOneEnv x (add d (Ext e Emp)) es
+                           (Exs1 ex tx : ts) -> case getPrfHasSin tx of
+                             PrfHasSin       -> case TFG.getTypTailEnv (sinTyp x) (add d (Ext e Emp)) es of
+                                  ExsSin ttx -> case TFG.eqlArg (TFG.getSinDiff (sinTyp x) (add d (Ext e Emp)) es) ttx of
+                                    Rgt TFG.EqlArg -> if hasSubtermEnv ex ttx es
+                                                      then chg (Let ex (Prm x
+                                                                    (TFG.mapC (sinTyp x) (\ ee -> absSubterm (Var Zro) (sucAll ex) (sucAll ee))
+                                                                            (add d d'))))
+                                                      else f ts
+                     in f (findSubterms e)
 
-findTagsF :: HasSin TFG.Typ b => Exp (a ': g) b -> [(String , Exs1 (Exp g) TFG.Typ)]
-findTagsF e = foldr (\ (x , Exs1 eg t) xxs -> case prdAllM eg of
-                                                Nothing ->  xxs
-                                                Just eg' -> (x , Exs1 eg' t) : xxs) [] (findTags e)
--}
-
-cseOne3 :: (HasSin TFG.Typ t , HasSin TFG.Typ a , HasSin TFG.Typ b , HasSin TFG.Typ c) =>
-           (Exp g a -> Exp g b -> Exp g c -> Exp g t) ->
-           Exp g a -> Exp g b -> Exp g c -> Chg (Exp g t)
-cseOne3 k l m n  = case findSubterms l of
-    tgs@(_:_) -> let f tss = case tss of
-                       [] ->  k <$> cseOne l <*> cseOne m <*> cseOne n
-                       (Exs1 ex tx : ts) -> case getPrfHasSin tx of
-                                     PrfHasSin -> if hasSubterm ex m || hasSubterm ex n
-                                                  then chg (Let ex (absSubterm (Var Zro) (sucAll ex) (sucAll (k l m n))))
-                                                  else f ts
-                 in f tgs
-    []        -> case findSubterms m of
-      tgs@(_:_) -> let f tss = case tss of
+cseOne3 :: (HasSin TFG.Typ a , HasSin TFG.Typ b , HasSin TFG.Typ c , HasSin TFG.Typ d) =>
+           (Exp s g a -> Exp s g b -> Exp s g c -> Exp s g d) ->
+           Exp s g a -> Exp s g b -> Exp s g c -> Chg (Exp s g d)
+cseOne3 k l m n = let fm tss = case tss of
                         [] ->  k <$> cseOne l <*> cseOne m <*> cseOne n
                         (Exs1 ex tx : ts) -> case getPrfHasSin tx of
                                       PrfHasSin -> if hasSubterm ex n
                                                    then chg (Let ex (absSubterm (Var Zro) (sucAll ex) (sucAll (k l m n))))
-                                                   else f ts
-                   in f tgs
-      [] -> k <$> cseOne l <*> cseOne m <*> cseOne n
-
-
+                                                   else fm ts
+                      fl tss = case tss of
+                        [] -> fm (findSubterms m)
+                        (Exs1 ex tx : ts) -> case getPrfHasSin tx of
+                                PrfHasSin -> if hasSubterm ex m || hasSubterm ex n
+                                             then chg (Let ex (absSubterm (Var Zro) (sucAll ex) (sucAll (k l m n))))
+                                             else fl ts
+                  in fl (findSubterms l)
 
 cseOne2 :: (HasSin TFG.Typ a, HasSin TFG.Typ b, HasSin TFG.Typ c) =>
-           (Exp g a -> Exp g b -> Exp g c) ->
-            Exp g a -> Exp g b -> Chg (Exp g c)
-cseOne2 k m n = case findSubterms m of
-    tgs@(_:_) -> let f tss = case tss of
+           (Exp s g a -> Exp s g b -> Exp s g c) ->
+            Exp s g a -> Exp s g b -> Chg (Exp s g c)
+cseOne2 k m n = let f tss = case tss of
                        [] ->  k <$> cseOne m <*> cseOne n
                        (Exs1 ex tx : ts) -> case getPrfHasSin tx of
                                      PrfHasSin -> if hasSubterm ex n
                                                   then chg (Let ex (absSubterm (Var Zro) (sucAll ex) (sucAll (k m n))))
                                                   else f ts
-                 in f tgs
-    [] -> k <$> cseOne m <*> cseOne n
+                in  f (findSubterms m)
+
 
 cseOne2F :: (HasSin TFG.Typ a, HasSin TFG.Typ b, HasSin TFG.Typ c) =>
-           (Exp g a -> Exp (t ': g) b -> Exp g c) ->
-            Exp g a -> Exp (t ': g) b -> Chg (Exp g c)
-cseOne2F k m n = case findSubterms m of
-    tgs@(_:_) -> let f tss = case tss of
+           (Exp s g a -> Exp s (a ': g) b -> Exp s g c) ->
+            Exp s g a -> Exp s (a ': g) b -> Chg (Exp s g c)
+cseOne2F k m n = let f tss = case tss of
                        [] ->  k <$> cseOne m <*> cseOne n
                        (Exs1 ex tx : ts) -> case getPrfHasSin tx of
                                      PrfHasSin -> if hasSubterm (sucAll ex) n
                                                   then chg (Let ex (absSubterm (Var Zro) (sucAll ex) (sucAll (k m n))))
                                                   else f ts
-                 in f tgs
-    [] -> k <$> cseOne m <*> cseOne n
+                 in  f (findSubterms m)
 
-absSubterm :: forall t t' g.
-          (HasSin TFG.Typ t , HasSin TFG.Typ t') =>
-          Exp g t' -> Exp g t' -> Exp g t -> Exp g t
-absSubterm xx ex ee = let t = sin :: TFG.Typ t in
+
+absSubterm :: forall a b s g.
+          (HasSin TFG.Typ a , HasSin TFG.Typ b) =>
+          Exp s g b -> Exp s g b -> Exp s g a -> Exp s g a
+absSubterm xx ex ee = let t = sin :: TFG.Typ a in
   case eqlSin (sinTyp ex) t of
     Rgt Rfl | eql ex ee -> xx
-    _  -> $(genOverloadedW 'ee ''Exp  [] (trvWrp 't)
-      (\ tt -> if
-           | matchQ tt [t| Exp (t ': t) t |]     -> [| absSubterm (sucAll xx) (sucAll ex) |]
-           | matchQ tt [t| Exp t t |]            -> [| absSubterm xx ex |]
-           | otherwise                           -> [| id |]))
+    _  -> case ee of
+      Prm x es -> Prm x (TFG.mapC (sinTyp x) (absSubterm xx ex) es)
+      _        -> $(genOverloadedW 'ee ''Exp  ['Prm] (trvWrp 't)
+        (\ tt -> if
+           | matchQ tt [t| Exp a (a ': a) a |]     -> [| absSubterm (sucAll xx) (sucAll ex) |]
+           | matchQ tt [t| Exp a a a |]            -> [| absSubterm xx ex |]
+           | otherwise                             -> [| id |]))
 
 
-hasSubterm :: (HasSin TFG.Typ t,HasSin TFG.Typ a) => Exp g t -> Exp g a -> Bool
+hasSubterm :: (HasSin TFG.Typ b , HasSin TFG.Typ a) => Exp s g b -> Exp s g a -> Bool
 hasSubterm ex ee = numSubterm ex ee /= (0 :: Word32)
 
-numSubterm :: forall a t g. (HasSin TFG.Typ a , HasSin TFG.Typ t) =>
-              Exp g t -> Exp g a -> Word32
+numSubterm :: forall s g a b . (HasSin TFG.Typ a , HasSin TFG.Typ b) =>
+              Exp s g b -> Exp s g a -> Word32
 numSubterm ex ee = let t = sin :: TFG.Typ a in
                    (case eqlSin (sinTyp ex) t of
                        Rgt Rfl  -> if eql ex ee
                                    then (1 :: Word32)
                                    else 0
-                       _        -> 0) + $(recAppMQ 'ee ''Exp (const [| 0 :: Word32 |]) []
-     [| \ _x -> (0 :: Word32) |] [| (+) |] [| (+) |] (trvWrp 't)
-    (\ tt -> if
-     | matchQ tt [t| Exp (t ': t) t |]     -> [| numSubterm (sucAll ex) |]
-     | matchQ tt [t| Exp a a |]            -> [| numSubterm ex |]
-     | otherwise                           -> [| const (0 :: Word32)  |]))
+                       _        -> 0) + (case ee of
+    Prm x es -> TFG.fld (\ b e -> b + numSubterm ex e) 0 (sinTyp x) es
+    _        -> $(recAppMQ 'ee ''Exp (const [| 0 :: Word32 |]) ['Prm]
+                            [| \ _x -> (0 :: Word32) |] [| (+) |] [| (+) |] (trvWrp 't)
+                  (\ tt -> if
+                       | matchQ tt [t| Exp a (a ': a) a |]     -> [| numSubterm (sucAll ex) |]
+                       | matchQ tt [t| Exp a a a |]            -> [| numSubterm ex |]
+                       | otherwise                             -> [| const (0 :: Word32)  |])))
 
-findSubterms :: forall g t. HasSin TFG.Typ t =>
-                Exp g t -> [Exs1 (Exp g) TFG.Typ]
-findSubterms ee = let t = sin :: TFG.Typ t in
+findSubterms :: forall s g a. HasSin TFG.Typ a =>
+                Exp s g a -> [Exs1 (Exp s g) TFG.Typ]
+findSubterms ee = let t = sin :: TFG.Typ a in
                   (if not (isVal ee) && not (partialApp ee)
                    then ((Exs1 ee (sinTyp ee)) :)
-                   else id)
- $(recAppMQ 'ee ''Exp (const [| [] |]) []
-    [| \ _x -> [] |] [| (++) |] [| (++) |] (trvWrp 't)
-   (\ tt -> if
-    | matchQ tt [t| Exp (t ': t) t |]     -> [| findSubtermsF |]
-    | matchQ tt [t| Exp t t |]            -> [| findSubterms |]
-    | otherwise                           -> [| const [] |]))
+                   else id)(case ee of
+    Prm x es -> TFG.fld (\ b e -> b ++ findSubterms e) [] (sinTyp x) es
+    _        -> $(recAppMQ 'ee ''Exp (const [| [] |]) ['Prm]
+                               [| \ _x -> [] |] [| (++) |] [| (++) |] (trvWrp 't)
+                  (\ tt -> if
+                       | matchQ tt [t| Exp a (a ': a) a |]     -> [| findSubtermsF |]
+                       | matchQ tt [t| Exp a a a |]            -> [| findSubterms |]
+                       | otherwise                             -> [| const [] |])))
 
-findSubtermsF :: HasSin TFG.Typ b => Exp (a ': g) b -> [Exs1 (Exp g) TFG.Typ]
+findSubtermsF :: HasSin TFG.Typ b => Exp s (a ': g) b -> [Exs1 (Exp s g) TFG.Typ]
 findSubtermsF e = foldr (\ (Exs1 eg t) xxs -> case prdAllM eg of
                                                 Nothing  ->  xxs
                                                 Just eg' -> (Exs1 eg' t) : xxs) [] (findSubterms e)
 
-partialApp :: HasSin TFG.Typ a => Exp g a -> Bool
+partialApp :: HasSin TFG.Typ a => Exp s g a -> Bool
 partialApp (App l _) = case sinTyp l of
   TFG.Arr _ (TFG.Arr _ _) -> True
   _                       -> False

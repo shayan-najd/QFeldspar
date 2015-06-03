@@ -14,6 +14,7 @@ data Exp = ConI Word32
          | ConB Bool
          | ConF Float
          | Var  Var
+         | Prm  Var [Exp]
          | Abs  Fun
          | App  Exp Exp
          | Cnd  Exp Exp Exp

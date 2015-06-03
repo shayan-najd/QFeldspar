@@ -9,9 +9,9 @@ import QFeldspar.Nat.ADT
 import QFeldspar.Conversion
 import QFeldspar.Variable.Conversion ()
 
-instance Cnv (Exp n t , Env n FAV.Exp) FAV.Exp where
-  cnv (ee , r) = let ?r = r in join (case ee of
-    Var v        -> pure (pure (get v r))
+instance Cnv (Exp m n t , (Env m FAV.Exp , Env n FAV.Exp)) FAV.Exp where
+  cnv (ee , r@(s , g)) = let ?r = r in join (case ee of
+    Var v        -> pure (pure (get v g))
     App _  ef ea -> FAV.app  <$@> ef <*@> ea
     Fst _  e     -> FAV.fst  <$@> e
     Snd _  e     -> FAV.snd  <$@> e
@@ -26,9 +26,10 @@ instance Cnv (Exp n t , Env n FAV.Exp) FAV.Exp where
     Non          -> impossibleM
     Som _        -> impossibleM
     May _ _ _ _  -> impossibleM
+    Prm _ v es   -> FAV.prm (get v s) <$> mapM cnvImp  es
     _ -> $(biGenOverloadedML 'ee ''Exp "FAV"
-     ['Var,'App,'Fst,'Snd,'Len,'Let,'Typ,'AryV,'LenV,'IndV,'Eql,'Ltd,
+     ['Prm,'Var,'App,'Fst,'Snd,'Len,'Let,'Typ,'AryV,'LenV,'IndV,'Eql,'Ltd,
       'Non,'Som,'May] (const [| cnvImp |])))
 
-instance Cnv (Exp (Suc n) t , Env n FAV.Exp) (FAV.Exp -> FAV.Exp) where
-  cnv (e , r) = pure (frmRgtZro . curry cnv e . (flip Ext r))
+instance Cnv (Exp m (Suc n) a , (Env m FAV.Exp , Env n FAV.Exp)) (FAV.Exp -> FAV.Exp) where
+  cnv (e , (s , g)) = pure (\ x -> frmRgtZro (cnv (e , (s , Ext x g))))

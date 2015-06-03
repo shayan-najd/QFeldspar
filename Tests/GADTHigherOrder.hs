@@ -12,7 +12,7 @@ import QFeldspar.Type.GADT
 import QFeldspar.Environment.Typed
 
 dbl :: Exp '[Word32 -> Word32 -> Word32] (Word32 -> Word32)
-dbl = Abs (\ x -> (App (App (Var Zro) x) x))
+dbl = Abs (\ x -> Prm Zro (x `Ext` (x `Ext` Emp)))
 
 compose :: (HasSin Typ ta , HasSin Typ tb , HasSin Typ tc) =>
            Exp r ((tb -> tc) -> ((ta -> tb) -> (ta -> tc)))

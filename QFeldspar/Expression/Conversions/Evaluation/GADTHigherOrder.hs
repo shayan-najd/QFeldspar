@@ -14,7 +14,6 @@ import QFeldspar.Expression.Utils.Common
 instance (HasSin TFG.Typ t , t' ~ t) =>
          Cnv (Exp r t , Env FGV.Exp r) (FGV.Exp t') where
   cnv (ee , r) = let ?r = r in let t = sin :: TFG.Typ t in case ee of
-    Var v                    -> pure (get v r)
     AryV _ _                 -> impossibleM
     LenV _                   -> impossibleM
     IndV _ _                 -> impossibleM
@@ -53,8 +52,9 @@ instance (HasSin TFG.Typ t , t' ~ t) =>
       TFG.Flt                -> pure (FGV.conF (fromIntegral i))
       _                      -> fail "Type Error in Int"
     Tag s e                  -> FGV.tag s <$@> e
+    Prm v es                 -> FGV.prm  (get v r) <$> TFG.mapMC (sinTyp v) cnvImp  es
     _  -> $(biGenOverloadedMWL 'ee ''Exp "FGV"
-            ['Var,'AryV,'LenV,'IndV,'Non,'Som,'May,'Mul,'Add,'Sub,'Eql,'Ltd,'Let,'Tmp,'Int,'Tag]
+            ['Prm,'AryV,'LenV,'IndV,'Non,'Som,'May,'Mul,'Add,'Sub,'Eql,'Ltd,'Let,'Tmp,'Int,'Tag]
             (trvWrp 't) (const [| cnvImp |]))
 
 instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb

@@ -8,8 +8,8 @@ import qualified QFeldspar.Expression.MiniFeldspar  as FMWS
 
 import qualified QFeldspar.Type.GADT                  as TFG
 
-import QFeldspar.Variable.Typed
-import QFeldspar.Environment.Typed hiding (fmap)
+-- import QFeldspar.Variable.Typed
+-- import QFeldspar.Environment.Typed hiding (fmap)
 
 import QFeldspar.Conversion
 import QFeldspar.Singleton
@@ -17,17 +17,8 @@ import QFeldspar.Singleton
 instance (HasSin TFG.Typ t , t ~ t' , r ~ r') =>
          Cnv (FGHO.Exp r t , rr) (FMWS.Exp r' t') where
   cnv (ee , r) = let ?r = r in let t = (sin :: TFG.Typ t) in case ee of
-    FGHO.Var v                -> case sin :: TFG.Typ t of
-      TFG.Wrd                 -> pure (FMWS.AppV v Emp)
-      TFG.Bol                 -> pure (FMWS.AppV v Emp)
-      TFG.Flt                 -> pure (FMWS.AppV v Emp)
-      TFG.Tpl _ _             -> pure (FMWS.AppV v Emp)
-      TFG.Ary _               -> pure (FMWS.AppV v Emp)
-      TFG.Cmx                 -> pure (FMWS.AppV v Emp)
-      TFG.Vct _               -> fail "Normalisation Error!"
-      TFG.Arr _ _             -> fail "Normalisation Error!"
-      TFG.May _               -> fail "Normalisation Error!"
     FGHO.Abs _                -> fail "Normalisation Error!"
+    FGHO.App _ _              -> fail "Normalisation Error!"
     FGHO.Non                  -> fail "Normalisation Error!"
     FGHO.Som _                -> fail "Normalisation Error!"
     FGHO.May _ _ _            -> fail "Normalisation Error!"
@@ -36,15 +27,9 @@ instance (HasSin TFG.Typ t , t ~ t' , r ~ r') =>
     FGHO.IndV _ _             -> fail "Normalisation Error!"
     FGHO.Int  _               -> fail "Normalisation Error!"
     FGHO.Fix  _               -> fail "Normalisation Error!"
-    FGHO.App _ _              -> do Exs1 v tv <- getVar ee
-                                    PrfHasSin <- getPrfHasSinM tv
-                                    DblExsSin es tys <- getArg ee
-                                      (DblExsSin Emp Emp)
-                                    TFG.EqlOut <- lift (TFG.eqlOut t tv)
-                                    TFG.EqlArg <- lift (TFG.eqlArg tys tv)
-                                    pure (FMWS.AppV v es)
+    FGHO.Prm x ns             -> FMWS.Prm x <$> TFG.mapMC (sinTyp x) cnvImp ns
     _                         -> $(biGenOverloadedMW 'ee ''FGHO.Exp "FMWS"
-     ['FGHO.Var,'FGHO.Abs,'FGHO.App,'FGHO.Non,'FGHO.Som,'FGHO.May
+     ['FGHO.Prm,'FGHO.Abs,'FGHO.App,'FGHO.Non,'FGHO.Som,'FGHO.May
      ,'FGHO.AryV,'FGHO.LenV,'FGHO.IndV,'FGHO.Int,'FGHO.Fix] (trvWrp 't) (const [| cnvImp |]))
 
 instance (HasSin TFG.Typ a , HasSin TFG.Typ b, a ~ a' , b ~ b' , r ~ r') =>
@@ -62,22 +47,11 @@ instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb , r ~ r' , ta ~ ta' ,tb ~ tb') =
 
 instance (HasSin TFG.Typ t , t' ~ t , r' ~ r) =>
          Cnv (FMWS.Exp r' t' , rr) (FGHO.Exp r t)  where
-  cnv (ee , r) = let ?r = r in let t = (sin :: TFG.Typ t) in case ee of
-    FMWS.AppV v es            -> case (sinTyp v , es) of
-      (TFG.Arr _ _ , Ext _ _) -> do Exs1 e te <- fldApp (FGHO.Var v) es
-                                    Rfl <- lift (eqlSin te t)
-                                    pure e
-      (TFG.Wrd     , Emp)     -> pure (FGHO.Var v)
-      (TFG.Bol     , Emp)     -> pure (FGHO.Var v)
-      (TFG.Flt     , Emp)     -> pure (FGHO.Var v)
-      (TFG.Tpl _ _ , Emp)     -> pure (FGHO.Var v)
-      (TFG.Ary _   , Emp)     -> pure (FGHO.Var v)
-      (TFG.Vct _   , Emp)     -> pure (FGHO.Var v)
-      (TFG.Cmx     , Emp)     -> pure (FGHO.Var v)
-      (TFG.May _   , Emp)     -> pure (FGHO.Var v)
-    _                         ->
-      $(biGenOverloadedMW 'ee ''FMWS.Exp "FGHO" ['FMWS.AppV]
-                              (trvWrp 't) (const [| cnvImp |]))
+  cnv (ee , r) = let ?r = r in let t = sin :: TFG.Typ t in
+    case ee of
+      FMWS.Prm x ns -> FGHO.Prm x <$> TFG.mapMC (sinTyp x) cnvImp ns
+      _             -> $(biGenOverloadedMW 'ee ''FMWS.Exp "FGHO" ['FMWS.Prm]
+                            (trvWrp 't) (const [| cnvImp |]))
 
 instance (HasSin TFG.Typ a , HasSin TFG.Typ b, a ~ a' , b ~ b' , r ~ r') =>
     Cnv (FMWS.Exp r a -> FMWS.Exp r b , rr) (FGHO.Exp r' (a' -> b')) where
@@ -89,6 +63,7 @@ instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb, ta ~ ta' , tb ~ tb' , r ~ r') =
          where
   cnv (ee , r) = let ?r = r in
                  pure (frmRgtZro . cnvImp . ee . frmRgtZro . cnvImp)
+{-
 
 fldApp :: forall r t ta tb . (t ~ (ta -> tb) , HasSin TFG.Typ t) =>
           FGHO.Exp r t ->
@@ -126,3 +101,4 @@ getArg e (DblExsSin args tys) = let ?r = () in case e of
     getArg ef (DblExsSin (Ext ea' args) (Ext (sinTyp ea) tys))
   _                              ->
     fail "Normalisation Error!"
+-}

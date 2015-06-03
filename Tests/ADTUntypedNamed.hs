@@ -20,7 +20,7 @@ x2 :: Var
 x2 = TH.mkName  "x2"
 
 dbl :: Exp Var
-dbl = Abs (x0 , (App (App (Var (stripNameSpace 'add)) (Var x0)) (Var x0)))
+dbl = Abs (x0 , Prm (stripNameSpace 'add) [Var x0 , Var x0])
 
 compose :: Exp Var
 compose = Abs (x2 , (Abs (x1 , (Abs (x0 , (App (Var x2) (App (Var x1) (Var x0))))))))
@@ -29,6 +29,8 @@ four :: Exp Var
 four = App (App (App compose dbl) dbl) (ConI 1)
 
 test :: Bool
-test = (case runNamM (cnv (four , [((stripNameSpace 'add) , V.lft ((+) :: Word32 -> Word32 -> Word32))])) of
+test = (case runNamM (cnv (four , ([((stripNameSpace 'add)
+                     , V.lft ((+) :: Word32 -> Word32 -> Word32))]
+                     ,[] :: [(TH.Name,V.Exp)]))) of
           Rgt (V.colft -> Rgt (4 :: Word32)) -> True
           _                               -> False)

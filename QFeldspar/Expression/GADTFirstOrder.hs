@@ -2,44 +2,44 @@ module QFeldspar.Expression.GADTFirstOrder
       (Exp(..)) where
 
 import QFeldspar.MyPrelude
-
+import QFeldspar.Environment.Typed
 import QFeldspar.Variable.Typed
+import QFeldspar.Type.GADT
 
-import QFeldspar.Singleton
-
-import qualified QFeldspar.Type.GADT as TFG
-
-data Exp :: [*] -> * -> * where
-  ConI :: Word32   -> Exp r Word32
-  ConB :: Bool     -> Exp r Bool
-  ConF :: Float    -> Exp r Float
-  Var  :: Var r t  -> Exp r t
-  Abs  :: Exp (ta ': r) tb -> Exp r (ta -> tb)
-  App  :: HasSin TFG.Typ ta =>
-          Exp r (ta -> tb) -> Exp r ta -> Exp r tb
-  Cnd  :: Exp r Bool -> Exp r t -> Exp r t -> Exp r t
-  Whl  :: Exp r (t -> Bool) -> Exp r (t -> t) -> Exp r t -> Exp r t
-  Tpl  :: Exp r tf -> Exp r ts -> Exp r (tf , ts)
-  Fst  :: HasSin TFG.Typ ts => Exp r (tf , ts) -> Exp r tf
-  Snd  :: HasSin TFG.Typ tf => Exp r (tf , ts) -> Exp r ts
-  Ary  :: Exp r Word32 -> Exp r (Word32 -> t) -> Exp r (Ary t)
-  Len  :: HasSin TFG.Typ ta => Exp r (Ary ta) -> Exp r Word32
-  Ind  :: Exp r (Ary ta) -> Exp r Word32 -> Exp r ta
-  AryV :: Exp r Word32 -> Exp r (Word32 -> t) -> Exp r (Vec t)
-  LenV :: HasSin TFG.Typ ta => Exp r (Vec ta) -> Exp r Word32
-  IndV :: Exp r (Vec ta) -> Exp r Word32 -> Exp r ta
-  Let  :: HasSin TFG.Typ tl => Exp r tl -> Exp (tl ': r) tb -> Exp r tb
-  Cmx  :: Exp r Float -> Exp r Float -> Exp r (Complex Float)
-  Non  :: Exp r (Maybe tl)
-  Som  :: Exp r tl -> Exp r (Maybe tl)
-  May  :: HasSin TFG.Typ a =>
-          Exp r (Maybe a) -> Exp r b -> Exp r (a -> b) -> Exp r b
-  Mul  :: Exp r a  -> Exp r a -> Exp r a
-  Add  :: Exp r a  -> Exp r a -> Exp r a
-  Sub  :: Exp r a  -> Exp r a -> Exp r a
-  Eql  :: HasSin TFG.Typ a => Exp r a  -> Exp r a -> Exp r Bool
-  Ltd  :: HasSin TFG.Typ a => Exp r a  -> Exp r a -> Exp r Bool
-  Int  :: Word32   -> Exp r a
-  Tag  :: String   -> Exp r a -> Exp r a
-  Mem  :: Exp r a  -> Exp r a
-  Fix  :: Exp r (a -> a) -> Exp r a
+data Exp :: [*] -> [*] -> * -> * where
+  ConI :: Word32   -> Exp s g Word32
+  ConB :: Bool     -> Exp s g Bool
+  ConF :: Float    -> Exp s g Float
+  Var  :: Var g a  -> Exp s g a
+  Prm  :: Type a =>
+          Var s a  -> Env (Exp s g) (Arg a) -> Exp s g (Out a)
+  Abs  :: Exp s (a ': g) b -> Exp s g (a -> b)
+  App  :: Type a =>
+          Exp s g (a -> b) -> Exp s g a -> Exp s g b
+  Cnd  :: Exp s g Bool -> Exp s g a -> Exp s g a -> Exp s g a
+  Whl  :: Exp s g (a -> Bool) ->
+          Exp s g (a -> a) -> Exp s g a -> Exp s g a
+  Tpl  :: Exp s g a -> Exp s g b -> Exp s g (a , b)
+  Fst  :: Type b => Exp s g (a , b) -> Exp s g a
+  Snd  :: Type a => Exp s g (a , b) -> Exp s g b
+  Ary  :: Exp s g Word32 -> Exp s g (Word32 -> a) -> Exp s g (Ary a)
+  Len  :: Type a => Exp s g (Ary a) -> Exp s g Word32
+  Ind  :: Exp s g (Ary a) -> Exp s g Word32 -> Exp s g a
+  AryV :: Exp s g Word32 -> Exp s g (Word32 -> a) -> Exp s g (Vec a)
+  LenV :: Type a => Exp s g (Vec a) -> Exp s g Word32
+  IndV :: Exp s g (Vec a) -> Exp s g Word32 -> Exp s g a
+  Let  :: Type a => Exp s g a -> Exp s (a ': g) b -> Exp s g b
+  Cmx  :: Exp s g Float -> Exp s g Float -> Exp s g (Complex Float)
+  Non  :: Exp s g (Maybe a)
+  Som  :: Exp s g a -> Exp s g (Maybe a)
+  May  :: Type a => Exp s g (Maybe a) ->
+          Exp s g b -> Exp s g (a -> b) -> Exp s g b
+  Mul  :: Exp s g a  -> Exp s g a -> Exp s g a
+  Add  :: Exp s g a  -> Exp s g a -> Exp s g a
+  Sub  :: Exp s g a  -> Exp s g a -> Exp s g a
+  Eql  :: Type a => Exp s g a  -> Exp s g a -> Exp s g Bool
+  Ltd  :: Type a => Exp s g a  -> Exp s g a -> Exp s g Bool
+  Int  :: Word32 -> Exp s g a
+  Tag  :: String -> Exp s g a -> Exp s g a
+  Mem  :: Exp s g a -> Exp s g a
+  Fix  :: Exp s g (a -> a) -> Exp s g a

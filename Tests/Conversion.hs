@@ -17,7 +17,7 @@ import qualified Tests.ADTUntypedDebruijn  as FAUD
 import qualified Tests.GADTTyped           as FGTD
 import qualified Tests.GADTFirstOrder      as FGFO
 import qualified Tests.GADTHigherOrder     as FGHO
-import qualified Tests.MiniFeldspar      as FMWS ()
+import qualified Tests.MiniFeldspar        as FMWS
 import qualified QFeldspar.Type.ADT                       as TFA
 import qualified QFeldspar.Type.GADT                      as TFG
 import qualified QFeldspar.Environment.Map                         as EM
@@ -61,10 +61,10 @@ envAddValM :: EM.Env TH.Name FAV.Exp
 envAddValM = (stripNameSpace 'TH.add , FAV.lft ((+) :: Word32 -> Word32 -> Word32)) : []
 
 cnvFMWS :: Cnv (e , ET.Env TFG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
-               (FGFO.Exp EnvAdd Word32) => e -> Word32 -> Bool
+               (FGFO.Exp EnvAdd '[] Word32) => e -> Word32 -> Bool
 cnvFMWS e j = case runNamM
-              (do e'   :: FGFO.Exp EnvAdd Word32 <- cnv (e , envAddTypG
-                                                     , vec)
+              (do e'   :: FGFO.Exp EnvAdd '[] Word32 <- cnv (e , envAddTypG
+                                                            , vec)
                   let e'' = NGFO.nrm e'
                   e''' :: FMWS.Exp EnvAdd Word32 <- cnv (e'' , envAddTypG
                                                      ,vec)
@@ -81,18 +81,18 @@ cnvFGHO e j = case runNamM
            _     -> False
 
 cnvFGFO :: Cnv (e , ET.Env TFG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
-           (FGFO.Exp EnvAdd Word32) => e -> Word32 -> Bool
+           (FGFO.Exp EnvAdd '[] Word32) => e -> Word32 -> Bool
 cnvFGFO e j = case runNamM
-              (do e' :: FGFO.Exp EnvAdd Word32 <- cnv (e , envAddTypG ,vec)
-                  curry cnv e' envAddValG) of
+              (do e' :: FGFO.Exp EnvAdd '[] Word32 <- cnv (e , envAddTypG ,vec)
+                  cnv (e' , (envAddValG ,ET.Emp :: ET.Env FGV.Exp '[]))) of
            Rgt (FGV.Exp i) -> i == j
            _               -> False
 
-cnvFGTD :: Cnv (e , ET.Env TFG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
-           (FGTD.Exp One TFA.Typ) => e -> Word32 -> Bool
+cnvFGTD :: Cnv (e , ET.Env TFG.Typ EnvAdd , ES.Env One TH.Name)
+           (FGTD.Exp One NA.Zro TFA.Typ) => e -> Word32 -> Bool
 cnvFGTD e j = case runNamM
-              (do e' :: FGTD.Exp One TFA.Typ <- cnv (e , envAddTypG , vec)
-                  curry cnv e' envAddValV) of
+              (do e' :: FGTD.Exp One NA.Zro TFA.Typ <- cnv (e , envAddTypG , vec)
+                  cnv (e' , (envAddValV,ES.Emp :: ES.Env NA.Zro FAV.Exp))) of
            Rgt (FAV.colft -> Rgt i) -> i == j
            _                        -> False
 
@@ -100,7 +100,7 @@ cnvFAUD :: Cnv (e , ET.Env TFG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
            FAUD.Exp => e -> Word32 -> Bool
 cnvFAUD e j = case runNamM
               (do e' :: FAUD.Exp <- cnv (e , envAddTypG , vec)
-                  curry cnv e' envAddValA) of
+                  cnv (e' , (envAddValA , [] :: EP.Env FAV.Exp))) of
            Rgt (FAV.colft -> Rgt i) -> i == j
            _                        -> False
 
@@ -108,7 +108,7 @@ cnvFAUN :: Cnv (e , ET.Env TFG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
            (FAUN.Exp TH.Name) => e -> Word32 -> Bool
 cnvFAUN e j = case runNamM
               (do e' :: FAUN.Exp TH.Name <- cnv (e , envAddTypG , vec)
-                  curry cnv e' envAddValM) of
+                  cnv (e' , (envAddValM,[] :: EM.Env TH.Name FAV.Exp))) of
            Rgt (FAV.colft -> Rgt i) -> i == j
            _                        -> False
 
@@ -129,4 +129,4 @@ test = cnvFAUN TH.four   4 && cnvFAUN FAUN.four 4 &&
 
        cnvFMWS TH.four   4 && cnvFMWS FAUN.four 4 && cnvFMWS FAUD.four 4 &&
        cnvFMWS FGTD.four 4 && cnvFMWS FGFO.four 4 &&
-       cnvFMWS FGHO.four 4 -- && cnvFMWS FWMS.four 4
+       cnvFMWS FGHO.four 4 && cnvFMWS FMWS.four 4

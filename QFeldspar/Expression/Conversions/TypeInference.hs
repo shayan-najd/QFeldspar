@@ -14,10 +14,11 @@ import QFeldspar.Variable.Conversion   ()
 
 import QFeldspar.Inference             (typInf)
 
-instance n ~ n' =>
-      Cnv (FGTD.Exp n (Maybe TFA.Typ) , Env n TFA.Typ)(FGTD.Exp n' TFA.Typ) where
-  cnv (e , r) = let ?r = r in
-    do r' :: Env n (TH.Typ (TH.EnvFld '[])) <- cnvImp r
-       e'  <- traverse (maybe (return Nothing) (fmap Just . cnvImp))  e
-       e'' <- typInf e' r'
-       traverse cnvImp e''
+instance (m ~ m' , n ~ n') =>
+      Cnv (FGTD.Exp m n (Maybe TFA.Typ) , (Env m TFA.Typ , Env n TFA.Typ)) (FGTD.Exp m' n' TFA.Typ) where
+  cnv (e , (s , g)) = do
+    s' :: Env m (TH.Typ (TH.EnvFld '[])) <- cnv (s , ())
+    g' :: Env n (TH.Typ (TH.EnvFld '[])) <- cnv (g, ())
+    e'  <- traverse (maybe (return Nothing) (fmap Just . (\ t -> cnv (t , ()))))  e
+    e'' <- typInf e' (s' , g')
+    traverse (\ t -> cnv (t , ()))  e''
