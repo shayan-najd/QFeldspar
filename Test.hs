@@ -23,6 +23,7 @@ import qualified Examples.IPGray.QDSL ()
 import qualified Examples.Windowing.CDSL ()
 import qualified Examples.Windowing.QDSL ()
 
+import QFeldspar.Expression.Utils.GADTTyped ()
 import QFeldspar.Normalisation ()
 import QFeldspar.Simplification ()
 import QFeldspar.CSE ()

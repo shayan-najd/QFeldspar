@@ -7,39 +7,42 @@ import QFeldspar.Expression.GADTTyped as GT
 import QFeldspar.Variable.Scoped
 import qualified QFeldspar.Nat.ADT as NA
 
-sucAll :: Exp n t -> Exp (NA.Suc n) t
+sucAll :: Exp m n t -> Exp m (NA.Suc n) t
 sucAll = mapVar Suc
 
-prdAll :: Exp (NA.Suc n) t -> Exp n t
+prdAll :: Exp m (NA.Suc n) t -> Exp m n t
 prdAll = mapVar prd
 
-mapVar :: forall n n' t. (Var n -> Var n') -> Exp n t -> Exp n' t
+mapVar :: forall m n n' t. (Var n -> Var n') -> Exp m n t -> Exp m n' t
 mapVar f ee = case ee of
   Var v  -> Var (f v)
   _      -> $(genOverloaded 'ee ''Exp  ['Var]
    (\ t -> if
-    | matchQ t [t| Exp (NA.Suc t) t |] -> [| mapVar (inc f) |]
-    | matchQ t [t| Exp t t |]          -> [| mapVar f |]
-    | otherwise                        -> [| id |]))
+    | matchQ t [t| Exp t (NA.Suc t) t |] -> [| mapVar (inc f) |]
+    | matchQ t [t| Exp t t t |]          -> [| mapVar f |]
+    | matchQ t [t| [Exp t t t] |]        -> [| fmap (mapVar f) |]
+    | otherwise                          -> [| id |]))
 
-sbs :: forall n t. Exp n t -> Var n -> Exp n t -> Exp n t
+sbs :: forall m n t. Exp m n t -> Var n -> Exp m n t -> Exp m n t
 sbs ee v ea = case ee of
   Var x
     | x == v     -> ea
     | otherwise  -> ee
   _  -> $(genOverloaded 'ee ''Exp ['Var]
    (\ t -> if
-    | matchQ t [t| Exp (NA.Suc t) t |] ->
+    | matchQ t [t| Exp t (NA.Suc t) t |] ->
         [| \ e -> sbs e (Suc v) (sucAll ea) |]
-    | matchQ t [t| Exp t t |]          ->
+    | matchQ t [t| Exp t t t |]          ->
         [| \ e -> sbs e v ea |]
-    | otherwise                        ->
+    | matchQ t [t| [Exp t t t] |]        ->
+        [| fmap (\ e -> sbs e v ea) |]
+    | otherwise                          ->
         [| id |]))
 
-fre :: Exp (NA.Suc n) t -> [Var (NA.Suc n)]
+fre :: Exp m (NA.Suc n) t -> [Var (NA.Suc n)]
 fre = fre' Zro
 
-fre' :: forall n t. Var n -> Exp n t -> [Var n]
+fre' :: forall m n t. Var n -> Exp m n t -> [Var n]
 fre' v ee = case ee of
  Var x
   | x >= v    -> [x]
@@ -47,6 +50,7 @@ fre' v ee = case ee of
  _            -> $(recAppMQ 'ee ''Exp (const [| [] |]) ['Var]
     [| \ _x -> [] |] [| (++) |] [| (++) |] (const id)
   (\ t -> if
-   | matchQ t [t| Exp (NA.Suc t) t |] ->  [| fmap prd . fre' (Suc v) |]
-   | matchQ t [t| Exp t t |]          ->  [| fre' v |]
-   | otherwise                        ->  [| \ _x -> [] |]))
+   | matchQ t [t| Exp t (NA.Suc t) t |] ->  [| fmap prd . fre' (Suc v) |]
+   | matchQ t [t| Exp t t t |]          ->  [| fre' v |]
+   | matchQ t [t| [Exp t t t] |]        ->  [| concat . fmap (fre' v) |]
+   | otherwise                          ->  [| \ _x -> [] |]))
