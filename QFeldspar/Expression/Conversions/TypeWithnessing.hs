@@ -132,9 +132,9 @@ instance (s ~ s' , g ~ g' , m ~ (Len s) , n ~ (Len g) , HasSin TFG.Typ a) =>
                                     (samTyp (TFG.Tpl tf' t) e')
     FGTD.Ind e  ei    -> FGFO.Ind <$@> e  <*@> ei
     FGTD.IndV e  ei   -> FGFO.IndV <$@> e  <*@> ei
-    FGTD.Let tl el eb -> do ExsSin tl' :: ExsTyp <- cnv tl
+    FGTD.LeT tl el eb -> do ExsSin tl' :: ExsTyp <- cnv tl
                             PrfHasSin <- getPrfHasSinM tl'
-                            FGFO.Let <$@> el <*@> (tl' , eb)
+                            FGFO.LeT <$@> el <*@> (tl' , eb)
     FGTD.Eql tl el eb -> case t of
       TFG.Bol         -> do ExsSin tl' :: ExsTyp <- cnv tl
                             PrfHasSin <- getPrfHasSinM tl'

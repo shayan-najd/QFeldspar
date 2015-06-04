@@ -192,7 +192,7 @@ instance (HasSin TFG.Typ t, n ~ Len r) =>
       FMWS.Ind ea ei           -> do (ea' , sa) <- cmpImp ea
                                      (ei' , si) <- cmpImp ei
                                      return (ind ea' ei' , sa ++ si)
-      FMWS.Let el eb           -> do xl <- newName
+      FMWS.LeT el eb           -> do xl <- newName
                                      tl <- cnvImpLft (sinTypOf el t)
                                      addVar (xl , tl)
                                      (el' , sl) <- cmpImp el

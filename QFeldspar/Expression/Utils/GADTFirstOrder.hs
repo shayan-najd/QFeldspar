@@ -123,7 +123,7 @@ isVal ee = case ee of
     AryV el  _    -> isVal el
     LenV  _       -> False
     IndV  _  _    -> False
-    Let  _  _     -> False
+    LeT  _  _     -> False
     Cmx  _  _     -> True
     Non           -> True
     Som  e        -> isVal e

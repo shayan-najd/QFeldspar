@@ -144,7 +144,7 @@ collect ee (s , g) = case ee of
                          ti  <- collect ei (s , g)
                          addC (ti :~: TH.Wrd)
                          return taa
-    Let t  el eb   -> do tl  <- collect el (s , g)
+    LeT t  el eb   -> do tl  <- collect el (s , g)
                          tb  <- collect eb (s , Ext tl g)
                          addC (t :~: tl)
                          return tb

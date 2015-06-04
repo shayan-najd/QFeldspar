@@ -27,12 +27,12 @@ instance (m ~ m' , n ~ n') =>
     FAUD.LenV e        -> FGTD.LenV <$> pure Nothing  <*@> e
     FAUD.Eql el eb     -> FGTD.Eql  <$> pure Nothing  <*@> el <*@> eb
     FAUD.Ltd el eb     -> FGTD.Ltd  <$> pure Nothing  <*@> el <*@> eb
-    FAUD.Let el eb     -> FGTD.Let  <$> pure Nothing  <*@> el <*@> eb
+    FAUD.LeT el eb     -> FGTD.LeT  <$> pure Nothing  <*@> el <*@> eb
     FAUD.May em en es  -> FGTD.May  <$> pure Nothing  <*@> em <*@> en <*@> es
     FAUD.Typ t  e      -> FGTD.Typ  <$> pure (Just t) <*@> e
     _                  -> $(biGenOverloadedM 'ee ''FAUD.Exp "FGTD"
      ['FAUD.App,'FAUD.Fst,'FAUD.Snd,'FAUD.Len,'FAUD.LenV,'FAUD.Eql,'FAUD.Ltd,'FAUD.Prm,'FAUD.Var,
-      'FAUD.Let,'FAUD.May,'FAUD.Typ] (const [| cnvImp |]))
+      'FAUD.LeT,'FAUD.May,'FAUD.Typ] (const [| cnvImp |]))
 
 instance (m ~ m' , n ~ n') =>
          Cnv (FAUD.Fun , (Nat m , Nat n)) (FGTD.Exp m' (NA.Suc n') (Maybe TFA.Typ)) where

@@ -24,7 +24,7 @@ data Exp :: [*] -> * -> * where
   Len   :: Type a =>
            Exp s (Ary a) -> Exp s Word32
   Ind   :: Exp s (Ary a) -> Exp s Word32 -> Exp s a
-  Let   :: Type a =>
+  LeT   :: Type a =>
            Exp s a -> (Exp s a -> Exp s b) -> Exp s b
   Cmx   :: Exp s Float -> Exp s Float -> Exp s (Complex Float)
   Tmp   :: String -> Exp s a  -- dummy constructor

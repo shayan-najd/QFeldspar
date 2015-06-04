@@ -84,11 +84,11 @@ eql (LenV _)   _              = False
 eql (IndV e ei) (IndV e' ei') = eql e e' && eql ei ei'
 eql (IndV _ _) _              = False
 
-eql (Let el eb) (Let el' eb') =
+eql (LeT el eb) (LeT el' eb') =
   case eqlSin (sinTypOf el tt) (sinTypOf el' tt) of
     Rgt Rfl -> eql el el' && eql eb eb'
     _       -> False
-eql (Let _ _)   _             = False
+eql (LeT _ _)   _             = False
 
 eql (Cmx ei er) (Cmx ei' er') = eql ei ei' && eql er er'
 eql (Cmx _  _)  _             = False

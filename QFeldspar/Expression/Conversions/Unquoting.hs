@@ -189,24 +189,24 @@ instance Cnv (DTH.MExp , r) (AUN.Exp TH.Name) where
     DTH.MLamE x   eb    -> AUN.Abs  <$@> (x , eb)
     DTH.MSigE e  t      -> AUN.Typ  <$@> t  <*@> e
     DTH.MLetE x el eb   ->
-        AUN.Let  <$@> el <*@> (x , eb)
+        AUN.LeT  <$@> el <*@> (x , eb)
     DTH.MCaseE ec [(DTH.DConPa n [DTH.DVarPa xf , DTH.DVarPa xs],eb)]
          | n === '(,)    -> do v1 <- newTHVar
                                ec' <- cnvImp ec
                                eb' <- cnvImp eb
-                               pure (AUN.Let ec' (v1 ,
-                                     AUN.Let (AUN.Fst (AUN.Var v1))
+                               pure (AUN.LeT ec' (v1 ,
+                                     AUN.LeT (AUN.Fst (AUN.Var v1))
                                      (xf ,
-                                     AUN.Let (AUN.Snd (AUN.Var v1))
+                                     AUN.LeT (AUN.Snd (AUN.Var v1))
                                      (xs , eb'))))
          | n === 'Vec    -> do v1 <- newTHVar
                                v2 <- newTHVar
                                ec' <- cnvImp ec
                                eb' <- cnvImp eb
-                               pure (AUN.Let ec' (v1 ,
-                                     AUN.Let (AUN.LenV (AUN.Var v1))
+                               pure (AUN.LeT ec' (v1 ,
+                                     AUN.LeT (AUN.LenV (AUN.Var v1))
                                      (xf ,
-                                     AUN.Let (AUN.Abs (v2 ,
+                                     AUN.LeT (AUN.Abs (v2 ,
                                      AUN.IndV (AUN.Var v1)
                                               (AUN.Var v2)))
                                      (xs , eb'))))

@@ -1,7 +1,7 @@
 module QFeldspar.Expression.GADTValue
     (Exp(..)
     ,conI,conB,conF,prm,var,abs,app,cnd,whl,tpl,fst,snd,ary,len,ind,leT
-    ,cmx,tag,mul,add,sub,eql,ltd,int,mem,fix
+    ,cmx,tag,mul,add,sub,eql,ltd,int,mem,fix,aryV,lenV,indV,non,som,may
     ,getTrm) where
 
 import QFeldspar.MyPrelude hiding (abs,fst,snd,may,som,non,tpl,cnd,fix)
@@ -98,29 +98,71 @@ leT = prm2 (\ x f -> f x)
 cmx :: Exp Float -> Exp Float -> Exp (Complex Float)
 cmx = prm2 (:+)
 
-mul :: Num a => Exp a -> Exp a -> Exp a
-mul = prm2 (*)
+mul :: forall a. TG.Type a => Exp a -> Exp a -> Exp a
+mul = case sin :: TG.Typ a of
+  TG.Wrd -> prm2 (*)
+  TG.Flt -> prm2 (*)
+  TG.Cmx -> prm2 (*)
+  _      -> badTypVal
 
-add :: Num a => Exp a -> Exp a -> Exp a
-add = prm2 (+)
+add :: forall a. TG.Type a => Exp a -> Exp a -> Exp a
+add = case sin :: TG.Typ a of
+  TG.Wrd -> prm2 (+)
+  TG.Flt -> prm2 (+)
+  TG.Cmx -> prm2 (+)
+  _      -> badTypVal
 
-sub :: Num a => Exp a -> Exp a -> Exp a
-sub = prm2 (-)
+sub :: forall a. TG.Type a => Exp a -> Exp a -> Exp a
+sub = case sin :: TG.Typ a of
+  TG.Wrd -> prm2 (-)
+  TG.Flt -> prm2 (-)
+  TG.Cmx -> prm2 (-)
+  _      -> badTypVal
 
-eql :: Eq a => Exp a -> Exp a -> Exp Bool
-eql = prm2 (==)
+eql :: forall a. TG.Type a => Exp a -> Exp a -> Exp Bool
+eql = case sin :: TG.Typ a of
+  TG.Wrd -> prm2 (==)
+  TG.Flt -> prm2 (==)
+  TG.Bol -> prm2 (==)
+  _      -> badTypVal
 
-ltd :: Ord a => Exp a -> Exp a -> Exp Bool
-ltd = prm2 (<)
+ltd :: forall a. TG.Type a => Exp a -> Exp a -> Exp Bool
+ltd = case sin :: TG.Typ a of
+  TG.Wrd -> prm2 (<)
+  TG.Flt -> prm2 (<)
+  TG.Bol -> prm2 (<)
+  _      -> badTypVal
 
 tag :: String -> Exp a -> Exp a
 tag = const id
 
-int :: Num a => Word32 -> Exp a
-int = Exp . fromIntegral
+int :: forall a. TG.Type a => Word32 -> Exp a
+int = case sin :: TG.Typ a of
+  TG.Wrd -> Exp . fromIntegral
+  TG.Flt -> Exp . fromIntegral
+  _      -> badTypVal
 
 mem :: Exp a -> Exp a
 mem = id
 
 fix :: Exp (a -> a) -> Exp a
 fix = prm1 MP.fix
+
+aryV :: Exp Word32 -> Exp (Word32 -> a) -> Exp (Vec a)
+aryV = badUse "aryV"
+
+lenV :: Exp (Vec a) -> Exp Word32
+lenV = badUse "lenV"
+
+indV :: Exp (Vec a) -> Exp Word32 -> Exp a
+indV = badUse "indV"
+
+non  :: Exp (Maybe a)
+non  = badUse "non"
+
+som  :: Exp a -> Exp (Maybe a)
+som  = badUse "som"
+
+may  :: Exp (Maybe a) ->
+        Exp b -> Exp (a -> b) -> Exp b
+may  = badUse "may"

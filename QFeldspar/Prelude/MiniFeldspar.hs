@@ -215,7 +215,7 @@ instance OrdE Float where
 
 share :: (Type (InT tl) , Syn tl , Syn tb) =>
          tl -> (tl -> tb) -> tb
-share e f = frmExp (Let (toExp e) (toExp . f . frmExp))
+share e f = frmExp (LeT (toExp e) (toExp . f . frmExp))
 
 realPartE :: Dp (Complex Float) -> Dp Float
 realPartE = prm1 realPartVar

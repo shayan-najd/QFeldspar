@@ -40,7 +40,7 @@ cseOne ee = let t = sin :: TFG.Typ a in case ee of
     PrfHasSin               -> cseOne2 Ary el ef
   Len e                     -> Len <$> cseOne e
   Ind ea ei                 -> cseOne2 Ind ea ei
-  Let el eb                 -> cseOne2F Let el eb
+  LeT el eb                 -> cseOne2F LeT el eb
   Cmx er ei                 -> cseOne2 Cmx er ei
   Tag x e                   -> Tag x <$> cseOne e
   Mul er ei                 -> cseOne2 Mul er ei
@@ -97,7 +97,7 @@ cseOneEnv x d d' = case d' of
                              PrfHasSin       -> case TFG.getTypTailEnv (sinTyp x) (add d (Ext e Emp)) es of
                                   ExsSin ttx -> case TFG.eqlArg (TFG.getSinDiff (sinTyp x) (add d (Ext e Emp)) es) ttx of
                                     Rgt TFG.EqlArg -> if hasSubtermEnv ex ttx es
-                                                      then chg (Let ex (Prm x
+                                                      then chg (LeT ex (Prm x
                                                                     (TFG.mapC (sinTyp x) (\ ee -> absSubterm (Var Zro) (sucAll ex) (sucAll ee))
                                                                             (add d d'))))
                                                       else f ts
@@ -110,13 +110,13 @@ cseOne3 k l m n = let fm tss = case tss of
                         [] ->  k <$> cseOne l <*> cseOne m <*> cseOne n
                         (Exs1 ex tx : ts) -> case getPrfHasSin tx of
                                       PrfHasSin -> if hasSubterm ex n
-                                                   then chg (Let ex (absSubterm (Var Zro) (sucAll ex) (sucAll (k l m n))))
+                                                   then chg (LeT ex (absSubterm (Var Zro) (sucAll ex) (sucAll (k l m n))))
                                                    else fm ts
                       fl tss = case tss of
                         [] -> fm (findSubterms m)
                         (Exs1 ex tx : ts) -> case getPrfHasSin tx of
                                 PrfHasSin -> if hasSubterm ex m || hasSubterm ex n
-                                             then chg (Let ex (absSubterm (Var Zro) (sucAll ex) (sucAll (k l m n))))
+                                             then chg (LeT ex (absSubterm (Var Zro) (sucAll ex) (sucAll (k l m n))))
                                              else fl ts
                   in fl (findSubterms l)
 
@@ -127,7 +127,7 @@ cseOne2 k m n = let f tss = case tss of
                        [] ->  k <$> cseOne m <*> cseOne n
                        (Exs1 ex tx : ts) -> case getPrfHasSin tx of
                                      PrfHasSin -> if hasSubterm ex n
-                                                  then chg (Let ex (absSubterm (Var Zro) (sucAll ex) (sucAll (k m n))))
+                                                  then chg (LeT ex (absSubterm (Var Zro) (sucAll ex) (sucAll (k m n))))
                                                   else f ts
                 in  f (findSubterms m)
 
@@ -139,7 +139,7 @@ cseOne2F k m n = let f tss = case tss of
                        [] ->  k <$> cseOne m <*> cseOne n
                        (Exs1 ex tx : ts) -> case getPrfHasSin tx of
                                      PrfHasSin -> if hasSubterm (sucAll ex) n
-                                                  then chg (Let ex (absSubterm (Var Zro) (sucAll ex) (sucAll (k m n))))
+                                                  then chg (LeT ex (absSubterm (Var Zro) (sucAll ex) (sucAll (k m n))))
                                                   else f ts
                  in  f (findSubterms m)
 

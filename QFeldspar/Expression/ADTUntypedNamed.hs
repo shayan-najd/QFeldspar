@@ -22,7 +22,7 @@ data Exp x = ConI Word32
            | AryV (Exp x) (Exp x)
            | LenV (Exp x)
            | IndV (Exp x) (Exp x)
-           | Let (Exp x) (x , Exp x)
+           | LeT (Exp x) (x , Exp x)
            | Cmx (Exp x) (Exp x)
            | Non
            | Som (Exp x)

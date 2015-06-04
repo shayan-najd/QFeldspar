@@ -28,7 +28,7 @@ data Exp = ConI Word32
          | AryV Exp Exp
          | LenV Exp
          | IndV Exp Exp
-         | Let  Exp Fun
+         | LeT  Exp Fun
          | Cmx  Exp Exp
          | Non
          | Som  Exp

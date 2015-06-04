@@ -26,7 +26,7 @@ data Exp :: [*] -> * -> * where
   AryV :: Exp s Word32 -> Exp s (Word32 -> a) -> Exp s (Vec a)
   LenV :: Type a => Exp s (Vec a) -> Exp s Word32
   IndV :: Exp s (Vec a) -> Exp s Word32 -> Exp s a
-  Let  :: Type a =>
+  LeT  :: Type a =>
           Exp s a -> (Exp s a -> Exp s b) -> Exp s b
   Cmx  :: Exp s Float -> Exp s Float -> Exp s (Complex Float)
   Non  :: Exp s (Maybe a)

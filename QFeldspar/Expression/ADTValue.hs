@@ -1,7 +1,7 @@
 module QFeldspar.Expression.ADTValue
     (Exp
     ,conI,conB,conF,prm,var,abs,app,cnd,whl,tpl,fst,snd,ary,len,ind,leT
-    ,cmx,typ,mul,add,sub,eql,ltd,int,mem,fix
+    ,cmx,typ,mul,add,sub,eql,ltd,int,mem,fix,aryV,lenV,indV,non,som,may
     ,Lft(..),CoLft(..)) where
 
 import QFeldspar.MyPrelude hiding (abs,fst,snd,may,som,non,tpl,cnd,fix)
@@ -220,3 +220,21 @@ mem = return
 fix :: Exp -> NamM ErrM Exp
 fix (Abs  l) = lift (fixM l)
 fix _        = badTypValM
+
+aryV :: Exp -> Exp -> NamM ErrM Exp
+aryV _ _  = impossibleM
+
+lenV :: Exp -> NamM ErrM Exp
+lenV _    = impossibleM
+
+indV :: Exp -> Exp -> NamM ErrM Exp
+indV _ _  = impossibleM
+
+non :: NamM ErrM Exp
+non       = impossibleM
+
+som :: Exp -> NamM ErrM Exp
+som _     = impossibleM
+
+may :: Exp -> Exp -> Exp -> NamM ErrM Exp
+may _ _ _ = impossibleM
