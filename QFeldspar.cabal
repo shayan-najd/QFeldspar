@@ -33,7 +33,6 @@ library
      MonoLocalBinds,
      ScopedTypeVariables,
      MultiParamTypeClasses,
-     ImplicitParams,
      TemplateHaskell,
      Rank2Types,
      PatternSynonyms,

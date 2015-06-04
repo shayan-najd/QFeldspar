@@ -9,9 +9,9 @@ import qualified Prelude as P
 import QFeldspar.Conversion
 
 instance Cnv (NA.Nat , r) (ExsSin NG.Nat) where
-  cnv (ee , r) = let ?r = r in case ee of
+  cnv (ee , r) = case ee of
     NA.Zro     -> return (ExsSin NG.Zro)
-    (NA.Suc n) -> do ExsSin n' <- cnvImp n
+    (NA.Suc n) -> do ExsSin n' <- cnvWth r n
                      return (ExsSin (NG.Suc n'))
 
 instance Cnv NA.Nat P.Int where

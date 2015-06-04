@@ -33,31 +33,31 @@ instance Cnv (TFA.Typ) (ExsSin TFG.Typ) where
                            return (ExsSin (TFG.May t'))
 
 instance Cnv (TFA.Typ , r) (HR.Typ (HR.EnvFld '[])) where
-  cnv (th , r) = let ?r = r in case th of
+  cnv (th , r) = case th of
     TFA.Wrd       -> pure HR.Wrd
     TFA.Bol       -> pure HR.Bol
     TFA.Flt       -> pure HR.Flt
-    TFA.Arr ta tb -> HR.Arr <$@> ta <*@> tb
-    TFA.Tpl tf ts -> HR.Tpl <$@> tf <*@> ts
-    TFA.Ary ta    -> HR.Ary <$@> ta
-    TFA.Vec ta    -> HR.Vec <$@> ta
-    TFA.May ta    -> HR.May <$@> ta
+    TFA.Arr ta tb -> HR.Arr <$> cnvWth r ta <*> cnvWth r tb
+    TFA.Tpl tf ts -> HR.Tpl <$> cnvWth r tf <*> cnvWth r ts
+    TFA.Ary ta    -> HR.Ary <$> cnvWth r ta
+    TFA.Vec ta    -> HR.Vec <$> cnvWth r ta
+    TFA.May ta    -> HR.May <$> cnvWth r ta
     TFA.Cmx       -> pure HR.Cmx
 
 instance Cnv (TFA.Typ , r) TH.Type where
-  cnv (th , r) = let ?r = r in case th of
+  cnv (th , r) = case th of
     TFA.Wrd       -> pure (TH.ConT ''Word32)
     TFA.Bol       -> pure (TH.ConT ''Bool)
     TFA.Flt       -> pure (TH.ConT ''Float)
-    TFA.Arr ta tb -> do ta' <- cnvImp ta
-                        tb' <- cnvImp tb
+    TFA.Arr ta tb -> do ta' <- cnvWth r ta
+                        tb' <- cnvWth r tb
                         pure (TH.AppT (TH.AppT (TH.ConT ''(->)) ta') tb')
-    TFA.Tpl tf ts -> do ta' <- cnvImp tf
-                        tb' <- cnvImp ts
+    TFA.Tpl tf ts -> do ta' <- cnvWth r tf
+                        tb' <- cnvWth r ts
                         pure (TH.AppT (TH.AppT (TH.ConT ''(,)) ta') tb')
-    TFA.Ary ta    -> TH.AppT (TH.ConT ''Ary) <$@> ta
-    TFA.Vec ta    -> TH.AppT (TH.ConT ''Vec) <$@> ta
-    TFA.May ta    -> TH.AppT (TH.ConT ''Maybe) <$@> ta
+    TFA.Ary ta    -> TH.AppT (TH.ConT ''Ary) <$> cnvWth r ta
+    TFA.Vec ta    -> TH.AppT (TH.ConT ''Vec) <$> cnvWth r ta
+    TFA.May ta    -> TH.AppT (TH.ConT ''Maybe) <$> cnvWth r ta
     TFA.Cmx       -> pure (TH.AppT (TH.ConT ''Complex) (TH.ConT ''Float))
 
 ---------------------------------------------------------------------------------
@@ -65,15 +65,15 @@ instance Cnv (TFA.Typ , r) TH.Type where
 ---------------------------------------------------------------------------------
 
 instance Cnv (TFG.Typ a , r) TFA.Typ where
-  cnv (tt , r) = let ?r = r in case tt of
+  cnv (tt , r) = case tt of
     TFG.Wrd       -> pure TFA.Wrd
     TFG.Bol       -> pure TFA.Bol
     TFG.Flt       -> pure TFA.Flt
-    TFG.Arr ta tb -> TFA.Arr <$@> ta <*@> tb
-    TFG.Tpl tf ts -> TFA.Tpl <$@> tf <*@> ts
-    TFG.Ary ta    -> TFA.Ary <$@> ta
-    TFG.Vct ta    -> TFA.Vec <$@> ta
-    TFG.May ta    -> TFA.May <$@> ta
+    TFG.Arr ta tb -> TFA.Arr <$> cnvWth r ta <*> cnvWth r tb
+    TFG.Tpl tf ts -> TFA.Tpl <$> cnvWth r tf <*> cnvWth r ts
+    TFG.Ary ta    -> TFA.Ary <$> cnvWth r ta
+    TFG.Vct ta    -> TFA.Vec <$> cnvWth r ta
+    TFG.May ta    -> TFA.May <$> cnvWth r ta
     TFG.Cmx       -> pure TFA.Cmx
 
 
@@ -86,15 +86,15 @@ instance Cnv (TFG.Typ a , r) TH.Type where
 ---------------------------------------------------------------------------------
 
 instance Cnv (HR.Typ (HR.EnvFld '[]) , r) TFA.Typ where
-  cnv (th , r) = let ?r = r in case th of
+  cnv (th , r) = case th of
     HR.Wrd       -> pure TFA.Wrd
     HR.Bol       -> pure TFA.Bol
     HR.Flt       -> pure TFA.Flt
-    HR.Arr ta tb -> TFA.Arr <$@> ta <*@> tb
-    HR.Tpl tf ts -> TFA.Tpl <$@> tf <*@> ts
-    HR.Ary t     -> TFA.Ary <$@> t
-    HR.Vec t     -> TFA.Vec <$@> t
-    HR.May t     -> TFA.May <$@> t
+    HR.Arr ta tb -> TFA.Arr <$> cnvWth r ta <*> cnvWth r tb
+    HR.Tpl tf ts -> TFA.Tpl <$> cnvWth r tf <*> cnvWth r ts
+    HR.Ary t     -> TFA.Ary <$> cnvWth r t
+    HR.Vec t     -> TFA.Vec <$> cnvWth r t
+    HR.May t     -> TFA.May <$> cnvWth r t
     HR.Cmx       -> pure TFA.Cmx
     _            -> fail ("Type Error:\n" ++ show th)
 

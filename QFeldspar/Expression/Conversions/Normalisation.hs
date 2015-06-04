@@ -16,7 +16,7 @@ import QFeldspar.Singleton
 
 instance (HasSin TFG.Typ t , t ~ t' , r ~ r') =>
          Cnv (FGHO.Exp r t , rr) (FMWS.Exp r' t') where
-  cnv (ee , r) = let ?r = r in let t = (sin :: TFG.Typ t) in case ee of
+  cnv (ee , r) = let t = (sin :: TFG.Typ t) in case ee of
     FGHO.Abs _                -> fail "Normalisation Error!"
     FGHO.App _ _              -> fail "Normalisation Error!"
     FGHO.Non                  -> fail "Normalisation Error!"
@@ -27,10 +27,10 @@ instance (HasSin TFG.Typ t , t ~ t' , r ~ r') =>
     FGHO.IndV _ _             -> fail "Normalisation Error!"
     FGHO.Int  _               -> fail "Normalisation Error!"
     FGHO.Fix  _               -> fail "Normalisation Error!"
-    FGHO.Prm x ns             -> FMWS.Prm x <$> TFG.mapMC (sinTyp x) cnvImp ns
+    FGHO.Prm x ns             -> FMWS.Prm x <$> TFG.mapMC (sinTyp x) (cnvWth r) ns
     _                         -> $(biGenOverloadedMW 'ee ''FGHO.Exp "FMWS"
      ['FGHO.Prm,'FGHO.Abs,'FGHO.App,'FGHO.Non,'FGHO.Som,'FGHO.May
-     ,'FGHO.AryV,'FGHO.LenV,'FGHO.IndV,'FGHO.Int,'FGHO.Fix] (trvWrp 't) (const [| cnvImp |]))
+     ,'FGHO.AryV,'FGHO.LenV,'FGHO.IndV,'FGHO.Int,'FGHO.Fix] (trvWrp 't) (const [| cnvWth r |]))
 
 instance (HasSin TFG.Typ a , HasSin TFG.Typ b, a ~ a' , b ~ b' , r ~ r') =>
     Cnv (FGHO.Exp r' (a' -> b') , rr) (FMWS.Exp r a -> FMWS.Exp r b)  where
@@ -42,16 +42,16 @@ instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb , r ~ r' , ta ~ ta' ,tb ~ tb') =
          Cnv (FGHO.Exp r  ta  -> FGHO.Exp r  tb , rr)
              (FMWS.Exp r' ta' -> FMWS.Exp r' tb')
          where
-  cnv (ee , r) = let ?r = r in
-    pure (frmRgtZro . cnvImp . ee . frmRgtZro . cnvImp)
+  cnv (ee , r) =
+    pure (frmRgtZro . cnvWth r . ee . frmRgtZro . cnvWth r)
 
 instance (HasSin TFG.Typ t , t' ~ t , r' ~ r) =>
          Cnv (FMWS.Exp r' t' , rr) (FGHO.Exp r t)  where
-  cnv (ee , r) = let ?r = r in let t = sin :: TFG.Typ t in
+  cnv (ee , r) = let t = sin :: TFG.Typ t in
     case ee of
-      FMWS.Prm x ns -> FGHO.Prm x <$> TFG.mapMC (sinTyp x) cnvImp ns
+      FMWS.Prm x ns -> FGHO.Prm x <$> TFG.mapMC (sinTyp x) (cnvWth r) ns
       _             -> $(biGenOverloadedMW 'ee ''FMWS.Exp "FGHO" ['FMWS.Prm]
-                            (trvWrp 't) (const [| cnvImp |]))
+                            (trvWrp 't) (const [| cnvWth r |]))
 
 instance (HasSin TFG.Typ a , HasSin TFG.Typ b, a ~ a' , b ~ b' , r ~ r') =>
     Cnv (FMWS.Exp r a -> FMWS.Exp r b , rr) (FGHO.Exp r' (a' -> b')) where
@@ -61,8 +61,7 @@ instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb, ta ~ ta' , tb ~ tb' , r ~ r') =
          Cnv (FMWS.Exp r  ta  -> FMWS.Exp r  tb , rr)
              (FGHO.Exp r' ta' -> FGHO.Exp r' tb')
          where
-  cnv (ee , r) = let ?r = r in
-                 pure (frmRgtZro . cnvImp . ee . frmRgtZro . cnvImp)
+  cnv (ee , r) = pure (frmRgtZro . cnvWth r . ee . frmRgtZro . cnvWth r)
 {-
 
 fldApp :: forall r t ta tb . (t ~ (ta -> tb) , HasSin TFG.Typ t) =>

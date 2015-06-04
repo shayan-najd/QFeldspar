@@ -1,4 +1,4 @@
-module QFeldspar.Conversion(Cnv(..),(<$@>),(<*@>),cnvImp) where
+module QFeldspar.Conversion(Cnv(..),cnvWth) where
 
 import QFeldspar.MyPrelude
 
@@ -8,13 +8,5 @@ class Cnv a b where
 instance Cnv (a, r) a where
   cnv (x , _) = pure x
 
-cnvImp :: (Cnv (a , r) b , ?r :: r) => a -> NamM ErrM b
-cnvImp x = cnv (x  , ?r)
-
-infixl 4 <$@>
-(<$@>) :: (?r :: r , Cnv (a , r) a') => (a' -> b) -> a -> NamM ErrM b
-el <$@> er = el <$> cnv (er , ?r)
-
-infixl 4 <*@>
-(<*@>) :: (?r :: r , Cnv (a , r) a') => NamM ErrM (a' -> b) -> a -> NamM ErrM b
-el <*@> er = el <*> cnv (er , ?r)
+cnvWth :: Cnv (a , g) b => g -> a -> NamM ErrM b
+cnvWth g a = cnv (a , g)

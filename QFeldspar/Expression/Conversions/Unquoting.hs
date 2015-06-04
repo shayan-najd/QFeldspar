@@ -13,7 +13,7 @@ import QFeldspar.Conversion
 import QFeldspar.Type.Conversion ()
 
 instance Cnv (DTH.MExp , r) (AUN.Exp TH.Name) where
-  cnv (ee , r) = let ?r = r in case ee of
+  cnv (ee , r) = case ee of
     DTH.MLitE l         -> case l of
       TH.IntegerL  i    -> pure (AUN.Int  (fromInteger  i :: Word32))
       TH.RationalL i    -> pure (AUN.ConF (fromRational i :: Float))
@@ -112,88 +112,88 @@ instance Cnv (DTH.MExp , r) (AUN.Exp TH.Name) where
                                                 (AUN.Var v2))))
       | otherwise       -> pure (AUN.Var (stripNameSpace n))
     DTH.MAppE (DTH.MAppE (DTH.MConE n) el) l
-      | n === '(,)      -> AUN.Tpl  <$@> el <*@> l
-      | n === 'Vec      -> AUN.AryV <$@> el <*@> l
-      | n === '(:+)     -> AUN.Cmx  <$@> el <*@> l
+      | n === '(,)      -> AUN.Tpl  <$> cnvWth r el <*> cnvWth r l
+      | n === 'Vec      -> AUN.AryV <$> cnvWth r el <*> cnvWth r l
+      | n === '(:+)     -> AUN.Cmx  <$> cnvWth r el <*> cnvWth r l
     DTH.MAppE (DTH.MConE n) e
-      | n === 'Just     -> AUN.Som  <$@> e
+      | n === 'Just     -> AUN.Som  <$> cnvWth r e
       | n === 'Vec      -> do v1 <- newTHVar
-                              e' <- cnvImp e
+                              e' <- cnvWth r e
                               pure (AUN.Abs (v1 ,
                                     AUN.AryV e' (AUN.Var v1)))
       | n === '(,)      -> do v1 <- newTHVar
-                              e' <- cnvImp e
+                              e' <- cnvWth r e
                               pure (AUN.Abs (v1 ,
                                     AUN.Tpl e' (AUN.Var v1)))
       | n === '(:+)     -> do v1 <- newTHVar
-                              e' <- cnvImp e
+                              e' <- cnvWth r e
                               pure (AUN.Abs (v1 ,
                                     AUN.Cmx e' (AUN.Var v1)))
     DTH.MAppE (DTH.MVarE n) e
-      | n === 'fst      -> AUN.Fst  <$@> e
-      | n === 'snd      -> AUN.Snd  <$@> e
-      | n === 'save     -> AUN.Mem  <$@> e
-      | n === 'lnArr    -> AUN.Len  <$@> e
+      | n === 'fst      -> AUN.Fst  <$> cnvWth r e
+      | n === 'snd      -> AUN.Snd  <$> cnvWth r e
+      | n === 'save     -> AUN.Mem  <$> cnvWth r e
+      | n === 'lnArr    -> AUN.Len  <$> cnvWth r e
       | n === 'ixArr    -> do v1 <- newTHVar
-                              e' <- cnvImp e
+                              e' <- cnvWth r e
                               pure (AUN.Abs (v1 ,
                                     AUN.Ind e' (AUN.Var v1)))
       | n === '(*)      -> do v1 <- newTHVar
-                              e' <- cnvImp e
+                              e' <- cnvWth r e
                               pure (AUN.Abs (v1 ,
                                     AUN.Mul e' (AUN.Var v1)))
       | n === '(+)      -> do v1 <- newTHVar
-                              e' <- cnvImp e
+                              e' <- cnvWth r e
                               pure (AUN.Abs (v1 ,
                                     AUN.Add e' (AUN.Var v1)))
       | n === '(-)      -> do v1 <- newTHVar
-                              e' <- cnvImp e
+                              e' <- cnvWth r e
                               pure (AUN.Abs (v1 ,
                                     AUN.Sub e' (AUN.Var v1)))
       | n === '(==)     -> do v1 <- newTHVar
-                              e' <- cnvImp e
+                              e' <- cnvWth r e
                               pure (AUN.Abs (v1 ,
                                     AUN.Eql e' (AUN.Var v1)))
       | n === '(<)      -> do v1 <- newTHVar
-                              e' <- cnvImp e
+                              e' <- cnvWth r e
                               pure (AUN.Abs (v1 ,
                                     AUN.Ltd e' (AUN.Var v1)))
       | n === 'mkArr    -> do v1 <- newTHVar
-                              e' <- cnvImp e
+                              e' <- cnvWth r e
                               pure (AUN.Abs (v1 ,
                                     AUN.Ary e' (AUN.Var v1)))
       | n === 'while    -> do v1 <- newTHVar
                               v2 <- newTHVar
-                              e' <- cnvImp e
+                              e' <- cnvWth r e
                               pure (AUN.Abs (v1 ,
                                     AUN.Abs (v2 ,
                                     AUN.Whl e' (AUN.Var v1)
                                                (AUN.Var v2))))
-      | n === 'fix      -> AUN.Fix  <$@> e
+      | n === 'fix      -> AUN.Fix  <$> cnvWth r e
     DTH.MAppE (DTH.MAppE (DTH.MVarE n) el) er
-      | n === 'ixArr    -> AUN.Ind  <$@> el <*@> er
-      | n === '(*)      -> AUN.Mul  <$@> el <*@> er
-      | n === '(+)      -> AUN.Add  <$@> el <*@> er
-      | n === '(-)      -> AUN.Sub  <$@> el <*@> er
-      | n === '(==)     -> AUN.Eql  <$@> el <*@> er
-      | n === '(<)      -> AUN.Ltd  <$@> el <*@> er
-      | n === 'mkArr    -> AUN.Ary  <$@> el <*@> er
+      | n === 'ixArr    -> AUN.Ind  <$> cnvWth r el <*> cnvWth r er
+      | n === '(*)      -> AUN.Mul  <$> cnvWth r el <*> cnvWth r er
+      | n === '(+)      -> AUN.Add  <$> cnvWth r el <*> cnvWth r er
+      | n === '(-)      -> AUN.Sub  <$> cnvWth r el <*> cnvWth r er
+      | n === '(==)     -> AUN.Eql  <$> cnvWth r el <*> cnvWth r er
+      | n === '(<)      -> AUN.Ltd  <$> cnvWth r el <*> cnvWth r er
+      | n === 'mkArr    -> AUN.Ary  <$> cnvWth r el <*> cnvWth r er
       | n === 'while    -> do v1 <- newTHVar
-                              el' <- cnvImp el
-                              er' <- cnvImp er
+                              el' <- cnvWth r el
+                              er' <- cnvWth r er
                               pure (AUN.Abs (v1 ,
                                     AUN.Whl el' er' (AUN.Var v1)))
     DTH.MAppE (DTH.MAppE (DTH.MAppE (DTH.MVarE n) l1) l2) ei
-      | n === 'while    -> AUN.Whl  <$@> l1 <*@> l2 <*@> ei
-    DTH.MAppE ef ea     -> AUN.App  <$@> ef <*@> ea
-    DTH.MLamE x   eb    -> AUN.Abs  <$@> (x , eb)
-    DTH.MSigE e  t      -> AUN.Typ  <$@> t  <*@> e
+      | n === 'while    -> AUN.Whl  <$> cnvWth r l1 <*> cnvWth r l2 <*> cnvWth r ei
+    DTH.MAppE ef ea     -> AUN.App  <$> cnvWth r ef <*> cnvWth r ea
+    DTH.MLamE x   eb    -> AUN.Abs  <$> cnvWth r (x , eb)
+    DTH.MSigE e  t      -> AUN.Typ  <$> cnvWth r t <*> cnvWth r e
     DTH.MLetE x el eb   ->
-        AUN.LeT  <$@> el <*@> (x , eb)
+        AUN.LeT  <$> cnvWth r el <*> cnvWth r (x , eb)
     DTH.MCaseE ec [(DTH.DConPa n [DTH.DVarPa xf , DTH.DVarPa xs],eb)]
          | n === '(,)    -> do v1 <- newTHVar
-                               ec' <- cnvImp ec
-                               eb' <- cnvImp eb
+                               ec' <- cnvWth r ec
+                               eb' <- cnvWth r eb
                                pure (AUN.LeT ec' (v1 ,
                                      AUN.LeT (AUN.Fst (AUN.Var v1))
                                      (xf ,
@@ -201,8 +201,8 @@ instance Cnv (DTH.MExp , r) (AUN.Exp TH.Name) where
                                      (xs , eb'))))
          | n === 'Vec    -> do v1 <- newTHVar
                                v2 <- newTHVar
-                               ec' <- cnvImp ec
-                               eb' <- cnvImp eb
+                               ec' <- cnvWth r ec
+                               eb' <- cnvWth r eb
                                pure (AUN.LeT ec' (v1 ,
                                      AUN.LeT (AUN.LenV (AUN.Var v1))
                                      (xf ,
@@ -213,45 +213,44 @@ instance Cnv (DTH.MExp , r) (AUN.Exp TH.Name) where
     DTH.MCaseE ec [(DTH.DConPa n [] , el),
                    (DTH.DConPa m [] , er)]
          | n === 'False,
-           m === 'True  -> AUN.Cnd  <$@> ec <*@> er <*@> el
+           m === 'True  -> AUN.Cnd  <$> cnvWth r ec <*> cnvWth r er <*> cnvWth r el
     DTH.MCaseE ec [(DTH.DConPa n [] , el),
                    (DTH.DConPa m [] , er)]
          | m === 'False,
-           n === 'True  -> AUN.Cnd  <$@> ec <*@> el <*@> er
+           n === 'True  -> AUN.Cnd  <$> cnvWth r ec <*> cnvWth r el <*> cnvWth r er
     DTH.MCaseE ec [(DTH.DConPa nl [] , el),
                    (DTH.DConPa nr [DTH.DVarPa xr] , er)]
         | nl === 'Nothing ,
-          nr === 'Just  -> AUN.May <$@> ec <*@> el <*@>
-                           (DTH.MLamE xr er)
+          nr === 'Just  -> AUN.May <$> cnvWth r ec <*> cnvWth r el <*>
+                           cnvWth r (DTH.MLamE xr er)
     DTH.MCaseE ec [(DTH.DConPa nl [DTH.DVarPa xr] , el),
                    (DTH.DConPa nr [] , er)]
         | nr === 'Nothing ,
-          nl === 'Just  -> AUN.May <$@> ec <*@> er <*@>
-                           (DTH.MLamE xr el)
+          nl === 'Just  -> AUN.May <$> cnvWth r ec <*> cnvWth r er <*>
+                           cnvWth r (DTH.MLamE xr el)
     DTH.MCaseE _ _      -> fail "case expression form is not supported!"
 
 instance Cnv ((TH.Name , DTH.MExp) , r) (TH.Name , AUN.Exp TH.Name) where
-    cnv ((x , e) , r) = let ?r = r
-                        in (,) <$> pure (stripNameSpace x) <*@> e
+    cnv ((x , e) , r) = (,) <$> pure (stripNameSpace x) <*> cnvWth r e
 
 instance Cnv (DTH.DType , r) TA.Typ where
-  cnv (th , r) = let ?r = r in case th of
+  cnv (th , r) = case th of
    DTH.DConT n
        | n == ''Word32                     -> pure TA.Wrd
        | n == ''Bool                       -> pure TA.Bol
        | n == ''Float                      -> pure TA.Flt
    DTH.DAppT (DTH.DAppT (DTH.DConT n) (DTH.DConT m)) a
-       | n == ''Array && m == ''Word32     -> TA.Ary <$@> a
-   DTH.DAppT (DTH.DAppT DTH.DArrowT   a) b -> TA.Arr <$@> a <*@> b
+       | n == ''Array && m == ''Word32     -> TA.Ary <$> cnvWth r a
+   DTH.DAppT (DTH.DAppT DTH.DArrowT   a) b -> TA.Arr <$> cnvWth r a <*> cnvWth r b
    DTH.DAppT (DTH.DAppT (DTH.DConT n) a) b
-       | n == ''(->)                       -> TA.Arr <$@> a <*@> b
-       | n == ''(,)                        -> TA.Tpl <$@> a <*@> b
+       | n == ''(->)                       -> TA.Arr <$> cnvWth r a <*> cnvWth r b
+       | n == ''(,)                        -> TA.Tpl <$> cnvWth r a <*> cnvWth r b
    DTH.DAppT (DTH.DConT n) (DTH.DConT m)
        | n == ''Complex && m == ''Float    -> pure TA.Cmx
    DTH.DAppT (DTH.DConT n) a
-       | n == ''Maybe                      -> TA.May <$@> a
-       | n == ''Ary                        -> TA.Ary <$@> a
-       | n == ''Vec                        -> TA.Vec <$@> a
+       | n == ''Maybe                      -> TA.May <$> cnvWth r a
+       | n == ''Ary                        -> TA.Ary <$> cnvWth r a
+       | n == ''Vec                        -> TA.Vec <$> cnvWth r a
    _            -> fail ("Syntax not supported:\n" ++ show th)
 
 -- not supported:

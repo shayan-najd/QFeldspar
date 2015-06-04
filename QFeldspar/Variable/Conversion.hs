@@ -50,9 +50,9 @@ instance Cnv (VP.Var , EP.Env t) t where
 -- Conversion from VS
 ---------------------------------------------------------------------------------
 instance Cnv (VS.Var n , r) VP.Var where
-  cnv (v , r) = let ?r = r in case v of
+  cnv (v , r) = case v of
     VS.Zro   -> pure VP.Zro
-    VS.Suc n -> VP.Suc <$@> n
+    VS.Suc n -> VP.Suc <$> cnvWth r n
 
 instance n ~ n' =>
          Cnv (VS.Var n , r) (VS.Var n') where
@@ -72,15 +72,14 @@ instance Cnv (VS.Var n   , ES.Env n  t) t      where
 -- Conversion from VT
 ---------------------------------------------------------------------------------
 instance Cnv (VT.Var r t , rr) VP.Nat where
-  cnv (v , r) = let ?r = r in
-                do v' :: VS.Var (Len r) <- cnvImp v
-                   cnvImp v'
+  cnv (v , r) = do v' :: VS.Var (Len r) <- cnvWth r v
+                   cnvWth r v'
 
 instance (n ~ Len r) =>
          Cnv (VT.Var r t , rr) (VS.Var n) where
-  cnv (v , r) = let ?r = r in case v of
+  cnv (v , r) = case v of
     VT.Zro   -> pure VS.Zro
-    VT.Suc n -> VS.Suc <$@> n
+    VT.Suc n -> VS.Suc <$> cnvWth r n
 
 {-
 instance Cnv (VT.Var r t , ET.Env tf r) (tf t) where

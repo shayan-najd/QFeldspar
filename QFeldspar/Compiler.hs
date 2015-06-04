@@ -46,13 +46,13 @@ runCompileMonad ty m i = do ((exp,stmts),(_,ps,vs)) <- runStateT m (i,[],[])
                                   ([Declare (v , t) | (v , t) <- vs] ++
                                    stmts ++ [Return exp]))
 
-cnvImpLft :: (Cnv (a, r) b, ?r :: r) =>
-             a -> CompileMonad b
-cnvImpLft  = lift . runNamM . cnvImp
+cnvWthLft :: (Cnv (a, r) b) =>
+             r -> a -> CompileMonad b
+cnvWthLft r = lift . runNamM . cnvWth r
 
-cmpImp :: (Compilable (t, r), ?r :: r) =>
-          t -> CompileMonad (Exp , [Stmt])
-cmpImp e = compile (e , ?r)
+cmpWth :: (Compilable (t, r)) =>
+          r -> t -> CompileMonad (Exp , [Stmt])
+cmpWth r e = compile (e , r)
 
 prm0 :: String -> Exp
 prm0         = Var
@@ -119,27 +119,27 @@ class Compilable t where
 
 instance (HasSin TFG.Typ t, n ~ Len r) =>
          Compilable (FMWS.Exp r t, ES.Env n String) where
-  compile (ee , r) = let ?r = r in do
+  compile (ee , r) = do
     let t = sin :: TFG.Typ t
-    t'  <- cnvImpLft t
+    t'  <- cnvWthLft r t
     case ee of
-      FMWS.Tag _ e       -> cmpImp e
-      FMWS.Mem e         -> cmpImp e
+      FMWS.Tag _ e       -> cmpWth r e
+      FMWS.Mem e         -> cmpWth r e
       FMWS.Tmp  x        -> return (Var x , [])
       FMWS.ConI i        -> return (Wrd i , [])
       FMWS.ConB True     -> return (tru   , [])
       FMWS.ConB False    -> return (fls   , [])
       FMWS.ConF f        -> return (Flt f , [])
-      FMWS.Prm  v ET.Emp -> do v' :: VS.Var n <- cnvImpLft v
+      FMWS.Prm  v ET.Emp -> do v' :: VS.Var n <- cnvWthLft r v
                                let ve = ES.get v' r
                                return (Var ve , [])
-      FMWS.Prm  v es     -> do v' :: VS.Var n <- cnvImpLft v
+      FMWS.Prm  v es     -> do v' :: VS.Var n <- cnvWthLft r v
                                let ve         = ES.get v' r
-                               (es' , ss)     <- cnvETEnv (sinTypOf v t) es
+                               (es' , ss)     <- cnvETEnv r (sinTypOf v t) es
                                return (App ve es' ,concat ss)
-      FMWS.Cnd ec et ef  -> do (ec' , sc) <- cmpImp ec
-                               (et' , st) <- cmpImp et
-                               (ef' , sf) <- cmpImp ef
+      FMWS.Cnd ec et ef  -> do (ec' , sc) <- cmpWth r ec
+                               (et' , st) <- cmpWth r et
+                               (ef' , sf) <- cmpWth r ef
                                v <- newName
                                addVar (v , t')
                                return (Var v
@@ -149,9 +149,9 @@ instance (HasSin TFG.Typ t, n ~ Len r) =>
                                           (sf ++ [Assign v ef'])])
       FMWS.Whl ec eb ei -> do xs <- newName
                               addVar (xs , t')
-                              (ec' , sc) <- cmpImp (ec (FMWS.Tmp xs))
-                              (eb' , sb) <- cmpImp (eb (FMWS.Tmp xs))
-                              (ei' , si) <- cmpImp ei
+                              (ec' , sc) <- cmpWth r (ec (FMWS.Tmp xs))
+                              (eb' , sb) <- cmpWth r (eb (FMWS.Tmp xs))
+                              (ei' , si) <- cmpWth r ei
                               return ( Var xs
                                      , si ++
                                        [Assign xs ei'] ++
@@ -160,12 +160,12 @@ instance (HasSin TFG.Typ t, n ~ Len r) =>
                                         (sb ++
                                          [Assign xs eb'] ++ sc)])
       FMWS.Tpl ef es           -> case TFG.getPrfHasSinTpl t of
-       (PrfHasSin , PrfHasSin) -> do (ef' , sf) <- cmpImp ef
-                                     (es' , ss) <- cmpImp es
+       (PrfHasSin , PrfHasSin) -> do (ef' , sf) <- cmpWth r ef
+                                     (es' , ss) <- cmpWth r es
                                      return (newTpl t' ef' es', sf ++ ss)
-      FMWS.Fst e               -> do (e'  , se) <- cmpImp e
+      FMWS.Fst e               -> do (e'  , se) <- cmpWth r e
                                      return (fst e' , se)
-      FMWS.Snd e               -> do (e' , se) <- cmpImp e
+      FMWS.Snd e               -> do (e' , se) <- cmpWth r e
                                      return (snd e' , se)
       FMWS.Ary l f             -> case TFG.getPrfHasSinAry t of
         PrfHasSin              -> do xl <- newName
@@ -174,8 +174,8 @@ instance (HasSin TFG.Typ t, n ~ Len r) =>
                                      addVar (xa , t')
                                      xi <- newName
                                      addVar (xi , TFA.Wrd)
-                                     (el , sl) <- cmpImp l
-                                     (ef , sf) <- cmpImp (f (FMWS.Tmp xi))
+                                     (el , sl) <- cmpWth r l
+                                     (ef , sf) <- cmpWth r (f (FMWS.Tmp xi))
                                      return ( Var xa
                                             ,   sl ++
                                               [ Assign xl el
@@ -187,53 +187,53 @@ instance (HasSin TFG.Typ t, n ~ Len r) =>
                                                                (Var xi) ef)
                                                  , Assign xi (add (Var xi)
                                                               (Wrd 1))])])
-      FMWS.Len e               -> do (e'  , se) <- cmpImp e
+      FMWS.Len e               -> do (e'  , se) <- cmpWth r e
                                      return (len e' , se)
-      FMWS.Ind ea ei           -> do (ea' , sa) <- cmpImp ea
-                                     (ei' , si) <- cmpImp ei
+      FMWS.Ind ea ei           -> do (ea' , sa) <- cmpWth r ea
+                                     (ei' , si) <- cmpWth r ei
                                      return (ind ea' ei' , sa ++ si)
       FMWS.LeT el eb           -> do xl <- newName
-                                     tl <- cnvImpLft (sinTypOf el t)
+                                     tl <- cnvWthLft r (sinTypOf el t)
                                      addVar (xl , tl)
-                                     (el' , sl) <- cmpImp el
-                                     (eb' , sb) <- cmpImp (eb (FMWS.Tmp xl))
+                                     (el' , sl) <- cmpWth r el
+                                     (eb' , sb) <- cmpWth r (eb (FMWS.Tmp xl))
                                      return (eb' , sl ++
                                                    [Assign xl el'] ++
                                                    sb)
-      FMWS.Cmx er ei           -> do (er' , sr) <- cmpImp er
-                                     (ei' , si) <- cmpImp ei
+      FMWS.Cmx er ei           -> do (er' , sr) <- cmpWth r er
+                                     (ei' , si) <- cmpWth r ei
                                      return (cmx er' ei' , sr ++ si)
-      FMWS.Mul er ei           -> do (er' , sr) <- cmpImp er
-                                     (ei' , si) <- cmpImp ei
+      FMWS.Mul er ei           -> do (er' , sr) <- cmpWth r er
+                                     (ei' , si) <- cmpWth r ei
                                      case t of
                                        TFG.Wrd -> return (mul er' ei' , sr ++ si)
                                        TFG.Flt -> return (mul er' ei' , sr ++ si)
                                        TFG.Cmx -> return (mul er' ei' , sr ++ si)
                                        _       -> fail "Type Error in Mul"
-      FMWS.Add er ei           -> do (er' , sr) <- cmpImp er
-                                     (ei' , si) <- cmpImp ei
+      FMWS.Add er ei           -> do (er' , sr) <- cmpWth r er
+                                     (ei' , si) <- cmpWth r ei
                                      case t of
                                        TFG.Wrd -> return (add er' ei' , sr ++ si)
                                        TFG.Flt -> return (add er' ei' , sr ++ si)
                                        TFG.Cmx -> return (add er' ei' , sr ++ si)
                                        _       -> fail "Type Error in Add"
-      FMWS.Sub er ei           -> do (er' , sr) <- cmpImp er
-                                     (ei' , si) <- cmpImp ei
+      FMWS.Sub er ei           -> do (er' , sr) <- cmpWth r er
+                                     (ei' , si) <- cmpWth r ei
                                      case t of
                                        TFG.Wrd -> return (sub er' ei' , sr ++ si)
                                        TFG.Flt -> return (sub er' ei' , sr ++ si)
                                        TFG.Cmx -> return (sub er' ei' , sr ++ si)
                                        _       -> fail "Type Error in Sub"
-      FMWS.Eql er ei           -> do (er' , sr) <- cmpImp er
-                                     (ei' , si) <- cmpImp ei
+      FMWS.Eql er ei           -> do (er' , sr) <- cmpWth r er
+                                     (ei' , si) <- cmpWth r ei
                                      case sinTyp er of
                                        TFG.Wrd -> return (eql er' ei' , sr ++ si)
                                        TFG.Flt -> return (eql er' ei' , sr ++ si)
                                        TFG.Bol -> return (eql er' ei' , sr ++ si)
                                        _       -> fail "Type Error in Eql"
 
-      FMWS.Ltd er ei           -> do (er' , sr) <- cmpImp er
-                                     (ei' , si) <- cmpImp ei
+      FMWS.Ltd er ei           -> do (er' , sr) <- cmpWth r er
+                                     (ei' , si) <- cmpWth r ei
                                      case sinTyp er of
                                        TFG.Wrd -> return (ltd er' ei' , sr ++ si)
                                        TFG.Flt -> return (ltd er' ei' , sr ++ si)
@@ -243,22 +243,22 @@ instance (HasSin TFG.Typ t, n ~ Len r) =>
 
 instance (n ~ Len r , HasSin TFG.Typ t , Compilable (b , ES.Env n String)) =>
          Compilable (FMWS.Exp r t -> b , ES.Env n String) where
- compile (ef , r) = let ?r = r in
+ compile (ef , r) =
    do v  <- newName
-      t' <- cnvImpLft (sin :: TFG.Typ t)
+      t' <- cnvWthLft r (sin :: TFG.Typ t)
       addParam (v , t')
-      cmpImp (ef (FMWS.Tmp v))
+      cmpWth r (ef (FMWS.Tmp v))
 
-cnvETEnv :: ( n ~ Len rr , r ~ TFG.Arg t, HasSin TFG.Typ t
-           , ?r :: ES.Env n String) =>
-           TFG.Typ t -> ET.Env (FMWS.Exp rr) r ->
+-- cnvWth r
+cnvETEnv :: (n ~ Len rr , r ~ TFG.Arg t, HasSin TFG.Typ t) =>
+           ES.Env n String -> TFG.Typ t -> ET.Env (FMWS.Exp rr) r ->
            CompileMonad ([Exp] , [[Stmt]])
-cnvETEnv t@(TFG.Arr _  tb) (ET.Ext e ess) = case TFG.getPrfHasSinArr t of
-  (PrfHasSin , PrfHasSin) -> do (ee , se) <- cmpImp e
-                                (es , ss) <- cnvETEnv tb ess
+cnvETEnv r t@(TFG.Arr _  tb) (ET.Ext e ess) = case TFG.getPrfHasSinArr t of
+  (PrfHasSin , PrfHasSin) -> do (ee , se) <- cmpWth r e
+                                (es , ss) <- cnvETEnv r tb ess
                                 return (ee : es , se : ss)
-cnvETEnv _                 ET.Emp         = return ([],[])
-cnvETEnv _                 _              = impossibleM
+cnvETEnv _ _               ET.Emp         = return ([],[])
+cnvETEnv _ _               _              = impossibleM
 
 class TypeCollectable a where
   collectTypes :: a -> [TFA.Typ]
@@ -294,11 +294,11 @@ genStructs ts = concat (
 
 scompileWith :: (TypeCollectable a , Compilable (a , ES.Env n String)) =>
                 [Var] -> TFG.Typ t -> ES.Env n String -> Word32 -> a -> ErrM String
-scompileWith vs t r i e = let ?r = r in
-                        do t' :: TFA.Typ <- runNamM (cnvImp t)
+scompileWith vs t r i e =
+                        do t' :: TFA.Typ <- runNamM (cnvWth r t)
                            c <- runCompileMonad t'
                                 (do mapM_ addParam vs
-                                    cmpImp e) i
+                                    cmpWth r e) i
                            return ("#include \"header.h\"\n\n" ++
                                    genStructs (nub (collectTypes e)) ++ "\n" ++
                                    ((show . pretty) c))
