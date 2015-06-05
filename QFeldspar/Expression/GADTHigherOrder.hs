@@ -10,8 +10,8 @@ data Exp :: [*] -> * -> * where
   ConI :: Word32   -> Exp s Word32
   ConB :: Bool     -> Exp s Bool
   ConF :: Float    -> Exp s Float
-  Prm  :: Type a =>
-          Var s a  -> Env (Exp s) (Arg a) -> Exp s (Out a)
+  Prm  :: Types as =>
+          Var s (as :-> b) -> Env (Exp s) as -> Exp s b
   Abs  :: (Exp s a -> Exp s b) -> Exp s (a -> b)
   App  :: Type a =>
           Exp s (a -> b) -> Exp s a -> Exp s b

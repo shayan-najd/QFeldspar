@@ -11,8 +11,8 @@ data Exp :: [*] -> [*] -> * -> * where
   ConB :: Bool     -> Exp s g Bool
   ConF :: Float    -> Exp s g Float
   Var  :: Var g a  -> Exp s g a
-  Prm  :: Type a =>
-          Var s a  -> Env (Exp s g) (Arg a) -> Exp s g (Out a)
+  Prm  :: Types as =>
+          Var s (as :-> b) -> Env (Exp s g) as -> Exp s g b
   Abs  :: Exp s (a ': g) b -> Exp s g (a -> b)
   App  :: Type a =>
           Exp s g (a -> b) -> Exp s g a -> Exp s g b

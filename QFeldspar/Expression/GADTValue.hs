@@ -18,18 +18,10 @@ deriving instance Functor Exp
 getTrm :: Exp t -> t
 getTrm (Exp x) = x
 
-prm :: forall a. TG.Type a => Exp a -> ET.Env Exp (TG.Arg a) -> Exp (TG.Out a)
-prm f xss = case (sin :: TG.Typ a , xss) of
-  (TG.Arr _ b , ET.Ext x xs) -> case getPrfHasSin b of
-     PrfHasSin                     -> prm (app f x) xs
-  (TG.Flt     , ET.Emp)            -> f
-  (TG.Wrd     , ET.Emp)            -> f
-  (TG.Bol     , ET.Emp)            -> f
-  (TG.Cmx     , ET.Emp)            -> f
-  (TG.Tpl _ _ , ET.Emp)            -> f
-  (TG.Ary _   , ET.Emp)            -> f
-  (TG.Vct _   , ET.Emp)            -> f
-  (TG.May _   , ET.Emp)            -> f
+prm :: forall as b. Exp (as TG.:-> b) -> ET.Env Exp as -> Exp b
+prm f xss = case xss of
+  ET.Ext x xs -> prm (app f x) xs
+  ET.Emp      -> f
 
 prm0 :: a -> Exp a
 prm0 = Exp

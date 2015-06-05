@@ -12,7 +12,7 @@ import qualified QFeldspar.Expression.GADTFirstOrder as GFO
 import qualified QFeldspar.Expression.Utils.Equality.GADTFirstOrder as GFO
 
 eql :: forall a s.
-       (HasSin TFG.Typ a , HasSin (Env TFG.Typ) s) =>
+       (TFG.Type a , TFG.Types s) =>
        Exp s a -> Exp s a -> Bool
 eql e1 e2 = let g = sin :: Env TFG.Typ s
                 e1' :: GFO.Exp s '[] a = frmRgtZro (cnv (e1 , g))
@@ -20,7 +20,7 @@ eql e1 e2 = let g = sin :: Env TFG.Typ s
             in  GFO.eql e1' e2'
 
 eqlF :: forall a b s.
-        (HasSin TFG.Typ a , HasSin TFG.Typ b , HasSin (Env TFG.Typ) s) =>
+        (TFG.Type a , TFG.Type b , TFG.Types s) =>
         (Exp s a -> Exp s b) -> (Exp s a -> Exp s b) -> Bool
 eqlF f1 f2 = let g = sin :: Env TFG.Typ s
                  f1' :: GFO.Exp s '[a] b = cnvHOFOF g f1

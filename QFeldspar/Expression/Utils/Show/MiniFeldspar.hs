@@ -3,7 +3,6 @@ module QFeldspar.Expression.Utils.Show.MiniFeldspar
        () where
 
 import QFeldspar.MyPrelude
-import QFeldspar.Singleton
 import QFeldspar.Expression.Utils.TemplateHaskell
 import QFeldspar.Expression.MiniFeldspar
 import qualified QFeldspar.Type.GADT as TFG
@@ -26,7 +25,7 @@ m <$+> n = do m' <- m
 showM :: forall g t.
          Exp g t -> State Word32 String
 showM e = case e of
-  Prm v es -> (pure ("Prm " ++ show v)) <$+> fmap show (TFG.mapMC (sinTyp v) (fmap TT . showM) es)
+  Prm v es -> (pure ("Prm " ++ show v)) <$+> fmap show (TFG.mapMC (fmap TT . showM) es)
   Tmp  x    -> pure x
   _         -> $(recAppMQ 'e ''Exp ( (\ s -> [| pure s |]) .  show . stripNameSpace) ['Prm,'Tmp]
     [| id |] [| (<$+>) |] [| (<++>) |] (const id)

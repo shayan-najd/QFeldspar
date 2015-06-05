@@ -74,11 +74,11 @@ cntVar v ee = let t = sin :: Typ a in case ee of
                then 1
                else 0
     _       -> 0
-  Prm x ns  -> fld (\ b e -> b + cntVar v e) 0 (sinTyp x) ns
   _         -> $(recAppMQ 'ee ''Exp (const [| (0 :: Word32) |]) ['Var]
     [| \ _x -> 0 |] [| (+) |] [| (+) |] (trvWrp 't)
    (\ tt -> if
     | matchQ tt [t| Exp a (a ': a) a |] -> [| cntVar (Suc v) |]
+    | matchQ tt [t| ET.Env (Exp a a)  a |] -> [| fld (\ b e -> b + cntVar v e) 0 |]
     | matchQ tt [t| Exp a a a |]        -> [| cntVar v |]
     | otherwise                         -> [| const 0  |]))
 
@@ -91,7 +91,7 @@ sbs' e' v' ee = let t = sin :: Typ a in case ee of
                 then e'
                 else ee
      _       -> ee
-  Prm x ns   -> Prm x (mapC (sinTyp x) (sbs' e' v') ns)
+  Prm x ns   -> Prm x (mapC (sbs' e' v') ns)
   _   -> $(genOverloadedW 'ee ''Exp  ['Var] (trvWrp 't)
    (\ tt -> if
       | matchQ tt [t| Exp a (a ': a) a |] -> [| sbs'F e' v' |]

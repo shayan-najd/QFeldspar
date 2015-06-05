@@ -79,28 +79,30 @@ remTheTag x ee = case ee of
     | matchQ tt [t| Env (Exp a a) a |] -> [| fmap (remTheTag x) |]
     | otherwise                  -> [| id |]))
 
-hasSubtermEnv :: HasSin TFG.Typ b => Exp s g b -> TFG.Typ a -> Env (Exp s g) (TFG.Arg a) -> Bool
+hasSubtermEnv :: (TFG.Type b , TFG.Types d) => Exp s g b -> Env (Exp s g) d -> Bool
 hasSubtermEnv ex = TFG.fld (\ b e -> b || hasSubterm ex e) False
 
 
-cseOneEnv :: forall s g a d d'.
-       (TFG.Type a , TFG.Arg a ~ Add d d') =>
-       Var s a -> Env (Exp s g) d -> Env (Exp s g) d' ->
-                  Chg (Exp s g (TFG.Out a))
-cseOneEnv x d d' = case d' of
-  Emp           -> Prm x <$> TFG.mapMC (sinTyp x) cseOne (add d d')
-  Ext (e :: Exp s g te) (es :: Env (Exp s g) tes) -> case TFG.getPrf (sinTyp x) (fmap (\ _ -> T) d) (fmap (\ _ -> T) d') of
-    PrfHasSin     -> case obvious :: Add (Add d (te ': '[])) tes :~: Add d (te ': tes) of
+cseOneEnv :: forall s g a d d' as.
+       (TFG.Type a , TFG.Types d , TFG.Types d' , as ~ Add d d') =>
+       Var s (as TFG.:-> a) -> Env (Exp s g) d -> Env (Exp s g) d' ->
+                           Chg (Exp s g a)
+cseOneEnv x d d' = do
+  let tsd  = sin :: Env TFG.Typ d
+  let tsd' = sin :: Env TFG.Typ d'
+  PrfHasSin <- getPrfHasSinM (add tsd tsd')
+  case d' of
+    Emp           -> Prm x <$> TFG.mapMC cseOne (add d d')
+    Ext (e :: Exp s g te) (es :: Env (Exp s g) tes) -> case TFG.getPrfHasSinEnvOf d' of
+     (PrfHasSin,PrfHasSin) -> case obvious :: Add (Add d (te ': '[])) tes :~: Add d (te ': tes) of
       Rfl         -> let f tss = case tss of
-                           []                -> cseOneEnv x (add d (Ext e Emp)) es
+                           []                -> do PrfHasSin <- getPrfHasSinM (add tsd (Ext (sinTyp e) Emp))
+                                                   cseOneEnv x (add d (Ext e Emp)) es
                            (Exs1 ex tx : ts) -> case getPrfHasSin tx of
-                             PrfHasSin       -> case TFG.getTypTailEnv (sinTyp x) (add d (Ext e Emp)) es of
-                                  ExsSin ttx -> case TFG.eqlArg (TFG.getSinDiff (sinTyp x) (add d (Ext e Emp)) es) ttx of
-                                    Rgt TFG.EqlArg -> if hasSubtermEnv ex ttx es
-                                                      then chg (LeT ex (Prm x
-                                                                    (TFG.mapC (sinTyp x) (\ ee -> absSubterm (Var Zro) (sucAll ex) (sucAll ee))
-                                                                            (add d d'))))
-                                                      else f ts
+                             PrfHasSin       -> if hasSubtermEnv ex es
+                                                then chg (LeT ex (Prm x (TFG.mapC (\ ee -> absSubterm (Var Zro) (sucAll ex) (sucAll ee))
+                                                                         (add d d'))))
+                                                else f ts
                      in f (findSubterms e)
 
 cseOne3 :: (HasSin TFG.Typ a , HasSin TFG.Typ b , HasSin TFG.Typ c , HasSin TFG.Typ d) =>
@@ -151,7 +153,7 @@ absSubterm xx ex ee = let t = sin :: TFG.Typ a in
   case eqlSin (sinTyp ex) t of
     Rgt Rfl | eql ex ee -> xx
     _  -> case ee of
-      Prm x es -> Prm x (TFG.mapC (sinTyp x) (absSubterm xx ex) es)
+      Prm x es -> Prm x (TFG.mapC (absSubterm xx ex) es)
       _        -> $(genOverloadedW 'ee ''Exp  ['Prm] (trvWrp 't)
         (\ tt -> if
            | matchQ tt [t| Exp a (a ': a) a |]     -> [| absSubterm (sucAll xx) (sucAll ex) |]
@@ -170,7 +172,7 @@ numSubterm ex ee = let t = sin :: TFG.Typ a in
                                    then (1 :: Word32)
                                    else 0
                        _        -> 0) + (case ee of
-    Prm x es -> TFG.fld (\ b e -> b + numSubterm ex e) 0 (sinTyp x) es
+    Prm _ es -> TFG.fld (\ b e -> b + numSubterm ex e) 0 es
     _        -> $(recAppMQ 'ee ''Exp (const [| 0 :: Word32 |]) ['Prm]
                             [| \ _x -> (0 :: Word32) |] [| (+) |] [| (+) |] (trvWrp 't)
                   (\ tt -> if
@@ -184,7 +186,7 @@ findSubterms ee = let t = sin :: TFG.Typ a in
                   (if not (isVal ee) && not (partialApp ee)
                    then ((Exs1 ee (sinTyp ee)) :)
                    else id)(case ee of
-    Prm x es -> TFG.fld (\ b e -> b ++ findSubterms e) [] (sinTyp x) es
+    Prm _ es -> TFG.fld (\ b e -> b ++ findSubterms e) [] es
     _        -> $(recAppMQ 'ee ''Exp (const [| [] |]) ['Prm]
                                [| \ _x -> [] |] [| (++) |] [| (++) |] (trvWrp 't)
                   (\ tt -> if

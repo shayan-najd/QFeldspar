@@ -19,7 +19,7 @@ smp = tilNotChg smpOne
 smpOne :: forall s g a. HasSin TFG.Typ a =>
           Exp s g a -> Chg (Exp s g a)
 smpOne ee = let t = sin :: TFG.Typ a in case ee of
-    Prm x ns -> Prm x <$> TFG.mapMC (sinTyp x) smpOne ns
+    Prm x ns -> Prm x <$> TFG.mapMC smpOne ns
     LeT m n
       | cntVar Zro n <= 1 -> chg (sbs m n)
     Cnd _ m n

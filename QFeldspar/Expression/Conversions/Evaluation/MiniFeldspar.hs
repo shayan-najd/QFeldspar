@@ -16,8 +16,7 @@ instance (HasSin TFG.Typ a, a ~ a') =>
          where
   cnv (ee , s) = let t = sin :: TFG.Typ a in case ee of
     Tmp _    -> impossibleM
-    Prm x es -> FGV.prm (get x s) <$>
-                TFG.mapMC (sinTyp x) (\ e -> cnv (e , s)) es
+    Prm x es -> FGV.prm (get x s) <$> TFG.mapMC (cnvWth s) es
     _        -> $(biGenOverloadedMWL 'ee ''Exp "FGV" ['Tmp,'Prm]
                   (trvWrp 't)
                   (\ tt -> if
@@ -26,13 +25,13 @@ instance (HasSin TFG.Typ a, a ~ a') =>
                                      (FGV.Exp
                                              (FGV.getTrm
                                               . frmRgtZro
-                                              . (\ e -> cnv (e , s))
+                                              . cnvWth s
                                               . f
                                               . frmRgtZro
-                                              . (\ e -> cnv (e , s))
+                                              . cnvWth s
                                               . FGV.Exp )) |]
                        | matchQ tt [t| Exp a a |] ->
-                           [| \ e -> cnv (e , s) |]
+                           [|cnvWth s |]
                        | otherwise                -> [| pure |]))
 
 instance (HasSin TFG.Typ t , r ~ r' , t ~ t') =>
@@ -64,7 +63,7 @@ instance (HasSin TFG.Typ ta , HasSin TFG.Typ tb , r ~ r' , ta ~ ta' , tb ~ tb')=
          where
   cnv (FGV.Exp f , r) =
     pure ( frmRgtZro
-           . (\ e -> cnv (e , r))
+           . cnvWth r
            . (fmap :: (a -> b) -> FGV.Exp a -> FGV.Exp b)  f
            . frmRgtZro
-           . (\ e -> cnv (e , r)))
+           . cnvWth r)

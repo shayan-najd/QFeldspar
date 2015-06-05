@@ -8,7 +8,6 @@ import QFeldspar.Variable.Typed
 import qualified QFeldspar.Environment.Typed as ET
 import qualified QFeldspar.Type.GADT as TFG
 import QFeldspar.Singleton
-import qualified Language.Haskell.TH as TH
 
 tagFree :: Exp r t -> Exp r t
 tagFree (Tag _ e) = tagFree e
@@ -40,7 +39,7 @@ mapVar f g ee = case ee of
 absTmp :: forall r t t'. (HasSin TFG.Typ t', HasSin TFG.Typ t) =>
           Exp r t' -> String -> Exp r t -> Exp r t
 absTmp xx s ee = let t = sin :: TFG.Typ t in case ee of
-  Prm v es     -> Prm v (TFG.mapC (sinTyp v) (absTmp xx s) es)
+  Prm v es     -> Prm v (TFG.mapC (absTmp xx s) es)
   Tmp x
     | s == x    -> case eqlSin (sinTyp xx) (sin :: TFG.Typ t) of
       Rgt Rfl   -> xx
@@ -54,7 +53,7 @@ absTmp xx s ee = let t = sin :: TFG.Typ t in case ee of
 
 remTag :: forall r t. Exp r t -> Exp r t
 remTag ee = case ee of
-  Prm v es -> Prm v (TFG.mapC (sinTyp v) remTag es)
+  Prm v es -> Prm v (TFG.mapC remTag es)
   Tag _  e  -> remTag e
   _         -> $(genOverloaded 'ee ''Exp  ['Prm,'Tag]
    (\ tt -> if

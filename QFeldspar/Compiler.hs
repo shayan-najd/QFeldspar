@@ -135,7 +135,7 @@ instance (HasSin TFG.Typ t, n ~ Len r) =>
                                return (Var ve , [])
       FMWS.Prm  v es     -> do v' :: VS.Var n <- cnvWthLft r v
                                let ve         = ES.get v' r
-                               (es' , ss)     <- cnvETEnv r (sinTypOf v t) es
+                               (es' , ss)     <- cnvETEnv r es
                                return (App ve es' ,concat ss)
       FMWS.Cnd ec et ef  -> do (ec' , sc) <- cmpWth r ec
                                (et' , st) <- cmpWth r et
@@ -250,15 +250,14 @@ instance (n ~ Len r , HasSin TFG.Typ t , Compilable (b , ES.Env n String)) =>
       cmpWth r (ef (FMWS.Tmp v))
 
 -- cnvWth r
-cnvETEnv :: (n ~ Len rr , r ~ TFG.Arg t, HasSin TFG.Typ t) =>
-           ES.Env n String -> TFG.Typ t -> ET.Env (FMWS.Exp rr) r ->
+cnvETEnv :: (n ~ Len rr , TFG.Types d) =>
+           ES.Env n String -> ET.Env (FMWS.Exp rr) d ->
            CompileMonad ([Exp] , [[Stmt]])
-cnvETEnv r t@(TFG.Arr _  tb) (ET.Ext e ess) = case TFG.getPrfHasSinArr t of
-  (PrfHasSin , PrfHasSin) -> do (ee , se) <- cmpWth r e
-                                (es , ss) <- cnvETEnv r tb ess
-                                return (ee : es , se : ss)
-cnvETEnv _ _               ET.Emp         = return ([],[])
-cnvETEnv _ _               _              = impossibleM
+cnvETEnv r d@(ET.Ext e ess) = case TFG.getPrfHasSinEnvOf d of
+  (PrfHasSin , PrfHasSin)  -> do (ee , se) <- cmpWth r e
+                                 (es , ss) <- cnvETEnv r ess
+                                 return (ee : es , se : ss)
+cnvETEnv _ ET.Emp           = return ([],[])
 
 class TypeCollectable a where
   collectTypes :: a -> [TFA.Typ]
@@ -267,7 +266,7 @@ instance HasSin TFG.Typ a => TypeCollectable (FMWS.Exp g a) where
   collectTypes ee  = let t  = sin :: TFG.Typ a in
                      (frmRgt (runNamM (cnv (t , ())))) : (case ee of
   -- type of primitive does not matter, but type of its darguemtns does
-   FMWS.Prm v es -> TFG.fld (\ ls e -> ls ++ collectTypes e) [] (sinTyp v) es
+   FMWS.Prm _ es -> TFG.fld (\ ls e -> ls ++ collectTypes e) [] es
    _             -> $(recAppMQ 'ee ''FMWS.Exp (const [| [] |]) ['FMWS.Prm]
      [| \ _x -> [] |] [| (++) |] [| (++) |] (trvWrp 't)
     (\ tt -> if

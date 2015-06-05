@@ -19,6 +19,7 @@ data Typ :: * -> * where
 deriving instance Show (Typ t)
 
 type Type a = HasSin Typ a
+type Types as = HasSin (ET.Env Typ) as
 
 instance HasSin Typ Word32 where
   sin = Wrd
@@ -175,29 +176,28 @@ eqlArg ET.Emp         (Tpl _ _)    = return EqlArg
 eqlArg ET.Emp         Cmx          = return EqlArg
 eqlArg _              _            = fail "Normalisation Error!"
 
-mapC :: Typ tt -> (forall t. HasSin Typ t => tfa t -> tfb t) ->
-        ET.Env tfa (Arg tt) -> ET.Env tfb (Arg tt)
-mapC _              _ ET.Emp     = ET.Emp
-mapC (Arr t ts) f (ET.Ext x xs)  = case getPrfHasSin t of
-  PrfHasSin                     -> ET.Ext (f x) (mapC ts f xs)
-mapC _              _ _          = impossible
+mapC :: Types as =>
+        (forall a. Type a => f a -> f' a) ->
+        ET.Env f as -> ET.Env f' as
+mapC f xss = case xss of
+  ET.Emp      -> ET.Emp
+  ET.Ext x xs -> case getPrfHasSinEnvOf xss of
+    (PrfHasSin,PrfHasSin) -> ET.Ext (f x) (mapC f xs)
 
-mapMC :: Monad m =>
-        Typ tt -> (forall t. HasSin Typ t => tfa t -> m (tfb t)) ->
-        ET.Env tfa (Arg tt) -> m (ET.Env tfb (Arg tt))
-mapMC _              _ ET.Emp    = return (ET.Emp)
-mapMC (Arr t ts) f (ET.Ext x xs) = case getPrfHasSin t of
-  PrfHasSin -> do x'  <- f x
-                  xs' <- mapMC ts f xs
-                  return (ET.Ext x' xs')
-mapMC _              _ _        = impossibleM
+mapMC :: (Applicative m , Types as) =>
+         (forall a. Type a => f a -> m (f' a)) ->
+         ET.Env f as -> m (ET.Env f' as)
+mapMC f xss = case xss of
+  ET.Emp      -> pure ET.Emp
+  ET.Ext x xs -> case getPrfHasSinEnvOf xss of
+    (PrfHasSin,PrfHasSin) -> ET.Ext <$> f x <*> mapMC f xs
 
-fld :: (forall t. HasSin Typ t => b -> e t -> b) -> b ->
-       Typ tt -> ET.Env e (Arg tt) -> b
-fld _ z _              ET.Emp   = z
-fld f z (Arr a b) (ET.Ext e es) = case getPrfHasSin a of
-    PrfHasSin -> f (fld f z b es) e
-fld _ _  _             _        = impossible
+fld :: Types as => (forall a. HasSin Typ a => b -> f a -> b) -> b ->
+       ET.Env f as -> b
+fld f z xss = case xss of
+  ET.Emp      -> z
+  ET.Ext e es -> case getPrfHasSinEnvOf xss of
+   (PrfHasSin , PrfHasSin) -> f (fld f z es) e
 
 getArgTyp :: Typ (ta -> tb) -> Typ ta
 getArgTyp (Arr ta _) = ta
@@ -284,3 +284,19 @@ getPrf (Arr t (May _))   ET.Emp        (ET.Ext _ ET.Emp) = getPrfHasSin t
 getPrf (Arr _ (May _))   _          _           = impossible
 getPrf (Arr t (Arr _ _)) ET.Emp        (ET.Ext _ _)   = getPrfHasSin t
 getPrf (Arr _ ts@(Arr _ _)) (ET.Ext _ es) es'      = getPrf ts es es'
+
+type family (:->) a b where
+  '[]       :-> b = b
+  (a ': as) :-> b = a -> (as :-> b)
+
+cur :: ET.Env Typ as -> Typ a -> Typ (as :-> a)
+cur ET.Emp        b = b
+cur (ET.Ext a as) b = Arr a (cur as b)
+
+getPrfHasSinEnv :: forall a as. HasSin (ET.Env Typ) (a ': as) => (PrfHasSin Typ a, PrfHasSin (ET.Env Typ) as)
+getPrfHasSinEnv = case sin :: ET.Env Typ (a ': as) of
+  ET.Ext a as  -> (getPrfHasSin a , getPrfHasSin as)
+
+getPrfHasSinEnvOf :: forall a as f. Types (a ': as) =>
+                     ET.Env f (a ': as) -> (PrfHasSin Typ a, PrfHasSin (ET.Env Typ) as)
+getPrfHasSinEnvOf _ = getPrfHasSinEnv

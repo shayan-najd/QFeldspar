@@ -8,7 +8,7 @@ import QFeldspar.Variable.Typed
 import qualified QFeldspar.Type.GADT as TFG
 import QFeldspar.Singleton
 import qualified QFeldspar.Environment.Typed as ET
-
+{-
 sucAll :: Exp r t' -> Exp (t ': r) t'
 sucAll = mapVar Suc prd
 
@@ -30,7 +30,7 @@ mapVar f g ee = case ee of
     | otherwise                        ->
         [| id |]))
 
-absTmp :: forall r t t'. (HasSin TFG.Typ t', HasSin TFG.Typ t) =>
+absTmp :: forall r t t'. (TFG.Type t', TFG.Type t) =>
           Exp r t' -> String -> Exp r t -> Exp r t
 absTmp xx s ee = let t = sin :: TFG.Typ t in case ee of
   Tmp x
@@ -43,3 +43,4 @@ absTmp xx s ee = let t = sin :: TFG.Typ t in case ee of
     | matchQ tt [t| Exp t t -> Exp t t |] -> [| (absTmp xx s .) |]
     | matchQ tt [t| Exp t t |]            -> [| absTmp xx s |]
     | otherwise                           -> [| id |]))
+-}

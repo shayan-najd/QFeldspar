@@ -18,7 +18,7 @@ instance (m ~ m' , n ~ n') =>
              (FGTD.Exp m' n' (Maybe TFA.Typ)) where
   cnv (ee  , r@(m , n)) = case ee of
     FAUD.Var x         -> FGTD.Var  <$> cnv (x , n)
-    FAUD.Prm x es      -> FGTD.Prm  <$> pure Nothing <*> cnv (x , m)
+    FAUD.Prm x es      -> FGTD.Prm  <$> pure (fmap (const Nothing) es) <*> cnv (x , m)
                                     <*> mapM (cnvWth r) es
     FAUD.App ef ea     -> FGTD.App  <$> pure Nothing  <*> cnvWth r ef <*> cnvWth r ea
     FAUD.Fst e         -> FGTD.Fst  <$> pure Nothing  <*> cnvWth r e

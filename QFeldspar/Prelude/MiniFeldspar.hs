@@ -23,16 +23,15 @@ import QFeldspar.Prelude.HaskellEnvironment hiding (cis,ilog2,i2f)
 import qualified QFeldspar.Variable.Typed as VT
 -- import QFeldspar.Expression.Utils.MiniFeldspar (shared)
 
-prm0 :: (Type t, TFG.Arg t ~ '[]) =>
-        VT.Var Prelude t -> Dp (TFG.Out t)
+prm0 :: VT.Var Prelude ('[] TFG.:-> t) -> Dp t
 prm0 v = Prm v Emp
 
-prm1 :: (Type t, TFG.Arg t ~ '[t1]) =>
-        VT.Var Prelude t -> Dp t1 -> Dp (TFG.Out t)
+prm1 :: (TFG.Type t1) =>
+        VT.Var Prelude ('[t1] TFG.:-> t) -> Dp t1 -> Dp t
 prm1 v e = Prm v (Ext e Emp)
 
-prm2 :: (Type t, TFG.Arg t ~ '[t1, t2]) =>
-        VT.Var Prelude t -> Dp t1 -> Dp t2 -> Dp (TFG.Out t)
+prm2 :: (TFG.Type t1,TFG.Type t2) =>
+        VT.Var Prelude (('[t1, t2]) TFG.:-> t) -> Dp t1 -> Dp t2 -> Dp t
 prm2 v e1 e2 = Prm v (Ext e1 (Ext e2 Emp))
 
 trmEql ::  HasSin TFG.Typ a => Dp a -> Dp a -> MP.Bool

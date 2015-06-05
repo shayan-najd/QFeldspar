@@ -16,16 +16,21 @@ import QFeldspar.Environment.Typed
 nrm :: HasSin TFG.Typ a => Exp s g a -> Exp s g a
 nrm = tilNotChg nrmOne
 
-cmt :: forall a s g d d'.
-       (TFG.Type a , TFG.Arg a ~ Add d d') =>
-       Var s a -> Env (Exp s g) d -> Env (Exp s g) d' -> Chg (Exp s g (TFG.Out a))
-cmt x d d' = case d' of
-  Emp           -> return (Prm x (add d d'))
-  Ext (NV e) es -> case TFG.getPrf (sinTyp x) (fmap (\ _ -> T) d) (fmap (\ _ -> T) d') of
-    PrfHasSin   -> chg (LeT e (Prm x (add (fmap sucAll d) (Ext (Var Zro) (fmap sucAll es)))))
-  Ext (e :: Exp s g te) (es :: Env (Exp s g) tes) ->
-    case obvious :: Add (Add d (te ': '[])) tes :~: Add d (te ': tes) of
-      Rfl  -> cmt x (add d (Ext e Emp)) es
+cmt :: forall a s g d d' as.
+       (TFG.Type a , as ~ Add d d' , TFG.Types d , TFG.Types d') =>
+       Var s (as TFG.:-> a) -> Env (Exp s g) d -> Env (Exp s g) d' -> Chg (Exp s g a)
+cmt x d d' = do
+  let tsd  = sin :: Env TFG.Typ d
+  let tsd' = sin :: Env TFG.Typ d'
+  PrfHasSin <- getPrfHasSinM (add tsd tsd')
+  case d' of
+    Emp           -> return (Prm x (add d d'))
+    Ext (NV e) es -> case TFG.getPrfHasSinEnvOf d' of
+     (PrfHasSin,PrfHasSin) -> chg (LeT e (Prm x (add (fmap sucAll d) (Ext (Var Zro) (fmap sucAll es)))))
+    Ext (e :: Exp s g te) (es :: Env (Exp s g) tes) -> case TFG.getPrfHasSinEnvOf d' of
+     (PrfHasSin,PrfHasSin) -> case obvious :: Add (Add d (te ': '[])) tes :~: Add d (te ': tes) of
+         Rfl -> do PrfHasSin <- getPrfHasSinM (add tsd (Ext (sinTyp e) Emp))
+                   cmt x (add d (Ext e Emp)) es
 
 hasNV :: Env (Exp s g) d -> Bool
 hasNV = foldl (\ b e -> b || (not (isVal e))) False
@@ -34,7 +39,7 @@ nrmOne :: forall s g a. HasSin TFG.Typ a => Exp s g a -> Chg (Exp s g a)
 nrmOne ee = let t = sin :: TFG.Typ a in case ee of
     Prm x es
       | hasNV es    -> cmt x Emp es
-      | otherwise   -> Prm x <$> TFG.mapMC (sinTyp x) nrmOne es
+      | otherwise   -> Prm x <$> TFG.mapMC nrmOne es
 
     App ef                      (NV ea) -> chg (LeT ea (App (sucAll ef) (Var Zro)))
     App (TF (Abs eb))           (V  ea) -> chg (sbs ea eb)

@@ -27,7 +27,7 @@ instance (HasSin TFG.Typ t , t ~ t' , r ~ r') =>
     FGHO.IndV _ _             -> fail "Normalisation Error!"
     FGHO.Int  _               -> fail "Normalisation Error!"
     FGHO.Fix  _               -> fail "Normalisation Error!"
-    FGHO.Prm x ns             -> FMWS.Prm x <$> TFG.mapMC (sinTyp x) (cnvWth r) ns
+    FGHO.Prm x ns             -> FMWS.Prm x <$> TFG.mapMC (cnvWth r) ns
     _                         -> $(biGenOverloadedMW 'ee ''FGHO.Exp "FMWS"
      ['FGHO.Prm,'FGHO.Abs,'FGHO.App,'FGHO.Non,'FGHO.Som,'FGHO.May
      ,'FGHO.AryV,'FGHO.LenV,'FGHO.IndV,'FGHO.Int,'FGHO.Fix] (trvWrp 't) (const [| cnvWth r |]))
@@ -49,7 +49,7 @@ instance (HasSin TFG.Typ t , t' ~ t , r' ~ r) =>
          Cnv (FMWS.Exp r' t' , rr) (FGHO.Exp r t)  where
   cnv (ee , r) = let t = sin :: TFG.Typ t in
     case ee of
-      FMWS.Prm x ns -> FGHO.Prm x <$> TFG.mapMC (sinTyp x) (cnvWth r) ns
+      FMWS.Prm x ns -> FGHO.Prm x <$> TFG.mapMC (cnvWth r) ns
       _             -> $(biGenOverloadedMW 'ee ''FMWS.Exp "FGHO" ['FMWS.Prm]
                             (trvWrp 't) (const [| cnvWth r |]))
 

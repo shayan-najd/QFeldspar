@@ -8,27 +8,24 @@ import qualified QFeldspar.Type.ADT as TFA
 import QFeldspar.Environment.Typed
 import QFeldspar.Conversion
 import QFeldspar.Variable.Conversion ()
+import QFeldspar.Type.Conversion ()
 import QFeldspar.Singleton
 import qualified QFeldspar.Variable.Typed as VT
 
 type ExsTyp = ExsSin TFG.Typ
 
-cnvEnv :: forall a s g. TFG.Type a => (Env TFG.Typ s , Env TFG.Typ g) ->
-     TFG.Typ a -> [FGTD.Exp (Len s) (Len g) TFA.Typ] -> NamM ErrM (Env (FGFO.Exp s g) (TFG.Arg a) , TFG.Typ (TFG.Out a))
-cnvEnv r t ess = case t of
-  TFG.Arr _ b -> case ess of
-    e : es    -> case TFG.getPrfHasSinArr t of
-       (PrfHasSin , PrfHasSin) -> do e' <- cnv (e , r)
-                                     (es' , to) <- cnvEnv r b es
-                                     return (Ext e' es' , to)
-    _         -> fail "Type Error!"
-  _           -> case obvious :: TFG.Arg a :~: '[] of
-    Rfl       -> case obvious :: TFG.Out a :~: a   of
-      Rfl     -> case ess of
-        []    -> return (Emp , t)
-        _     -> fail "Type Error!"
+cnvEnv :: forall s g d. TFG.Types d =>
+          (Env TFG.Typ s , Env TFG.Typ g) ->
+          [FGTD.Exp (Len s) (Len g) TFA.Typ] -> NamM ErrM (Env (FGFO.Exp s g) d)
+cnvEnv _ []       = case sin :: Env TFG.Typ d of
+   Emp           -> return Emp
+   Ext _ _       -> fail "Type Error!"
+cnvEnv r (e : es) = case sin :: Env TFG.Typ d of
+   Emp           -> fail "Type Error!"
+   Ext a as      -> case (getPrfHasSin a , getPrfHasSin as) of
+    (PrfHasSin , PrfHasSin) -> Ext <$> cnv (e , r) <*> cnvEnv r es
 
-instance (s ~ s' , g ~ g' , m ~ (Len s) , n ~ (Len g) , HasSin TFG.Typ a) =>
+instance (s ~ s' , g ~ g' , m ~ (Len s) , n ~ (Len g) , TFG.Type a) =>
          Cnv (FGTD.Exp m n TFA.Typ , (Env TFG.Typ s , Env TFG.Typ g))
              (FGFO.Exp s' g' a) where
   cnv (ee , r@(s , g)) = let t = sin :: TFG.Typ a in case ee of
@@ -41,19 +38,12 @@ instance (s ~ s' , g ~ g' , m ~ (Len s) , n ~ (Len g) , HasSin TFG.Typ a) =>
     FGTD.ConF f       -> case t of
       TFG.Flt         -> pure (FGFO.ConF f)
       _               -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
-    FGTD.Prm tx x ns  -> do ExsSin (tx' :: TFG.Typ tx) :: ExsTyp <- cnv tx
-                            PrfHasSin <- getPrfHasSinM tx'
-                            x' :: VT.Var s tx <- cnv (x , s)
-                            case tx' of
-                              TFG.Arr _ _ -> do (ns' , to) <- cnvEnv r tx' ns
-                                                case eqlSin to t of
-                                                  Rgt Rfl -> return (FGFO.Prm x' ns')
-                                                  _       -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
-                              _           -> case eqlSin tx' t of
-                                Rgt Rfl   -> case obvious :: TFG.Arg tx :~: '[] of
-                                  Rfl     -> case obvious :: TFG.Out tx :~: tx  of
-                                    Rfl   -> pure (FGFO.Prm x' Emp)
-                                _         -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
+    FGTD.Prm tx x ns  -> do ExsSin (as :: Env TFG.Typ as):: ExsSin (Env TFG.Typ) <- cnv (tx , ())
+                            PrfHasSin <- getPrfHasSinM as
+                            ns' :: Env (FGFO.Exp s g) as <- cnvEnv r ns
+                            PrfHasSin <- getPrfHasSinM (TFG.cur as t)
+                            x' :: VT.Var s (as TFG.:-> a) <- cnv (x , s)
+                            return (FGFO.Prm x' ns')
     FGTD.Abs eb       -> case t of
       TFG.Arr ta _    -> case TFG.getPrfHasSinArr t of
        (PrfHasSin , PrfHasSin) -> FGFO.Abs <$> cnvWth r (ta , eb)

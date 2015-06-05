@@ -13,7 +13,7 @@ import QFeldspar.Expression.Conversions.Evaluation.GADTTyped ()
 import QFeldspar.Inference
 
 dbl :: Exp (NA.Suc NA.Zro) NA.Zro TFA.Typ
-dbl = Abs (Prm (TFA.Arr TFA.Wrd (TFA.Arr TFA.Wrd TFA.Wrd)) Zro
+dbl = Abs (Prm [TFA.Wrd ,TFA.Wrd] Zro
                    [Var Zro , Var Zro])
 
 compose :: TFA.Typ -> TFA.Typ -> Exp n m TFA.Typ

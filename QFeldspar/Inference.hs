@@ -70,10 +70,10 @@ collect ee (s , g) = case ee of
     ConB _         -> return Bol
     ConF _         -> return Flt
     Var x          -> return (get x g)
-    Prm  t x  es   -> do let tx = get x s
-                         ts  <- mapM (flip collect (s , g)) es
-                         addC (t :~: tx)
-                         matchArgs tx ts
+    Prm ts x  es   -> do let tx = get x s
+                         tes <- mapM (flip collect (s , g)) es
+                         sequence_ (zipWith (\ t te -> addC (t :~: te)) ts tes)
+                         matchArgs tx tes
     Abs eb         -> do ta <- newMT
                          tb <- collect eb (s , Ext ta g)
                          return (Arr ta tb)

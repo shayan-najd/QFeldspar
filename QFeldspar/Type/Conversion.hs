@@ -32,6 +32,9 @@ instance Cnv (TFA.Typ) (ExsSin TFG.Typ) where
   cnv (TFA.May t)     = do ExsSin t' <- cnv t
                            return (ExsSin (TFG.May t'))
 
+instance Cnv (TFA.Typ , r)  (ExsSin TFG.Typ) where
+  cnv (t , _) = cnv t
+
 instance Cnv (TFA.Typ , r) (HR.Typ (HR.EnvFld '[])) where
   cnv (th , r) = case th of
     TFA.Wrd       -> pure HR.Wrd

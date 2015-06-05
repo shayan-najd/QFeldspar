@@ -65,7 +65,7 @@ cnvHOFO' g s ee  = let t = sin :: TFG.Typ a in case ee of
                                      in  ((EP.len g) `NA.sub` (NA.Suc NA.Zro)) `NA.sub` v') g) of
                   Exs1 v' t' -> case frmRgt (eqlSin t t') of
                     Rfl      -> FGFO.Var v'
-  FGHO.Prm v es -> FGFO.Prm v (TFG.mapC (sinTyp v) (cnvHOFO' g s) es)
+  FGHO.Prm v es -> FGFO.Prm v (TFG.mapC (cnvHOFO' g s) es)
   _          -> $(biGenOverloadedW 'ee ''FGHO.Exp "FGFO" ['FGHO.Prm,'FGHO.Tmp] (trvWrp 't)
    (\ tt -> if
     | matchQ tt [t| FGHO.Exp a a -> FGHO.Exp a a |] -> [| cnvHOFO'F g s |]

@@ -23,9 +23,11 @@ eql (ConF _)    _             = False
 eql (Var  v)    (Var  v')     = v == v'
 eql (Var  _)    _             = False
 
-eql (Prm x ns)  (Prm x' ns')  = case eqlSin (sinTypOf x tt) (sinTypOf x' tt) of
-                                  Rgt Rfl -> x == x' && eqlEnv ns ns'
-                                  Lft _   -> False
+eql (Prm x  (ns  :: Env (Exp s g) d))
+    (Prm x' (ns' :: Env (Exp s g) d')) = case eqlSin (sinTyp ns  :: Env TFG.Typ d)
+                                                     (sinTyp ns' :: Env TFG.Typ d') of
+   Rgt Rfl -> x == x' && eqlEnv ns ns'
+   Lft _   -> False
 eql (Prm _ _)   _             = False
 
 eql (Abs  f)    (Abs  f')     = eql f f'
@@ -136,8 +138,12 @@ eql (Mem _)     _             = False
 eql (Fix e)     (Fix e')      = eql e e'
 eql (Fix _)     _             = False
 
-eqlEnv :: Env (Exp s g) g' ->  Env (Exp s g) g' -> Bool
-eqlEnv Emp        Emp          = True
-eqlEnv Emp        _            = False
-eqlEnv (Ext x xs) (Ext x' xs') = eql x x' && eqlEnv xs xs'
-eqlEnv (Ext _ _)  _            = False
+eqlEnv :: forall d d' s g. (TFG.Types d , TFG.Types d') =>
+          Env (Exp s g) d ->  Env (Exp s g) d' -> Bool
+eqlEnv d d' = case eqlSin (sin :: Env TFG.Typ d) (sin :: Env TFG.Typ d') of
+   Rgt Rfl -> case (d , d') of
+     (Emp      , Emp)        -> True
+     (Ext x xs , Ext x' xs') -> case (TFG.getPrfHasSinEnvOf d , TFG.getPrfHasSinEnvOf d') of
+       ((PrfHasSin , PrfHasSin),(PrfHasSin , PrfHasSin)) -> eql x x' && eqlEnv xs xs'
+     _                       -> False
+   _                         -> False

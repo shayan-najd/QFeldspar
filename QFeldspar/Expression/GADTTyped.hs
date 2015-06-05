@@ -10,7 +10,7 @@ data Exp :: NA.Nat -> NA.Nat -> * -> * where
   ConB :: Bool    -> Exp n m t
   ConF :: Float   -> Exp n m t
   Var  :: Var m   -> Exp n m t
-  Prm  :: t -> Var n -> [Exp n m t] -> Exp n m t
+  Prm  :: [t] -> Var n -> [Exp n m t] -> Exp n m t
   Abs  :: Exp n (NA.Suc m) t -> Exp n m t
   App  :: t -> Exp n m t -> Exp n m t -> Exp n m t
   Cnd  :: Exp n m t -> Exp n m t -> Exp n m t -> Exp n m t
