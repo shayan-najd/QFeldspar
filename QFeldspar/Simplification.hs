@@ -13,10 +13,10 @@ import QFeldspar.ChangeMonad
 import QFeldspar.Expression.Utils.Common
 import qualified QFeldspar.Type.GADT as TG
 
-smp :: HasSin TG.Typ a => Exp s g a -> Exp s g a
+smp :: TG.Type a => Exp s g a -> Exp s g a
 smp = tilNotChg smpOne
 
-smpOne :: forall s g a. HasSin TG.Typ a =>
+smpOne :: forall s g a. TG.Type a =>
           Exp s g a -> Chg (Exp s g a)
 smpOne ee = let t = sin :: TG.Typ a in case ee of
     Prm x ns -> Prm x <$> TG.mapMC smpOne ns

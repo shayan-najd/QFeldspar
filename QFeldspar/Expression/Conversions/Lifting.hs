@@ -18,7 +18,7 @@ instance (a ~ a' , s ~ s') =>
          Cnv (GFO.Exp s '[] a , r) (GHO.Exp s' a') where
   cnv (e , _) = pure (cnvFOHO e)
 
-instance (HasSin TG.Typ a , a ~ a' , s ~ s') =>
+instance (TG.Type a , a ~ a' , s ~ s') =>
          Cnv (GHO.Exp s a , Env TG.Typ s) (GFO.Exp s' '[] a') where
   cnv (e , s) = pure (cnvHOFO s e)
 
@@ -29,11 +29,11 @@ cnvFOHOF :: GFO.Exp s '[a] b ->
             (GHO.Exp s a -> GHO.Exp s b)
 cnvFOHOF e = cnvFOHO'F Emp e
 
-cnvHOFO :: HasSin TG.Typ a =>
+cnvHOFO :: TG.Type a =>
            Env TG.Typ s -> GHO.Exp s a -> GFO.Exp s '[] a
 cnvHOFO s e = cnvHOFO' [] s e
 
-cnvHOFOF :: (HasSin TG.Typ a, HasSin TG.Typ b) =>
+cnvHOFOF :: (TG.Type a, TG.Type b) =>
             Env TG.Typ s -> (GHO.Exp s a -> GHO.Exp s b) -> GFO.Exp s '[a] b
 cnvHOFOF s f = cnvHOFO'F [] s f
 
@@ -58,7 +58,7 @@ cnvFOHO'F :: Env (GHO.Exp s) g -> GFO.Exp s (a ': g) b ->
              (GHO.Exp s a -> GHO.Exp s b)
 cnvFOHO'F g f = (\ x -> cnvFOHO' (Ext x g) f)
 
-cnvHOFO' :: forall s g a. HasSin TG.Typ a =>
+cnvHOFO' :: forall s g a. TG.Type a =>
             VarEnv g -> Env TG.Typ s -> GHO.Exp s a -> GFO.Exp s g a
 cnvHOFO' g s ee  = let t = sin :: TG.Typ a in case ee of
   GHO.Tmp x -> case frmRgt (EP.get (let v' :: NA.Nat = NA.natStr x
@@ -73,7 +73,7 @@ cnvHOFO' g s ee  = let t = sin :: TG.Typ a in case ee of
     | otherwise                                     -> [| id |]))
 
 cnvHOFO'F :: forall a b s g.
-            (HasSin TG.Typ a, HasSin TG.Typ b) =>
+            (TG.Type a, TG.Type b) =>
             VarEnv g -> Env TG.Typ s -> (GHO.Exp s a -> GHO.Exp s b) -> GFO.Exp s (a ': g) b
 cnvHOFO'F g s f =  let tag  = GHO.Tmp (show (EP.len g))
                    in  cnvHOFO' (EP.Ext (Exs1 Zro (sin :: TG.Typ a)) (incEP g)) s (f tag)

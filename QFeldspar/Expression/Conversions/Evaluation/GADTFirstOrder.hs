@@ -11,7 +11,7 @@ import QFeldspar.Variable.Conversion ()
 import QFeldspar.Singleton
 import QFeldspar.Expression.Utils.Common
 
-instance (HasSin TG.Typ a', a ~ a') =>
+instance (TG.Type a', a ~ a') =>
          Cnv (Exp s g a , (Env FGV.Exp s, Env FGV.Exp g)) (FGV.Exp a')
   where
   cnv (ee , r@(s , g)) = let t = sin :: TG.Typ a in case ee of

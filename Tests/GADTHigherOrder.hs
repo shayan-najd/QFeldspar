@@ -7,14 +7,13 @@ import QFeldspar.Variable.Typed
 import QFeldspar.Conversion as E
 import QFeldspar.Expression.Conversions.Evaluation.GADTHigherOrder ()
 import qualified QFeldspar.Expression.GADTValue as FGV
-import QFeldspar.Singleton
 import QFeldspar.Type.GADT
 import QFeldspar.Environment.Typed
 
 dbl :: Exp '[Word32 -> Word32 -> Word32] (Word32 -> Word32)
 dbl = Abs (\ x -> Prm Zro (x `Ext` (x `Ext` Emp)))
 
-compose :: (HasSin Typ ta , HasSin Typ tb , HasSin Typ tc) =>
+compose :: (Type ta , Type tb , Type tc) =>
            Exp r ((tb -> tc) -> ((ta -> tb) -> (ta -> tc)))
 compose = Abs (\ g -> Abs (\ f -> Abs
                     (\ x -> App g (App f x))))

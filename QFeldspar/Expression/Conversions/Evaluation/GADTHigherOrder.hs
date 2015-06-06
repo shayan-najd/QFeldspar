@@ -11,7 +11,7 @@ import QFeldspar.Variable.Conversion ()
 import QFeldspar.Singleton
 import QFeldspar.Expression.Utils.Common
 
-instance (HasSin TG.Typ a , a ~ a') =>
+instance (TG.Type a , a ~ a') =>
          Cnv (Exp s a , Env FGV.Exp s) (FGV.Exp a') where
   cnv (ee , s) = let t = sin :: TG.Typ a in case ee of
     Tmp _    -> impossibleM
@@ -34,7 +34,7 @@ instance (HasSin TG.Typ a , a ~ a') =>
                      [| \ e -> cnv (e , s) |]
                  | otherwise                -> [| pure |]))
 
-instance (HasSin TG.Typ t , r ~ r' , t ~ t') =>
+instance (TG.Type t , r ~ r' , t ~ t') =>
          Cnv (FGV.Exp t' , Env FGV.Exp r') (Exp r t)
          where
   cnv (FGV.Exp v , r) = let t = sin :: TG.Typ t in case t of

@@ -162,7 +162,7 @@ instance (s ~ s' , g ~ g' , m ~ (Len s) , n ~ (Len g) , TG.Type a) =>
     GTD.Mem e        -> GFO.Mem <$> cnvWth r e
     GTD.Fix e        -> GFO.Fix <$> cnvWth r e
 
-instance (s ~ s' , g ~ g' , a ~ a' , n ~ (Len (a ': g)) , m ~ (Len s), HasSin TG.Typ b) =>
+instance (s ~ s' , g ~ g' , a ~ a' , n ~ (Len (a ': g)) , m ~ (Len s), TG.Type b) =>
          Cnv ((TG.Typ a , GTD.Exp m n TA.Typ) , (Env TG.Typ s , Env TG.Typ g ))
              (GFO.Exp s' (a' ': g') b) where
   cnv ((t , ee) , (s , g)) = cnv (ee , (s ,  Ext t g))

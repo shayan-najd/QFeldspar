@@ -117,7 +117,7 @@ newAry _           _  = impossible
 class Compilable t where
  compile :: t -> CompileMonad (Exp , [Stmt])
 
-instance (HasSin TG.Typ t, n ~ Len r) =>
+instance (TG.Type t, n ~ Len r) =>
          Compilable (MFS.Exp r t, ES.Env n String) where
   compile (ee , r) = do
     let t = sin :: TG.Typ t
@@ -241,7 +241,7 @@ instance (HasSin TG.Typ t, n ~ Len r) =>
                                        _       -> fail "Type Error in Ltd"
 
 
-instance (n ~ Len r , HasSin TG.Typ t , Compilable (b , ES.Env n String)) =>
+instance (n ~ Len r , TG.Type t , Compilable (b , ES.Env n String)) =>
          Compilable (MFS.Exp r t -> b , ES.Env n String) where
  compile (ef , r) =
    do v  <- newName
@@ -262,7 +262,7 @@ cnvETEnv _ ET.Emp           = return ([],[])
 class TypeCollectable a where
   collectTypes :: a -> [TA.Typ]
 
-instance HasSin TG.Typ a => TypeCollectable (MFS.Exp g a) where
+instance TG.Type a => TypeCollectable (MFS.Exp g a) where
   collectTypes ee  = let t  = sin :: TG.Typ a in
                      (frmRgt (runNamM (cnv (t , ())))) : (case ee of
   -- type of primitive does not matter, but type of its darguemtns does
@@ -274,7 +274,7 @@ instance HasSin TG.Typ a => TypeCollectable (MFS.Exp g a) where
      | matchQ tt [t| MFS.Exp a a |]                 -> [| collectTypes |]
      | otherwise                                     -> [| const []     |])))
 
-instance (HasSin TG.Typ a , TypeCollectable b) =>
+instance (TG.Type a , TypeCollectable b) =>
          TypeCollectable (MFS.Exp g a -> b) where
   collectTypes f = let t  = sin :: TG.Typ a in
                    (frmRgt (runNamM (cnv (t , ())))) :

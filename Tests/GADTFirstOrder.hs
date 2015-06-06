@@ -7,16 +7,15 @@ import QFeldspar.Variable.Typed
 import QFeldspar.Conversion
 import QFeldspar.Expression.Conversions.Evaluation.GADTFirstOrder ()
 import qualified QFeldspar.Expression.GADTValue as FGV
-import QFeldspar.Singleton
 import QFeldspar.Environment.Typed
 
-import qualified QFeldspar.Type.GADT as TG
+import QFeldspar.Type.GADT
 
 dbl :: Exp '[Word32 -> Word32 -> Word32] '[] (Word32 -> Word32)
 dbl = -- Abs (App (App (Var (Suc Zro)) (Var Zro)) (Var Zro))
        Abs (Prm Zro (Ext (Var Zro) (Ext (Var Zro) Emp)))
 
-compose :: (HasSin TG.Typ ta , HasSin TG.Typ tb , HasSin TG.Typ tc) =>
+compose :: (Type ta , Type tb , Type tc) =>
            Exp s g ((tb -> tc) -> ((ta -> tb) -> (ta -> tc)))
 compose = Abs (Abs (Abs
                     (App (Var (Suc (Suc Zro)))

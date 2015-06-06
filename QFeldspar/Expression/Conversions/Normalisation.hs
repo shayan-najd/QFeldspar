@@ -14,7 +14,7 @@ import qualified QFeldspar.Type.GADT                  as TG
 import QFeldspar.Conversion
 import QFeldspar.Singleton
 
-instance (HasSin TG.Typ t , t ~ t' , r ~ r') =>
+instance (TG.Type t , t ~ t' , r ~ r') =>
          Cnv (GHO.Exp r t , rr) (MFS.Exp r' t') where
   cnv (ee , r) = let t = (sin :: TG.Typ t) in case ee of
     GHO.Abs _                -> fail "Normalisation Error!"
@@ -32,20 +32,20 @@ instance (HasSin TG.Typ t , t ~ t' , r ~ r') =>
      ['GHO.Prm,'GHO.Abs,'GHO.App,'GHO.Non,'GHO.Som,'GHO.May
      ,'GHO.AryV,'GHO.LenV,'GHO.IndV,'GHO.Int,'GHO.Fix] (trvWrp 't) (const [| cnvWth r |]))
 
-instance (HasSin TG.Typ a , HasSin TG.Typ b, a ~ a' , b ~ b' , r ~ r') =>
+instance (TG.Type a , TG.Type b, a ~ a' , b ~ b' , r ~ r') =>
     Cnv (GHO.Exp r' (a' -> b') , rr) (MFS.Exp r a -> MFS.Exp r b)  where
     cnv (ee , r) = case ee of
       GHO.Abs e -> cnv (e , r)
       _          -> fail "Normalisation Error!"
 
-instance (HasSin TG.Typ ta , HasSin TG.Typ tb , r ~ r' , ta ~ ta' ,tb ~ tb') =>
+instance (TG.Type ta , TG.Type tb , r ~ r' , ta ~ ta' ,tb ~ tb') =>
          Cnv (GHO.Exp r  ta  -> GHO.Exp r  tb , rr)
              (MFS.Exp r' ta' -> MFS.Exp r' tb')
          where
   cnv (ee , r) =
     pure (frmRgtZro . cnvWth r . ee . frmRgtZro . cnvWth r)
 
-instance (HasSin TG.Typ t , t' ~ t , r' ~ r) =>
+instance (TG.Type t , t' ~ t , r' ~ r) =>
          Cnv (MFS.Exp r' t' , rr) (GHO.Exp r t)  where
   cnv (ee , r) = let t = sin :: TG.Typ t in
     case ee of
@@ -53,18 +53,18 @@ instance (HasSin TG.Typ t , t' ~ t , r' ~ r) =>
       _             -> $(biGenOverloadedMW 'ee ''MFS.Exp "GHO" ['MFS.Prm]
                             (trvWrp 't) (const [| cnvWth r |]))
 
-instance (HasSin TG.Typ a , HasSin TG.Typ b, a ~ a' , b ~ b' , r ~ r') =>
+instance (TG.Type a , TG.Type b, a ~ a' , b ~ b' , r ~ r') =>
     Cnv (MFS.Exp r a -> MFS.Exp r b , rr) (GHO.Exp r' (a' -> b')) where
     cnv (ee , r) = fmap GHO.Abs (cnv (ee , r))
 
-instance (HasSin TG.Typ ta , HasSin TG.Typ tb, ta ~ ta' , tb ~ tb' , r ~ r') =>
+instance (TG.Type ta , TG.Type tb, ta ~ ta' , tb ~ tb' , r ~ r') =>
          Cnv (MFS.Exp r  ta  -> MFS.Exp r  tb , rr)
              (GHO.Exp r' ta' -> GHO.Exp r' tb')
          where
   cnv (ee , r) = pure (frmRgtZro . cnvWth r . ee . frmRgtZro . cnvWth r)
 {-
 
-fldApp :: forall r t ta tb . (t ~ (ta -> tb) , HasSin TG.Typ t) =>
+fldApp :: forall r t ta tb . (t ~ (ta -> tb) , TG.Type t) =>
           GHO.Exp r t ->
           Env (MFS.Exp r) (ta ': TG.Arg tb) ->
           NamM ErrM (Exs1 (GHO.Exp r) TG.Typ)
@@ -79,7 +79,7 @@ fldApp e ess = let ?r = () in case TG.getPrfHasSinArr (T :: T t) of
     _                                               ->
       impossibleM
 
-getVar :: forall r t. HasSin TG.Typ t =>
+getVar :: forall r t. TG.Type t =>
           GHO.Exp r t -> NamM ErrM (Exs1 (Var r) TG.Typ)
 getVar e = case e of
   GHO.App (GHO.Var v)       _ -> pure (Exs1 v (sinTyp v))

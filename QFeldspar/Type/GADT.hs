@@ -30,19 +30,19 @@ instance HasSin Typ Bool where
 instance HasSin Typ Float where
   sin = Flt
 
-instance (HasSin Typ ta , HasSin Typ tb) => HasSin Typ (ta -> tb) where
+instance (Type ta , Type tb) => HasSin Typ (ta -> tb) where
   sin = Arr sin sin
 
-instance (HasSin Typ tf , HasSin Typ ts) => HasSin Typ (tf , ts) where
+instance (Type tf , Type ts) => HasSin Typ (tf , ts) where
   sin = Tpl sin sin
 
-instance HasSin Typ ta => HasSin Typ (Ary ta) where
+instance Type ta => HasSin Typ (Ary ta) where
   sin = Ary sin
 
-instance HasSin Typ ta => HasSin Typ (Vec ta) where
+instance Type ta => HasSin Typ (Vec ta) where
   sin = Vct sin
 
-instance HasSin Typ ta => HasSin Typ (Maybe ta) where
+instance Type ta => HasSin Typ (Maybe ta) where
   sin = May sin
 
 instance HasSin Typ (Complex Float) where
@@ -84,49 +84,49 @@ instance GetPrfHasSin Typ where
       PrfHasSin -> PrfHasSin
     Cmx       -> PrfHasSin
 
-getPrfHasSinArr :: forall ta tb t. HasSin Typ (ta -> tb) =>
+getPrfHasSinArr :: forall ta tb t. Type (ta -> tb) =>
                    t (ta -> tb) -> (PrfHasSin Typ ta , PrfHasSin Typ tb)
 getPrfHasSinArr _ = case sin :: Typ (ta -> tb) of
   Arr ta tb -> (getPrfHasSin ta , getPrfHasSin tb)
 
-getPrfHasSinTpl :: forall tf ts t. HasSin Typ (tf , ts) =>
+getPrfHasSinTpl :: forall tf ts t. Type (tf , ts) =>
                    t (tf , ts) -> (PrfHasSin Typ tf , PrfHasSin Typ ts)
 getPrfHasSinTpl _ = case sin :: Typ (tf , ts) of
   Tpl tf ts -> (getPrfHasSin tf , getPrfHasSin ts)
 
-getPrfHasSinAry :: forall ta t. HasSin Typ (Ary ta) =>
+getPrfHasSinAry :: forall ta t. Type (Ary ta) =>
                    t (Ary ta) -> PrfHasSin Typ ta
 getPrfHasSinAry _ = case sin :: Typ (Ary ta) of
   Ary ta    -> getPrfHasSin ta
 
-getPrfHasSinVec :: forall ta t. HasSin Typ (Vec ta) =>
+getPrfHasSinVec :: forall ta t. Type (Vec ta) =>
                    t (Vec ta) -> PrfHasSin Typ ta
 getPrfHasSinVec _ = case sin :: Typ (Vec ta) of
   Vct ta    -> getPrfHasSin ta
 
 
-getPrfHasSinMay :: forall ta t. HasSin Typ (Maybe ta) =>
+getPrfHasSinMay :: forall ta t. Type (Maybe ta) =>
                    t (Maybe ta) -> PrfHasSin Typ ta
 getPrfHasSinMay _ = case sin :: Typ (Maybe ta) of
   May ta    -> getPrfHasSin ta
 
-getPrfHasSinArrM :: HasSin Typ (ta -> tb) =>
+getPrfHasSinArrM :: Type (ta -> tb) =>
                     t (ta -> tb) -> ErrM (PrfHasSin Typ ta , PrfHasSin Typ tb)
 getPrfHasSinArrM = return . getPrfHasSinArr
 
-getPrfHasSinTplM :: HasSin Typ (tf , ts) =>
+getPrfHasSinTplM :: Type (tf , ts) =>
                     t (tf , ts) -> ErrM (PrfHasSin Typ tf , PrfHasSin Typ ts)
 getPrfHasSinTplM = return . getPrfHasSinTpl
 
-getPrfHasSinAryM :: HasSin Typ (Ary ta) =>
+getPrfHasSinAryM :: Type (Ary ta) =>
                    t (Ary ta) -> ErrM (PrfHasSin Typ ta)
 getPrfHasSinAryM = return  . getPrfHasSinAry
 
-getPrfHasSinVecM :: HasSin Typ (Vec ta) =>
+getPrfHasSinVecM :: Type (Vec ta) =>
                    t (Vec ta) -> ErrM (PrfHasSin Typ ta)
 getPrfHasSinVecM = return  . getPrfHasSinVec
 
-getPrfHasSinMayM :: HasSin Typ (Maybe ta) =>
+getPrfHasSinMayM :: Type (Maybe ta) =>
                    t (Maybe ta) -> ErrM (PrfHasSin Typ ta)
 getPrfHasSinMayM = return  . getPrfHasSinMay
 
@@ -146,7 +146,7 @@ mapMC f xss = case xss of
   ET.Ext x xs -> case getPrfHasSinEnvOf xss of
     (PrfHasSin,PrfHasSin) -> ET.Ext <$> f x <*> mapMC f xs
 
-fld :: Types as => (forall a. HasSin Typ a => b -> f a -> b) -> b ->
+fld :: Types as => (forall a. Type a => b -> f a -> b) -> b ->
        ET.Env f as -> b
 fld f z xss = case xss of
   ET.Emp      -> z

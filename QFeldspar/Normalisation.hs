@@ -13,7 +13,7 @@ import QFeldspar.Expression.Utils.Common
 import qualified QFeldspar.Type.GADT as TG
 import QFeldspar.Environment.Typed
 
-nrm :: HasSin TG.Typ a => Exp s g a -> Exp s g a
+nrm :: TG.Type a => Exp s g a -> Exp s g a
 nrm = tilNotChg nrmOne
 
 cmt :: forall a s g d d' as.
@@ -35,7 +35,7 @@ cmt x d d' = do
 hasNV :: Env (Exp s g) d -> Bool
 hasNV = foldl (\ b e -> b || (not (isVal e))) False
 
-nrmOne :: forall s g a. HasSin TG.Typ a => Exp s g a -> Chg (Exp s g a)
+nrmOne :: forall s g a. TG.Type a => Exp s g a -> Chg (Exp s g a)
 nrmOne ee = let t = sin :: TG.Typ a in case ee of
     Prm x es
       | hasNV es    -> cmt x Emp es

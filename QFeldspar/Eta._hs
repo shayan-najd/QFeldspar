@@ -10,7 +10,7 @@ import QFeldspar.Expression.Utils.Common
 import QFeldspar.Singleton
 import qualified QFeldspar.Type.GADT as TG
 
-eta :: forall n t. HasSin TG.Typ t =>
+eta :: forall n t. TG.Type t =>
        Exp n t -> Exp n t
 eta e = let t = sin :: TG.Typ t in
   case e of
@@ -21,7 +21,7 @@ eta e = let t = sin :: TG.Typ t in
         (PrfHasSin , PrfHasSin) -> Abs (\ x -> eta (App e x))
       _                         -> etasub e
 
-etasub :: forall n t. HasSin TG.Typ t =>
+etasub :: forall n t. TG.Type t =>
           Exp n t -> Exp n t
 etasub ee = let t = sin :: TG.Typ t in case ee of
   App ef ea -> App (etasub ef) (eta ea)
@@ -31,7 +31,7 @@ etasub ee = let t = sin :: TG.Typ t in case ee of
     | matchQ tt [t| Exp t t |]            -> [| eta |]
     | otherwise                           -> [| id |]))
 
-etaF :: forall n ta tb. (HasSin TG.Typ ta , HasSin TG.Typ tb) =>
+etaF :: forall n ta tb. (TG.Type ta , TG.Type tb) =>
            (Exp n ta -> Exp n tb) -> (Exp n ta -> Exp n tb)
 etaF f = let v  = genNewNam "__etaF__"
              {-# NOINLINE v #-}

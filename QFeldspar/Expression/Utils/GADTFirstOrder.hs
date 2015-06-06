@@ -30,7 +30,6 @@ prdAllM = mapVarM (\ v -> case v of
                             Zro -> Nothing
                             Suc x -> Just x)
 
-
 mapVarM :: forall s g g' a m. (Applicative m , Monad m) =>
            (forall b. Var g b -> m (Var g' b)) -> Exp s g a -> m (Exp s g' a)
 mapVarM f ee = case ee of
@@ -53,8 +52,7 @@ mapVar f ee = case ee of
       | matchQ t [t| Exp a a a |]        -> [| mapVar f  |]
       | otherwise                        -> [| id |]))
 
-
-sbs :: (HasSin Typ a, HasSin Typ b) =>
+sbs :: (Type a, Type b) =>
        Exp s g a -> Exp s (a ': g) b -> Exp s g b
 sbs e' ee = prdAll (sbs' (sucAll e') Zro ee)
 
@@ -66,7 +64,7 @@ rp v = case v of
 replaceOne :: Exp s (a ': g) b -> Exp s (a ': c ': g) b
 replaceOne = mapVar rp
 
-cntVar :: forall s g a b. (HasSin Typ a , HasSin Typ b) =>
+cntVar :: forall s g a b. (Type a , Type b) =>
           Var g b -> Exp s g a -> Word32
 cntVar v ee = let t = sin :: Typ a in case ee of
   Var x     -> case eqlSin t (sinTyp v) of
@@ -83,7 +81,7 @@ cntVar v ee = let t = sin :: Typ a in case ee of
     | otherwise                         -> [| const 0  |]))
 
 sbs' :: forall s g a b.
-       (HasSin Typ a , HasSin Typ b) =>
+       (Type a , Type b) =>
        Exp s g b -> Var g b -> Exp s g a -> Exp s g a
 sbs' e' v' ee = let t = sin :: Typ a in case ee of
   Var v -> case eqlSin t (sinTyp v') of
@@ -99,7 +97,7 @@ sbs' e' v' ee = let t = sin :: Typ a in case ee of
       | otherwise                         -> [| id |]))
 
 sbs'F :: forall s g a b c.
-        (HasSin Typ a, HasSin Typ b) =>
+        (Type a, Type b) =>
         Exp s g b -> Var g b -> Exp s (c ': g) a -> Exp s (c ': g) a
 sbs'F e' v' e = sbs' (sucAll e') (Suc v') e
 

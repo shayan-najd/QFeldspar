@@ -36,7 +36,7 @@ mapVar f g ee = case ee of
     | otherwise                        ->
         [| id |]))
 
-absTmp :: forall r t t'. (HasSin TG.Typ t', HasSin TG.Typ t) =>
+absTmp :: forall r t t'. (TG.Type t', TG.Type t) =>
           Exp r t' -> String -> Exp r t -> Exp r t
 absTmp xx s ee = let t = sin :: TG.Typ t in case ee of
   Prm v es     -> Prm v (TG.mapC (absTmp xx s) es)

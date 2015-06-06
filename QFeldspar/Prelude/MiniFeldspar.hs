@@ -14,9 +14,9 @@ import qualified QFeldspar.MyPrelude as MP
 
 import QFeldspar.Expression.MiniFeldspar
 import qualified QFeldspar.Expression.Utils.Equality.MiniFeldspar as MFS
-import qualified QFeldspar.Type.GADT    as TG
+import qualified QFeldspar.Type.GADT as TG
+import QFeldspar.Type.GADT(Type)
 
-import QFeldspar.Singleton
 import QFeldspar.Environment.Typed (Env(Emp,Ext))
 import QFeldspar.Prelude.Environment
 import QFeldspar.Prelude.HaskellEnvironment hiding (cis,ilog2,i2f)
@@ -34,10 +34,10 @@ prm2 :: (TG.Type t1,TG.Type t2) =>
         VT.Var Prelude (('[t1, t2]) TG.:-> t) -> Dp t1 -> Dp t2 -> Dp t
 prm2 v e1 e2 = Prm v (Ext e1 (Ext e2 Emp))
 
-trmEql ::  HasSin TG.Typ a => Dp a -> Dp a -> MP.Bool
+trmEql ::  TG.Type a => Dp a -> Dp a -> MP.Bool
 trmEql  = MFS.eql
 
-trmEqlF :: (HasSin TG.Typ a , HasSin TG.Typ b) =>
+trmEqlF :: (TG.Type a , TG.Type b) =>
            (Dp a -> Dp b) -> (Dp a -> Dp b) -> MP.Bool
 trmEqlF = MFS.eqlF
 
@@ -62,8 +62,6 @@ toExpF f = toExp . f . frmExp
 
 frmExpF :: (Syn a , Syn b) => (Dp (InT a) -> Dp (InT b)) -> a -> b
 frmExpF f = frmExp . f . toExp
-
-type Type t = HasSin TG.Typ t
 
 pattern TrueE = ConB MP.True
 pattern FalseE = ConB MP.False

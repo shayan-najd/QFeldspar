@@ -17,10 +17,10 @@ import QFeldspar.Environment.Typed
 -- type family Env a :: [*]
 -- type instance Env (Exp s g a) = g
 
-cse :: HasSin TG.Typ a => Exp s g a -> Exp s g a
+cse :: TG.Type a => Exp s g a -> Exp s g a
 cse = tilNotChg cseOne
 
-cseOne :: forall s g a. HasSin TG.Typ a => Exp s g a -> Chg (Exp s g a)
+cseOne :: forall s g a. TG.Type a => Exp s g a -> Chg (Exp s g a)
 cseOne ee = let t = sin :: TG.Typ a in case ee of
   ConI i                    -> pure (ConI i)
   ConB b                    -> pure (ConB b)
@@ -105,7 +105,7 @@ cseOneEnv x d d' = do
                                                 else f ts
                      in f (findSubterms e)
 
-cseOne3 :: (HasSin TG.Typ a , HasSin TG.Typ b , HasSin TG.Typ c , HasSin TG.Typ d) =>
+cseOne3 :: (TG.Type a , TG.Type b , TG.Type c , TG.Type d) =>
            (Exp s g a -> Exp s g b -> Exp s g c -> Exp s g d) ->
            Exp s g a -> Exp s g b -> Exp s g c -> Chg (Exp s g d)
 cseOne3 k l m n = let fm tss = case tss of
@@ -122,7 +122,7 @@ cseOne3 k l m n = let fm tss = case tss of
                                              else fl ts
                   in fl (findSubterms l)
 
-cseOne2 :: (HasSin TG.Typ a, HasSin TG.Typ b, HasSin TG.Typ c) =>
+cseOne2 :: (TG.Type a, TG.Type b, TG.Type c) =>
            (Exp s g a -> Exp s g b -> Exp s g c) ->
             Exp s g a -> Exp s g b -> Chg (Exp s g c)
 cseOne2 k m n = let f tss = case tss of
@@ -134,7 +134,7 @@ cseOne2 k m n = let f tss = case tss of
                 in  f (findSubterms m)
 
 
-cseOne2F :: (HasSin TG.Typ a, HasSin TG.Typ b, HasSin TG.Typ c) =>
+cseOne2F :: (TG.Type a, TG.Type b, TG.Type c) =>
            (Exp s g a -> Exp s (a ': g) b -> Exp s g c) ->
             Exp s g a -> Exp s (a ': g) b -> Chg (Exp s g c)
 cseOne2F k m n = let f tss = case tss of
@@ -147,7 +147,7 @@ cseOne2F k m n = let f tss = case tss of
 
 
 absSubterm :: forall a b s g.
-          (HasSin TG.Typ a , HasSin TG.Typ b) =>
+          (TG.Type a , TG.Type b) =>
           Exp s g b -> Exp s g b -> Exp s g a -> Exp s g a
 absSubterm xx ex ee = let t = sin :: TG.Typ a in
   case eqlSin (sinTyp ex) t of
@@ -161,10 +161,10 @@ absSubterm xx ex ee = let t = sin :: TG.Typ a in
            | otherwise                             -> [| id |]))
 
 
-hasSubterm :: (HasSin TG.Typ b , HasSin TG.Typ a) => Exp s g b -> Exp s g a -> Bool
+hasSubterm :: (TG.Type b , TG.Type a) => Exp s g b -> Exp s g a -> Bool
 hasSubterm ex ee = numSubterm ex ee /= (0 :: Word32)
 
-numSubterm :: forall s g a b . (HasSin TG.Typ a , HasSin TG.Typ b) =>
+numSubterm :: forall s g a b . (TG.Type a , TG.Type b) =>
               Exp s g b -> Exp s g a -> Word32
 numSubterm ex ee = let t = sin :: TG.Typ a in
                    (case eqlSin (sinTyp ex) t of
@@ -180,7 +180,7 @@ numSubterm ex ee = let t = sin :: TG.Typ a in
                        | matchQ tt [t| Exp a a a |]            -> [| numSubterm ex |]
                        | otherwise                             -> [| const (0 :: Word32)  |])))
 
-findSubterms :: forall s g a. HasSin TG.Typ a =>
+findSubterms :: forall s g a. TG.Type a =>
                 Exp s g a -> [Exs1 (Exp s g) TG.Typ]
 findSubterms ee = let t = sin :: TG.Typ a in
                   (if not (isVal ee) && not (partialApp ee)
@@ -194,12 +194,12 @@ findSubterms ee = let t = sin :: TG.Typ a in
                        | matchQ tt [t| Exp a a a |]            -> [| findSubterms |]
                        | otherwise                             -> [| const [] |])))
 
-findSubtermsF :: HasSin TG.Typ b => Exp s (a ': g) b -> [Exs1 (Exp s g) TG.Typ]
+findSubtermsF :: TG.Type b => Exp s (a ': g) b -> [Exs1 (Exp s g) TG.Typ]
 findSubtermsF e = foldr (\ (Exs1 eg t) xxs -> case prdAllM eg of
                                                 Nothing  ->  xxs
                                                 Just eg' -> (Exs1 eg' t) : xxs) [] (findSubterms e)
 
-partialApp :: HasSin TG.Typ a => Exp s g a -> Bool
+partialApp :: TG.Type a => Exp s g a -> Bool
 partialApp (App l _) = case sinTyp l of
   TG.Arr _ (TG.Arr _ _) -> True
   _                       -> False
