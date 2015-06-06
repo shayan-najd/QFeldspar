@@ -4,19 +4,19 @@ module QFeldspar.Expression.Conversions.Evaluation.GADTFirstOrder () where
 import QFeldspar.MyPrelude
 import QFeldspar.Expression.GADTFirstOrder
 import qualified QFeldspar.Expression.GADTValue as FGV
-import qualified QFeldspar.Type.GADT as TFG
+import qualified QFeldspar.Type.GADT as TG
 import QFeldspar.Environment.Typed
 import QFeldspar.Conversion
 import QFeldspar.Variable.Conversion ()
 import QFeldspar.Singleton
 import QFeldspar.Expression.Utils.Common
 
-instance (HasSin TFG.Typ a', a ~ a') =>
+instance (HasSin TG.Typ a', a ~ a') =>
          Cnv (Exp s g a , (Env FGV.Exp s, Env FGV.Exp g)) (FGV.Exp a')
   where
-  cnv (ee , r@(s , g)) = let t = sin :: TFG.Typ a in case ee of
+  cnv (ee , r@(s , g)) = let t = sin :: TG.Typ a in case ee of
     Var x    -> pure (get x g)
-    Prm x es -> FGV.prm (get x s) <$> TFG.mapMC (cnvWth r) es
+    Prm x es -> FGV.prm (get x s) <$> TG.mapMC (cnvWth r) es
     _        -> $(biGenOverloadedMWL 'ee ''Exp "FGV" ['Var,'Prm]
                   (trvWrp 't)
      (\ tt -> if

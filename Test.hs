@@ -2,13 +2,13 @@ module Test where
 
 import QFeldspar.MyPrelude
 
-import qualified Tests.ADTUntypedNamed     as FAUN
-import qualified Tests.ADTUntypedDebruijn  as FAUD
-import qualified Tests.GADTTyped           as FGTD
-import qualified Tests.GADTFirstOrder      as FGFO
-import qualified Tests.GADTHigherOrder     as FGHO
-import qualified Tests.MiniFeldspar        as FMWS
-import qualified Tests.Conversion          as FCNV
+import qualified Tests.ADTUntypedNamed     as AUN
+import qualified Tests.ADTUntypedDebruijn  as AUD
+import qualified Tests.GADTTyped           as GTD
+import qualified Tests.GADTFirstOrder      as GFO
+import qualified Tests.GADTHigherOrder     as GHO
+import qualified Tests.MiniFeldspar        as MFS
+import qualified Tests.Conversion          as CNV
 
 import qualified Tests.CompareExamples     as TC
 
@@ -30,9 +30,9 @@ import QFeldspar.CSE ()
 
 
 main :: IO ()
-main = print (if FAUN.test  && FAUD.test && FGTD.test  &&
-                 FGFO.test  && FGHO.test && FMWS.test  &&
-                 FCNV.test  && TC.result
+main = print (if AUN.test  && AUD.test && GTD.test  &&
+                 GFO.test  && GHO.test && MFS.test  &&
+                 CNV.test  && TC.result
               then "Pass!"
               else "Fail!")
 
@@ -44,7 +44,7 @@ main = print (if FAUN.test  && FAUD.test && FGTD.test  &&
 -- * Using Type classes to do lifting and colifting for ADTValue and GADTValue
 --   to reuse Vanilla Prelude
 -- * check for all exhaustive partterns and transform them
--- * Conversion of FGHO (x :-> y) ~> (FMWS x -> FMWS y)
+-- * Conversion of GHO (x :-> y) ~> (MFS x -> MFS y)
 -- * Free Fusion for Church / Ahman's Containers
 -- * Supporting F
 -- * Scope Proofing Quotations (e.g. Sam's misunderstanding) [EncodingTypes.txt]

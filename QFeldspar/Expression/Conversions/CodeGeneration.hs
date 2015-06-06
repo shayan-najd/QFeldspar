@@ -5,7 +5,7 @@ import QFeldspar.MyPrelude hiding ((<>))
 import Text.PrettyPrint
 import qualified Data.List
 
-import qualified QFeldspar.Type.ADT as TFA
+import qualified QFeldspar.Type.ADT as TA
 import QFeldspar.Expression.C
 
 class Pretty a where
@@ -45,17 +45,17 @@ instance Pretty Func where
 instance Pretty Var where
  pretty (v,t) = pretty t <+> text v
 
-instance Pretty TFA.Typ where
+instance Pretty TA.Typ where
   pretty t = case t of
-    TFA.Wrd     -> text "Wrd"
-    TFA.Bol     -> text "Bol"
-    TFA.Flt     -> text "Flt"
-    TFA.Cmx     -> text "Cmx"
-    TFA.Tpl a b -> text "Tpl" <> pretty a <> pretty b
-    TFA.Ary a   -> text "Ary" <> pretty a
-    TFA.May a   -> text "May" <> pretty a
-    TFA.Arr _ _ -> impossible
-    TFA.Vec _   -> impossible
+    TA.Wrd     -> text "Wrd"
+    TA.Bol     -> text "Bol"
+    TA.Flt     -> text "Flt"
+    TA.Cmx     -> text "Cmx"
+    TA.Tpl a b -> text "Tpl" <> pretty a <> pretty b
+    TA.Ary a   -> text "Ary" <> pretty a
+    TA.May a   -> text "May" <> pretty a
+    TA.Arr _ _ -> impossible
+    TA.Vec _   -> impossible
 
 commaCat :: [Doc] -> Doc
 commaCat ds = foldl1 (<>) (Data.List.intersperse (comma<>space) ds)

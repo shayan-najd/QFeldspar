@@ -3,23 +3,23 @@ module Tests.Conversion where
 import QFeldspar.MyPrelude
 
 import qualified Language.Haskell.TH.Syntax              as TH
-import qualified QFeldspar.Expression.ADTUntypedNamed     as FAUN
-import qualified QFeldspar.Expression.ADTUntypedDebruijn  as FAUD
-import qualified QFeldspar.Expression.GADTTyped           as FGTD
-import qualified QFeldspar.Expression.GADTFirstOrder      as FGFO
-import qualified QFeldspar.Expression.GADTHigherOrder     as FGHO
-import qualified QFeldspar.Expression.MiniFeldspar      as FMWS
+import qualified QFeldspar.Expression.ADTUntypedNamed     as AUN
+import qualified QFeldspar.Expression.ADTUntypedDebruijn  as AUD
+import qualified QFeldspar.Expression.GADTTyped           as GTD
+import qualified QFeldspar.Expression.GADTFirstOrder      as GFO
+import qualified QFeldspar.Expression.GADTHigherOrder     as GHO
+import qualified QFeldspar.Expression.MiniFeldspar      as MFS
 import qualified QFeldspar.Expression.ADTValue            as FAV
 import qualified QFeldspar.Expression.GADTValue           as FGV
 import qualified Tests.TemplateHaskell     as TH
-import qualified Tests.ADTUntypedNamed     as FAUN
-import qualified Tests.ADTUntypedDebruijn  as FAUD
-import qualified Tests.GADTTyped           as FGTD
-import qualified Tests.GADTFirstOrder      as FGFO
-import qualified Tests.GADTHigherOrder     as FGHO
-import qualified Tests.MiniFeldspar        as FMWS
-import qualified QFeldspar.Type.ADT                       as TFA
-import qualified QFeldspar.Type.GADT                      as TFG
+import qualified Tests.ADTUntypedNamed     as AUN
+import qualified Tests.ADTUntypedDebruijn  as AUD
+import qualified Tests.GADTTyped           as GTD
+import qualified Tests.GADTFirstOrder      as GFO
+import qualified Tests.GADTHigherOrder     as GHO
+import qualified Tests.MiniFeldspar        as MFS
+import qualified QFeldspar.Type.ADT                       as TA
+import qualified QFeldspar.Type.GADT                      as TG
 import qualified QFeldspar.Environment.Map                         as EM
 import qualified QFeldspar.Environment.Plain                       as EP
 import qualified QFeldspar.Environment.Scoped                      as ES
@@ -37,10 +37,10 @@ type One    = NA.Suc NA.Zro
 type Add    = Word32 -> Word32 -> Word32
 type EnvAdd = '[Add]
 
-typAddG :: TFG.Typ Add
-typAddG = (TFG.Arr TFG.Wrd (TFG.Arr TFG.Wrd TFG.Wrd))
+typAddG :: TG.Typ Add
+typAddG = (TG.Arr TG.Wrd (TG.Arr TG.Wrd TG.Wrd))
 
-envAddTypG :: ET.Env TFG.Typ EnvAdd
+envAddTypG :: ET.Env TG.Typ EnvAdd
 envAddTypG =  ET.Ext typAddG ET.Emp
 
 vec :: ES.Env One TH.Name
@@ -60,73 +60,73 @@ envAddValA = (FAV.lft ((+) :: Word32 -> Word32 -> Word32)) : []
 envAddValM :: EM.Env TH.Name FAV.Exp
 envAddValM = (stripNameSpace 'TH.add , FAV.lft ((+) :: Word32 -> Word32 -> Word32)) : []
 
-cnvFMWS :: Cnv (e , ET.Env TFG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
-               (FGFO.Exp EnvAdd '[] Word32) => e -> Word32 -> Bool
-cnvFMWS e j = case runNamM
-              (do e'   :: FGFO.Exp EnvAdd '[] Word32 <- cnv (e , envAddTypG
+cnvMFS :: Cnv (e , ET.Env TG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
+               (GFO.Exp EnvAdd '[] Word32) => e -> Word32 -> Bool
+cnvMFS e j = case runNamM
+              (do e'   :: GFO.Exp EnvAdd '[] Word32 <- cnv (e , envAddTypG
                                                             , vec)
                   let e'' = NGFO.nrm e'
-                  e''' :: FMWS.Exp EnvAdd Word32 <- cnv (e'' , envAddTypG
+                  e''' :: MFS.Exp EnvAdd Word32 <- cnv (e'' , envAddTypG
                                                      ,vec)
                   curry cnv e''' envAddValG) of
            Rgt (FGV.Exp i) -> i == j
            _     -> False
 
-cnvFGHO :: Cnv (e , ET.Env TFG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
-           (FGHO.Exp EnvAdd Word32) => e -> Word32 -> Bool
-cnvFGHO e j = case runNamM
-              (do e' :: FGHO.Exp EnvAdd  Word32 <- cnv (e , envAddTypG,vec)
+cnvGHO :: Cnv (e , ET.Env TG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
+           (GHO.Exp EnvAdd Word32) => e -> Word32 -> Bool
+cnvGHO e j = case runNamM
+              (do e' :: GHO.Exp EnvAdd  Word32 <- cnv (e , envAddTypG,vec)
                   curry cnv e' envAddValG) of
            Rgt (FGV.Exp i) -> i == j
            _     -> False
 
-cnvFGFO :: Cnv (e , ET.Env TFG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
-           (FGFO.Exp EnvAdd '[] Word32) => e -> Word32 -> Bool
-cnvFGFO e j = case runNamM
-              (do e' :: FGFO.Exp EnvAdd '[] Word32 <- cnv (e , envAddTypG ,vec)
+cnvGFO :: Cnv (e , ET.Env TG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
+           (GFO.Exp EnvAdd '[] Word32) => e -> Word32 -> Bool
+cnvGFO e j = case runNamM
+              (do e' :: GFO.Exp EnvAdd '[] Word32 <- cnv (e , envAddTypG ,vec)
                   cnv (e' , (envAddValG ,ET.Emp :: ET.Env FGV.Exp '[]))) of
            Rgt (FGV.Exp i) -> i == j
            _               -> False
 
-cnvFGTD :: Cnv (e , ET.Env TFG.Typ EnvAdd , ES.Env One TH.Name)
-           (FGTD.Exp One NA.Zro TFA.Typ) => e -> Word32 -> Bool
-cnvFGTD e j = case runNamM
-              (do e' :: FGTD.Exp One NA.Zro TFA.Typ <- cnv (e , envAddTypG , vec)
+cnvGTD :: Cnv (e , ET.Env TG.Typ EnvAdd , ES.Env One TH.Name)
+           (GTD.Exp One NA.Zro TA.Typ) => e -> Word32 -> Bool
+cnvGTD e j = case runNamM
+              (do e' :: GTD.Exp One NA.Zro TA.Typ <- cnv (e , envAddTypG , vec)
                   cnv (e' , (envAddValV,ES.Emp :: ES.Env NA.Zro FAV.Exp))) of
            Rgt (FAV.colft -> Rgt i) -> i == j
            _                        -> False
 
-cnvFAUD :: Cnv (e , ET.Env TFG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
-           FAUD.Exp => e -> Word32 -> Bool
-cnvFAUD e j = case runNamM
-              (do e' :: FAUD.Exp <- cnv (e , envAddTypG , vec)
+cnvAUD :: Cnv (e , ET.Env TG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
+           AUD.Exp => e -> Word32 -> Bool
+cnvAUD e j = case runNamM
+              (do e' :: AUD.Exp <- cnv (e , envAddTypG , vec)
                   cnv (e' , (envAddValA , [] :: EP.Env FAV.Exp))) of
            Rgt (FAV.colft -> Rgt i) -> i == j
            _                        -> False
 
-cnvFAUN :: Cnv (e , ET.Env TFG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
-           (FAUN.Exp TH.Name) => e -> Word32 -> Bool
-cnvFAUN e j = case runNamM
-              (do e' :: FAUN.Exp TH.Name <- cnv (e , envAddTypG , vec)
+cnvAUN :: Cnv (e , ET.Env TG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
+           (AUN.Exp TH.Name) => e -> Word32 -> Bool
+cnvAUN e j = case runNamM
+              (do e' :: AUN.Exp TH.Name <- cnv (e , envAddTypG , vec)
                   cnv (e' , (envAddValM,[] :: EM.Env TH.Name FAV.Exp))) of
            Rgt (FAV.colft -> Rgt i) -> i == j
            _                        -> False
 
 test :: Bool
-test = cnvFAUN TH.four   4 && cnvFAUN FAUN.four 4 &&
+test = cnvAUN TH.four   4 && cnvAUN AUN.four 4 &&
 
-       cnvFAUD TH.four   4 && cnvFAUD FAUN.four 4 && cnvFAUD FAUD.four 4 &&
+       cnvAUD TH.four   4 && cnvAUD AUN.four 4 && cnvAUD AUD.four 4 &&
 
-       cnvFGTD TH.four   4 && cnvFGTD FAUN.four 4 && cnvFGTD FAUD.four 4 &&
-       cnvFGTD FGTD.four 4 &&
+       cnvGTD TH.four   4 && cnvGTD AUN.four 4 && cnvGTD AUD.four 4 &&
+       cnvGTD GTD.four 4 &&
 
-       cnvFGFO TH.four   4 && cnvFGFO FAUN.four 4 && cnvFGFO FAUD.four 4 &&
-       cnvFGFO FGTD.four 4 && cnvFGFO FGFO.four 4 && cnvFGFO FGHO.four 4 &&
+       cnvGFO TH.four   4 && cnvGFO AUN.four 4 && cnvGFO AUD.four 4 &&
+       cnvGFO GTD.four 4 && cnvGFO GFO.four 4 && cnvGFO GHO.four 4 &&
 
-       cnvFGHO TH.four   4 && cnvFGHO FAUN.four 4 && cnvFGHO FAUD.four 4 &&
-       cnvFGHO FGTD.four 4 && cnvFGHO FGFO.four 4 &&
-       cnvFGHO FGHO.four 4 &&
+       cnvGHO TH.four   4 && cnvGHO AUN.four 4 && cnvGHO AUD.four 4 &&
+       cnvGHO GTD.four 4 && cnvGHO GFO.four 4 &&
+       cnvGHO GHO.four 4 &&
 
-       cnvFMWS TH.four   4 && cnvFMWS FAUN.four 4  && cnvFMWS FAUD.four 4 &&
-       cnvFMWS FGTD.four 4 && cnvFMWS FGFO.four 4 &&
-       cnvFMWS FGHO.four 4 && cnvFMWS FMWS.four 4
+       cnvMFS TH.four   4 && cnvMFS AUN.four 4  && cnvMFS AUD.four 4 &&
+       cnvMFS GTD.four 4 && cnvMFS GFO.four 4 &&
+       cnvMFS GHO.four 4 && cnvMFS MFS.four 4

@@ -13,8 +13,8 @@ import QFeldspar.MyPrelude (Word32,Float,Complex,Ary,Bool(..),Num(..)
 import qualified QFeldspar.MyPrelude as MP
 
 import QFeldspar.Expression.MiniFeldspar
-import qualified QFeldspar.Expression.Utils.Equality.MiniFeldspar as FMWS
-import qualified QFeldspar.Type.GADT    as TFG
+import qualified QFeldspar.Expression.Utils.Equality.MiniFeldspar as MFS
+import qualified QFeldspar.Type.GADT    as TG
 
 import QFeldspar.Singleton
 import QFeldspar.Environment.Typed (Env(Emp,Ext))
@@ -23,23 +23,23 @@ import QFeldspar.Prelude.HaskellEnvironment hiding (cis,ilog2,i2f)
 import qualified QFeldspar.Variable.Typed as VT
 -- import QFeldspar.Expression.Utils.MiniFeldspar (shared)
 
-prm0 :: VT.Var Prelude ('[] TFG.:-> t) -> Dp t
+prm0 :: VT.Var Prelude ('[] TG.:-> t) -> Dp t
 prm0 v = Prm v Emp
 
-prm1 :: (TFG.Type t1) =>
-        VT.Var Prelude ('[t1] TFG.:-> t) -> Dp t1 -> Dp t
+prm1 :: (TG.Type t1) =>
+        VT.Var Prelude ('[t1] TG.:-> t) -> Dp t1 -> Dp t
 prm1 v e = Prm v (Ext e Emp)
 
-prm2 :: (TFG.Type t1,TFG.Type t2) =>
-        VT.Var Prelude (('[t1, t2]) TFG.:-> t) -> Dp t1 -> Dp t2 -> Dp t
+prm2 :: (TG.Type t1,TG.Type t2) =>
+        VT.Var Prelude (('[t1, t2]) TG.:-> t) -> Dp t1 -> Dp t2 -> Dp t
 prm2 v e1 e2 = Prm v (Ext e1 (Ext e2 Emp))
 
-trmEql ::  HasSin TFG.Typ a => Dp a -> Dp a -> MP.Bool
-trmEql  = FMWS.eql
+trmEql ::  HasSin TG.Typ a => Dp a -> Dp a -> MP.Bool
+trmEql  = MFS.eql
 
-trmEqlF :: (HasSin TFG.Typ a , HasSin TFG.Typ b) =>
+trmEqlF :: (HasSin TG.Typ a , HasSin TG.Typ b) =>
            (Dp a -> Dp b) -> (Dp a -> Dp b) -> MP.Bool
-trmEqlF = FMWS.eqlF
+trmEqlF = MFS.eqlF
 
 ----------
 type Dp t = Exp Prelude t
@@ -63,7 +63,7 @@ toExpF f = toExp . f . frmExp
 frmExpF :: (Syn a , Syn b) => (Dp (InT a) -> Dp (InT b)) -> a -> b
 frmExpF f = frmExp . f . toExp
 
-type Type t = HasSin TFG.Typ t
+type Type t = HasSin TG.Typ t
 
 pattern TrueE = ConB MP.True
 pattern FalseE = ConB MP.False

@@ -2,7 +2,7 @@ module QFeldspar.Expression.ADTUntypedNamed
        (Exp(..)) where
 
 import QFeldspar.MyPrelude
-import qualified QFeldspar.Type.ADT as TFA
+import qualified QFeldspar.Type.ADT as TA
 
 data Exp x = ConI Word32
            | ConB Bool
@@ -27,7 +27,7 @@ data Exp x = ConI Word32
            | Non
            | Som (Exp x)
            | May (Exp x) (Exp x) (Exp x)
-           | Typ TFA.Typ (Exp x)
+           | Typ TA.Typ (Exp x)
            | Mul (Exp x) (Exp x)
            | Add (Exp x) (Exp x)
            | Sub (Exp x) (Exp x)

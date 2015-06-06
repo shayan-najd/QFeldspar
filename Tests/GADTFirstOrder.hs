@@ -10,13 +10,13 @@ import qualified QFeldspar.Expression.GADTValue as FGV
 import QFeldspar.Singleton
 import QFeldspar.Environment.Typed
 
-import qualified QFeldspar.Type.GADT as TFG
+import qualified QFeldspar.Type.GADT as TG
 
 dbl :: Exp '[Word32 -> Word32 -> Word32] '[] (Word32 -> Word32)
 dbl = -- Abs (App (App (Var (Suc Zro)) (Var Zro)) (Var Zro))
        Abs (Prm Zro (Ext (Var Zro) (Ext (Var Zro) Emp)))
 
-compose :: (HasSin TFG.Typ ta , HasSin TFG.Typ tb , HasSin TFG.Typ tc) =>
+compose :: (HasSin TG.Typ ta , HasSin TG.Typ tb , HasSin TG.Typ tc) =>
            Exp s g ((tb -> tc) -> ((ta -> tb) -> (ta -> tc)))
 compose = Abs (Abs (Abs
                     (App (Var (Suc (Suc Zro)))

@@ -6,7 +6,7 @@ module QFeldspar.Expression.ADTValue
 
 import QFeldspar.MyPrelude hiding (abs,fst,snd,may,som,non,tpl,cnd,fix)
 import qualified QFeldspar.MyPrelude as MP
-import qualified QFeldspar.Type.ADT as TFA
+import qualified QFeldspar.Type.ADT as TA
 
 data Exp = ConI Word32
          | ConB Bool
@@ -183,7 +183,7 @@ cmx fr fi = do fr' <- lift (toHsk fr)
 leT :: Exp -> (Exp -> Exp) -> NamM ErrM Exp
 leT e f = return (f e)
 
-typ :: TFA.Typ -> Exp -> NamM ErrM Exp
+typ :: TA.Typ -> Exp -> NamM ErrM Exp
 typ _ = return
 
 mul :: Exp -> Exp -> NamM ErrM Exp

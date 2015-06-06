@@ -4,8 +4,8 @@ module QFeldspar.Expression.Utils.Show.GADTHigherOrder
 
 import QFeldspar.MyPrelude
 import QFeldspar.Expression.Utils.TemplateHaskell
-import QFeldspar.Expression.GADTHigherOrder as FGHO
-import qualified QFeldspar.Type.GADT as TFG
+import QFeldspar.Expression.GADTHigherOrder as GHO
+import qualified QFeldspar.Type.GADT as TG
 import QFeldspar.Expression.Utils.Show.Common
 
 infixr 5 <++>
@@ -26,7 +26,7 @@ showM :: forall g t.
          Exp g t -> State Word32 String
 showM e = case e of
   Tmp  x    -> pure x
-  Prm v es  -> (pure ("Prm " ++ show v)) <$+> fmap show (TFG.mapMC (fmap TT . showM) es)
+  Prm v es  -> (pure ("Prm " ++ show v)) <$+> fmap show (TG.mapMC (fmap TT . showM) es)
   _         -> $(recAppMQ 'e ''Exp ( (\ s -> [| pure s |]) .  show . stripNameSpace) ['Prm,'Tmp]
     [| id |] [| (<$+>) |] [| (<++>) |] (const id)
    (\ tt -> if

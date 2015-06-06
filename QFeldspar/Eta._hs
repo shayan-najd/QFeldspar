@@ -8,22 +8,22 @@ import QFeldspar.Expression.GADTHigherOrder
 import QFeldspar.Expression.Utils.GADTHigherOrder(absTmp)
 import QFeldspar.Expression.Utils.Common
 import QFeldspar.Singleton
-import qualified QFeldspar.Type.GADT as TFG
+import qualified QFeldspar.Type.GADT as TG
 
-eta :: forall n t. HasSin TFG.Typ t =>
+eta :: forall n t. HasSin TG.Typ t =>
        Exp n t -> Exp n t
-eta e = let t = sin :: TFG.Typ t in
+eta e = let t = sin :: TG.Typ t in
   case e of
-    Abs eb -> case TFG.getPrfHasSinArr t of
+    Abs eb -> case TG.getPrfHasSinArr t of
         (PrfHasSin , PrfHasSin) -> Abs (etaF eb)
     _      -> case t of
-      TFG.Arr _ _               -> case TFG.getPrfHasSinArr t of
+      TG.Arr _ _               -> case TG.getPrfHasSinArr t of
         (PrfHasSin , PrfHasSin) -> Abs (\ x -> eta (App e x))
       _                         -> etasub e
 
-etasub :: forall n t. HasSin TFG.Typ t =>
+etasub :: forall n t. HasSin TG.Typ t =>
           Exp n t -> Exp n t
-etasub ee = let t = sin :: TFG.Typ t in case ee of
+etasub ee = let t = sin :: TG.Typ t in case ee of
   App ef ea -> App (etasub ef) (eta ea)
   _         -> $(genOverloadedW 'ee ''Exp  ['App] (trvWrp 't)
    (\ tt -> if
@@ -31,7 +31,7 @@ etasub ee = let t = sin :: TFG.Typ t in case ee of
     | matchQ tt [t| Exp t t |]            -> [| eta |]
     | otherwise                           -> [| id |]))
 
-etaF :: forall n ta tb. (HasSin TFG.Typ ta , HasSin TFG.Typ tb) =>
+etaF :: forall n ta tb. (HasSin TG.Typ ta , HasSin TG.Typ tb) =>
            (Exp n ta -> Exp n tb) -> (Exp n ta -> Exp n tb)
 etaF f = let v  = genNewNam "__etaF__"
              {-# NOINLINE v #-}

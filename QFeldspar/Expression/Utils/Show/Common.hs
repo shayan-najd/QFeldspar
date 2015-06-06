@@ -1,7 +1,7 @@
 module QFeldspar.Expression.Utils.Show.Common where
 
 import QFeldspar.MyPrelude
--- import qualified QFeldspar.Type.GADT as TFG
+-- import qualified QFeldspar.Type.GADT as TG
 import QFeldspar.Environment.Typed hiding (fmap)
 
 data TT a b = TT {unTT :: a}

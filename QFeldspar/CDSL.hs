@@ -13,7 +13,7 @@ import QFeldspar.Conversion
 import QFeldspar.Expression.Conversions.Evaluation.MiniFeldspar ()
 import QFeldspar.Expression.Conversion ()
 
-import qualified QFeldspar.Type.GADT                  as TFG
+import qualified QFeldspar.Type.GADT                  as TG
 import qualified QFeldspar.Expression.GADTValue       as FGV
 import QFeldspar.Compiler(scompile)
 import QFeldspar.Normalisation (nrm)
@@ -33,7 +33,7 @@ evaluate ee = let e = toExp ee
 
 compile :: forall a. Syn a => Bool -> Bool -> a -> String
 compile bSmp bCSE ee = let e = toExp ee
-                       in  frmRgt (scompile (sin :: TFG.Typ (InT a))
+                       in  frmRgt (scompile (sin :: TG.Typ (InT a))
                                     esString
                                     ((if bSmp then simplify else MP.id)
                                      (normalise bCSE e)))
@@ -41,7 +41,7 @@ compile bSmp bCSE ee = let e = toExp ee
 compileF :: forall a b. (Syn a , Syn b) =>
             Bool -> Bool -> (a -> b) -> String
 compileF cSmp cCSE ff = let f = toExpF ff
-                    in  frmRgt (scompile (sin :: TFG.Typ (InT b)) esString
+                    in  frmRgt (scompile (sin :: TG.Typ (InT b)) esString
                           ((if cSmp then simplifyF else MP.id)
                            (normaliseF cCSE f)))
 

@@ -5,7 +5,7 @@ import QFeldspar.MyPrelude
 import QFeldspar.Expression.Utils.Common
 import QFeldspar.Expression.GADTHigherOrder
 import QFeldspar.Variable.Typed
-import qualified QFeldspar.Type.GADT as TFG
+import qualified QFeldspar.Type.GADT as TG
 import QFeldspar.Singleton
 import qualified QFeldspar.Environment.Typed as ET
 {-
@@ -30,11 +30,11 @@ mapVar f g ee = case ee of
     | otherwise                        ->
         [| id |]))
 
-absTmp :: forall r t t'. (TFG.Type t', TFG.Type t) =>
+absTmp :: forall r t t'. (TG.Type t', TG.Type t) =>
           Exp r t' -> String -> Exp r t -> Exp r t
-absTmp xx s ee = let t = sin :: TFG.Typ t in case ee of
+absTmp xx s ee = let t = sin :: TG.Typ t in case ee of
   Tmp x
-    | s == x    -> case eqlSin (sinTyp xx) (sin :: TFG.Typ t) of
+    | s == x    -> case eqlSin (sinTyp xx) (sin :: TG.Typ t) of
       Rgt Rfl   -> xx
       _         -> ee
     | otherwise -> ee

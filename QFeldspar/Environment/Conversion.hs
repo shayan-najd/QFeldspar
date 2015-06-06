@@ -7,8 +7,8 @@ import qualified QFeldspar.Environment.Plain  as EP
 import qualified QFeldspar.Environment.Typed  as ET
 import qualified QFeldspar.Environment.Scoped as ES
 
-import qualified QFeldspar.Type.ADT  as TFA
-import qualified QFeldspar.Type.GADT as TFG
+import qualified QFeldspar.Type.ADT  as TA
+import qualified QFeldspar.Type.GADT as TG
 
 import QFeldspar.Conversion
 import QFeldspar.Type.Conversion ()
@@ -61,7 +61,7 @@ instance (Cnv (a , r) b , n ~ n') =>
 -- Conversion from ES.Env
 ---------------------------------------------------------------------------------
 instance n ~ Len r =>
-         Cnv (ET.Env TFG.Typ r , rr) (ES.Env n TFA.Typ) where
+         Cnv (ET.Env TG.Typ r , rr) (ES.Env n TA.Typ) where
   cnv (ee , r) = case ee of
     ET.Emp      -> pure ES.Emp
     ET.Ext x xs -> ES.Ext <$> cnvWth r x <*> cnvWth r xs

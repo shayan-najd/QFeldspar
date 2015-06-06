@@ -3,11 +3,11 @@ module QFeldspar.Expression.C
 
 import QFeldspar.MyPrelude
 
-import qualified QFeldspar.Type.ADT as TFA
+import qualified QFeldspar.Type.ADT as TA
 
-type Var = (String , TFA.Typ)
+type Var = (String , TA.Typ)
 
-data Func = Func TFA.Typ String [Var] [Stmt]
+data Func = Func TA.Typ String [Var] [Stmt]
 
 data Stmt =
    If  Exp [Stmt] [Stmt]

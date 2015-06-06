@@ -7,14 +7,14 @@ import QFeldspar.Singleton
 import QFeldspar.Nat.ADT
 import qualified QFeldspar.Nat.GADT as NG
 import qualified Language.Haskell.TH.Syntax as TH
-import qualified QFeldspar.Expression.ADTUntypedNamed as FAUN
-import qualified QFeldspar.Expression.ADTUntypedDebruijn as FAUD
-import qualified QFeldspar.Expression.GADTTyped as FGTD
-import qualified QFeldspar.Expression.GADTFirstOrder as FGFO
-import qualified QFeldspar.Expression.GADTHigherOrder as FGHO
-import qualified QFeldspar.Expression.MiniFeldspar as FMWS
-import qualified QFeldspar.Type.ADT as TFA
-import qualified QFeldspar.Type.GADT as TFG
+import qualified QFeldspar.Expression.ADTUntypedNamed as AUN
+import qualified QFeldspar.Expression.ADTUntypedDebruijn as AUD
+import qualified QFeldspar.Expression.GADTTyped as GTD
+import qualified QFeldspar.Expression.GADTFirstOrder as GFO
+import qualified QFeldspar.Expression.GADTHigherOrder as GHO
+import qualified QFeldspar.Expression.MiniFeldspar as MFS
+import qualified QFeldspar.Type.ADT as TA
+import qualified QFeldspar.Type.GADT as TG
 import qualified QFeldspar.Environment.Plain as EP
 import qualified QFeldspar.Environment.Scoped as ES
 import qualified QFeldspar.Environment.Typed as ET
@@ -35,44 +35,44 @@ import QFeldspar.Expression.Conversions.EtaPrims(etaPrms)
 -----------------------------------------------------------------------
 -- Conversion from TH.TExp
 -----------------------------------------------------------------------
-instance (s ~ s' , a ~ a' , n ~ Len s , HasSin TFG.Typ a') =>
-         Cnv (TH.Q (TH.TExp a) , ET.Env TFG.Typ s , ES.Env n TH.Name)
-             (FMWS.Exp s' a')
+instance (s ~ s' , a ~ a' , n ~ Len s , HasSin TG.Typ a') =>
+         Cnv (TH.Q (TH.TExp a) , ET.Env TG.Typ s , ES.Env n TH.Name)
+             (MFS.Exp s' a')
          where
-  cnv (e , s , v) = do e' :: FGHO.Exp s a <- cnv (e , s , v)
+  cnv (e , s , v) = do e' :: GHO.Exp s a <- cnv (e , s , v)
                        cnv (e' , s , v)
 
-instance (s ~ s' , a ~ a' , n ~ Len s , HasSin TFG.Typ a') =>
-         Cnv (TH.Q (TH.TExp a) , ET.Env TFG.Typ s , ES.Env n TH.Name)
-             (FGHO.Exp s' a')
+instance (s ~ s' , a ~ a' , n ~ Len s , HasSin TG.Typ a') =>
+         Cnv (TH.Q (TH.TExp a) , ET.Env TG.Typ s , ES.Env n TH.Name)
+             (GHO.Exp s' a')
          where
-  cnv (e , s , v) = do e' :: FGFO.Exp s '[] a <- cnv (e , s , v)
+  cnv (e , s , v) = do e' :: GFO.Exp s '[] a <- cnv (e , s , v)
                        cnv (e' , s , v)
 
-instance (s ~ s' , a ~ a' , n ~ Len s , HasSin TFG.Typ a') =>
-         Cnv (TH.Q (TH.TExp a) , ET.Env TFG.Typ s , ES.Env n TH.Name)
-             (FGFO.Exp s' '[] a')
+instance (s ~ s' , a ~ a' , n ~ Len s , HasSin TG.Typ a') =>
+         Cnv (TH.Q (TH.TExp a) , ET.Env TG.Typ s , ES.Env n TH.Name)
+             (GFO.Exp s' '[] a')
          where
-  cnv (e , s , v) = do e' :: FGTD.Exp n Zro TFA.Typ <- cnv (e , s , v)
+  cnv (e , s , v) = do e' :: GTD.Exp n Zro TA.Typ <- cnv (e , s , v)
                        cnv (e' , s , v)
 
-instance (n ~ n' , n ~ Len s , HasSin TFG.Typ a)  =>
-         Cnv (TH.Q (TH.TExp a) , ET.Env TFG.Typ s , ES.Env n TH.Name)
-             (FGTD.Exp n' Zro TFA.Typ)
+instance (n ~ n' , n ~ Len s , HasSin TG.Typ a)  =>
+         Cnv (TH.Q (TH.TExp a) , ET.Env TG.Typ s , ES.Env n TH.Name)
+             (GTD.Exp n' Zro TA.Typ)
          where
-  cnv (e , s , v) = do e' :: FAUD.Exp <- cnv (e , s , v)
+  cnv (e , s , v) = do e' :: AUD.Exp <- cnv (e , s , v)
                        cnv (e' , s , v)
 
-instance (n ~ Len s , HasSin TFG.Typ a) =>
-         Cnv (TH.Q (TH.TExp a) , ET.Env TFG.Typ s , ES.Env n TH.Name)
-             FAUD.Exp
+instance (n ~ Len s , HasSin TG.Typ a) =>
+         Cnv (TH.Q (TH.TExp a) , ET.Env TG.Typ s , ES.Env n TH.Name)
+             AUD.Exp
          where
-  cnv (e , s , v) = do e' :: FAUN.Exp TH.Name <- cnv (e , s , v)
+  cnv (e , s , v) = do e' :: AUN.Exp TH.Name <- cnv (e , s , v)
                        cnv (e' , s , v)
 
 instance (n ~ Len s) =>
-         Cnv (TH.Q (TH.TExp a) , ET.Env TFG.Typ s , ES.Env n TH.Name)
-             (FAUN.Exp TH.Name)
+         Cnv (TH.Q (TH.TExp a) , ET.Env TG.Typ s , ES.Env n TH.Name)
+             (AUN.Exp TH.Name)
          where
   cnv (e , s , v) = do e' :: TH.Exp <- cnv (e , s , v)
                        cnv (e' , s , v)
@@ -84,7 +84,7 @@ instance (n ~ Len s) =>
   cnv (e , _ , _) = lift (TH.runQ (TH.unTypeQ e))
 
 instance (a ~ a' , n ~ Len s) =>
-         Cnv (TH.Q (TH.TExp a) , ET.Env TFG.Typ s , ES.Env n TH.Name)
+         Cnv (TH.Q (TH.TExp a) , ET.Env TG.Typ s , ES.Env n TH.Name)
              (TH.Q (TH.TExp a'))
          where
   cnv (e , _ , _ ) = pure e
@@ -92,46 +92,46 @@ instance (a ~ a' , n ~ Len s) =>
 -----------------------------------------------------------------------
 -- Conversion from TH.Exp
 -----------------------------------------------------------------------
-instance (s ~ s' , a ~ a' , n ~ Len s , HasSin TFG.Typ a') =>
-         Cnv (TH.Exp , ET.Env TFG.Typ s , ES.Env n TH.Name)
-             (FMWS.Exp s' a')
+instance (s ~ s' , a ~ a' , n ~ Len s , HasSin TG.Typ a') =>
+         Cnv (TH.Exp , ET.Env TG.Typ s , ES.Env n TH.Name)
+             (MFS.Exp s' a')
          where
-  cnv (e , s , v) = do e' :: FGHO.Exp s a' <- cnv (e , s , v)
+  cnv (e , s , v) = do e' :: GHO.Exp s a' <- cnv (e , s , v)
                        cnv (e' , s , v)
 
-instance (s ~ s' , n ~ Len s , HasSin TFG.Typ a') =>
-         Cnv (TH.Exp , ET.Env TFG.Typ s , ES.Env n TH.Name)
-             (FGHO.Exp s' a')
+instance (s ~ s' , n ~ Len s , HasSin TG.Typ a') =>
+         Cnv (TH.Exp , ET.Env TG.Typ s , ES.Env n TH.Name)
+             (GHO.Exp s' a')
          where
-  cnv (e , s , v) = do e' :: FGFO.Exp s '[] a' <- cnv (e , s , v)
+  cnv (e , s , v) = do e' :: GFO.Exp s '[] a' <- cnv (e , s , v)
                        cnv (e' , s , v)
 
-instance (s ~ s' , n ~ Len s , HasSin TFG.Typ a') =>
-         Cnv (TH.Exp , ET.Env TFG.Typ s , ES.Env n TH.Name)
-             (FGFO.Exp s' '[] a')
+instance (s ~ s' , n ~ Len s , HasSin TG.Typ a') =>
+         Cnv (TH.Exp , ET.Env TG.Typ s , ES.Env n TH.Name)
+             (GFO.Exp s' '[] a')
          where
-  cnv (e , s , v) = do e' :: FGTD.Exp n Zro TFA.Typ <- cnv (e , s , v)
+  cnv (e , s , v) = do e' :: GTD.Exp n Zro TA.Typ <- cnv (e , s , v)
                        cnv (e' , s , v)
 
 instance (n ~ n' , n ~ Len s)  =>
-         Cnv (TH.Exp , ET.Env TFG.Typ s , ES.Env n TH.Name)
-             (FGTD.Exp n' Zro TFA.Typ)
+         Cnv (TH.Exp , ET.Env TG.Typ s , ES.Env n TH.Name)
+             (GTD.Exp n' Zro TA.Typ)
          where
-  cnv (e , s , v) = do e' :: FAUD.Exp <- cnv (e , s , v)
+  cnv (e , s , v) = do e' :: AUD.Exp <- cnv (e , s , v)
                        cnv (e' , s , v)
 
 instance (n ~ Len s) =>
-         Cnv (TH.Exp , ET.Env TFG.Typ s , ES.Env n TH.Name)
-             FAUD.Exp
+         Cnv (TH.Exp , ET.Env TG.Typ s , ES.Env n TH.Name)
+             AUD.Exp
          where
-  cnv (e , s , v) = do e' :: FAUN.Exp TH.Name <- cnv (e , s , v)
+  cnv (e , s , v) = do e' :: AUN.Exp TH.Name <- cnv (e , s , v)
                        cnv (e' , s , v)
 
 instance (n ~ Len s) =>
-         Cnv (TH.Exp , ET.Env TFG.Typ s , ES.Env n TH.Name)
-             (FAUN.Exp TH.Name)
+         Cnv (TH.Exp , ET.Env TG.Typ s , ES.Env n TH.Name)
+             (AUN.Exp TH.Name)
          where
-  cnv (e , s , g) = do e' :: FAUN.Exp TH.Name <- cnv (e , ())
+  cnv (e , s , g) = do e' :: AUN.Exp TH.Name <- cnv (e , ())
                        etaPrms s g e'
 
 instance Cnv (TH.Exp , es , en)
@@ -140,175 +140,175 @@ instance Cnv (TH.Exp , es , en)
   cnv (e , _ , _) = pure e
 
 -----------------------------------------------------------------------
--- Conversion from FAUN
+-- Conversion from AUN
 -----------------------------------------------------------------------
-instance (s ~ s' , n ~ Len s , HasSin TFG.Typ a') =>
-         Cnv (FAUN.Exp TH.Name , ET.Env TFG.Typ s , ES.Env n TH.Name)
-             (FMWS.Exp s' a')
+instance (s ~ s' , n ~ Len s , HasSin TG.Typ a') =>
+         Cnv (AUN.Exp TH.Name , ET.Env TG.Typ s , ES.Env n TH.Name)
+             (MFS.Exp s' a')
          where
-  cnv (e , s , v) = do e' :: FGHO.Exp s a' <- cnv (e , s , v)
+  cnv (e , s , v) = do e' :: GHO.Exp s a' <- cnv (e , s , v)
                        cnv (e' , s , v)
 
-instance (s ~ s' , t ~ t' , n ~ Len s , HasSin TFG.Typ a') =>
-         Cnv (FAUN.Exp TH.Name , ET.Env TFG.Typ s , ES.Env n TH.Name)
-             (FGHO.Exp s' a')
+instance (s ~ s' , t ~ t' , n ~ Len s , HasSin TG.Typ a') =>
+         Cnv (AUN.Exp TH.Name , ET.Env TG.Typ s , ES.Env n TH.Name)
+             (GHO.Exp s' a')
          where
-  cnv (e , s , v) = do e' :: FGFO.Exp s' '[] a' <- cnv (e , s , v)
+  cnv (e , s , v) = do e' :: GFO.Exp s' '[] a' <- cnv (e , s , v)
                        cnv (e' , s , v)
 
-instance (s ~ s' , n ~ Len s , HasSin TFG.Typ a') =>
-         Cnv (FAUN.Exp TH.Name , ET.Env TFG.Typ s , ES.Env n TH.Name)
-             (FGFO.Exp s' '[] a')
+instance (s ~ s' , n ~ Len s , HasSin TG.Typ a') =>
+         Cnv (AUN.Exp TH.Name , ET.Env TG.Typ s , ES.Env n TH.Name)
+             (GFO.Exp s' '[] a')
          where
-  cnv (e , s , v) = do e' :: FGTD.Exp n Zro TFA.Typ <- cnv (e , s , v)
+  cnv (e , s , v) = do e' :: GTD.Exp n Zro TA.Typ <- cnv (e , s , v)
                        cnv (e' , s , v)
 
 instance (n ~ Len s)  =>
-         Cnv (FAUN.Exp TH.Name , ET.Env TFG.Typ s , ES.Env n TH.Name)
-             (FGTD.Exp n Zro TFA.Typ)
+         Cnv (AUN.Exp TH.Name , ET.Env TG.Typ s , ES.Env n TH.Name)
+             (GTD.Exp n Zro TA.Typ)
          where
-  cnv (e , s , v) = do e' :: FAUD.Exp <- cnv (e , s , v)
+  cnv (e , s , v) = do e' :: AUD.Exp <- cnv (e , s , v)
                        cnv (e' , s , v)
 
-instance Cnv (FAUN.Exp TH.Name , es , ES.Env n TH.Name)
-             FAUD.Exp
+instance Cnv (AUN.Exp TH.Name , es , ES.Env n TH.Name)
+             AUD.Exp
          where
   cnv (e , _ , vs) = do vs' :: EP.Env TH.Name <- cnv (vs , ())
                         cnv (e , (vs' , [] :: EP.Env TH.Name))
 
-instance Cnv (FAUN.Exp TH.Name , es , en)
-             (FAUN.Exp TH.Name)
+instance Cnv (AUN.Exp TH.Name , es , en)
+             (AUN.Exp TH.Name)
          where
   cnv (e , _ , _ ) = pure e
 
 -----------------------------------------------------------------------
--- Conversion from FAUD
+-- Conversion from AUD
 -----------------------------------------------------------------------
-instance (s ~ s' , n ~ Len s , HasSin TFG.Typ a') =>
-         Cnv (FAUD.Exp , ET.Env TFG.Typ s , ES.Env n TH.Name)
-             (FMWS.Exp s' a')
+instance (s ~ s' , n ~ Len s , HasSin TG.Typ a') =>
+         Cnv (AUD.Exp , ET.Env TG.Typ s , ES.Env n TH.Name)
+             (MFS.Exp s' a')
          where
-  cnv (e , s , v) = do e' :: FGHO.Exp s a' <- cnv (e , s , v)
+  cnv (e , s , v) = do e' :: GHO.Exp s a' <- cnv (e , s , v)
                        cnv (e' , s , v)
 
-instance (s ~ s' , n ~ Len s , HasSin TFG.Typ a') =>
-         Cnv (FAUD.Exp , ET.Env TFG.Typ s , ES.Env n TH.Name)
-             (FGHO.Exp s' a')
+instance (s ~ s' , n ~ Len s , HasSin TG.Typ a') =>
+         Cnv (AUD.Exp , ET.Env TG.Typ s , ES.Env n TH.Name)
+             (GHO.Exp s' a')
          where
-  cnv (e , s , v) = do e' :: FGFO.Exp s '[] a' <- cnv (e , s , v)
+  cnv (e , s , v) = do e' :: GFO.Exp s '[] a' <- cnv (e , s , v)
                        cnv (e' , s , v)
 
-instance (s ~ s' , n ~ Len s , HasSin TFG.Typ a') =>
-         Cnv (FAUD.Exp , ET.Env TFG.Typ s , ES.Env n TH.Name)
-             (FGFO.Exp s' '[] a')
+instance (s ~ s' , n ~ Len s , HasSin TG.Typ a') =>
+         Cnv (AUD.Exp , ET.Env TG.Typ s , ES.Env n TH.Name)
+             (GFO.Exp s' '[] a')
          where
-  cnv (e , s , v) = do e' :: FGTD.Exp n Zro TFA.Typ <- cnv (e , s , v)
+  cnv (e , s , v) = do e' :: GTD.Exp n Zro TA.Typ <- cnv (e , s , v)
                        cnv (e' , s , v)
 
 instance (n' ~ Len s) =>
-         Cnv (FAUD.Exp , ET.Env TFG.Typ s , en)
-             (FGTD.Exp n' Zro TFA.Typ)
+         Cnv (AUD.Exp , ET.Env TG.Typ s , en)
+             (GTD.Exp n' Zro TA.Typ)
          where
-  cnv (e , s , _) = do e' :: FGTD.Exp n' Zro (Maybe TFA.Typ) <- cnv (e , (ET.len s , NG.Zro))
-                       s' :: ES.Env   n' TFA.Typ <- cnv (s , ())
-                       cnv (e' , (s', ES.Emp :: ES.Env Zro TFA.Typ))
+  cnv (e , s , _) = do e' :: GTD.Exp n' Zro (Maybe TA.Typ) <- cnv (e , (ET.len s , NG.Zro))
+                       s' :: ES.Env   n' TA.Typ <- cnv (s , ())
+                       cnv (e' , (s', ES.Emp :: ES.Env Zro TA.Typ))
 
-instance Cnv (FAUD.Exp , es , en)
-             FAUD.Exp
+instance Cnv (AUD.Exp , es , en)
+             AUD.Exp
          where
   cnv (e , _ , _ ) = pure e
 
 -----------------------------------------------------------------------
--- Conversion from FGTD
+-- Conversion from GTD
 -----------------------------------------------------------------------
-instance (s ~ s' , n ~ Len s , HasSin TFG.Typ a') =>
-         Cnv (FGTD.Exp n Zro TFA.Typ , ET.Env TFG.Typ s , ES.Env n TH.Name)
-             (FMWS.Exp s' a')
+instance (s ~ s' , n ~ Len s , HasSin TG.Typ a') =>
+         Cnv (GTD.Exp n Zro TA.Typ , ET.Env TG.Typ s , ES.Env n TH.Name)
+             (MFS.Exp s' a')
          where
-  cnv (e , s , v) = do e' :: FGHO.Exp s a' <- cnv (e , s , v)
+  cnv (e , s , v) = do e' :: GHO.Exp s a' <- cnv (e , s , v)
                        cnv (e' , s , v)
 
-instance (s ~ s' , n ~ Len s , HasSin TFG.Typ a') =>
-         Cnv (FGTD.Exp n Zro TFA.Typ , ET.Env TFG.Typ s , ES.Env n TH.Name)
-             (FGHO.Exp s' a')
+instance (s ~ s' , n ~ Len s , HasSin TG.Typ a') =>
+         Cnv (GTD.Exp n Zro TA.Typ , ET.Env TG.Typ s , ES.Env n TH.Name)
+             (GHO.Exp s' a')
          where
-  cnv (e , s , v) = do e' :: FGFO.Exp s '[] t <- cnv (e , s , v)
+  cnv (e , s , v) = do e' :: GFO.Exp s '[] t <- cnv (e , s , v)
                        cnv (e' , s , v)
 
-instance (s ~ s' , n ~ Len s , HasSin TFG.Typ a') =>
-         Cnv (FGTD.Exp n Zro TFA.Typ , ET.Env TFG.Typ s , en)
-             (FGFO.Exp s' '[] a')
+instance (s ~ s' , n ~ Len s , HasSin TG.Typ a') =>
+         Cnv (GTD.Exp n Zro TA.Typ , ET.Env TG.Typ s , en)
+             (GFO.Exp s' '[] a')
          where
-  cnv (e , s , _) = cnv (e , (s , ET.Emp :: ET.Env TFG.Typ '[]))
+  cnv (e , s , _) = cnv (e , (s , ET.Emp :: ET.Env TG.Typ '[]))
 
 instance (n ~ n') =>
-         Cnv (FGTD.Exp n  Zro TFA.Typ , es , en)
-             (FGTD.Exp n' Zro TFA.Typ)
+         Cnv (GTD.Exp n  Zro TA.Typ , es , en)
+             (GTD.Exp n' Zro TA.Typ)
          where
   cnv (e , _ , _) = return e
 
 -----------------------------------------------------------------------
--- Conversion from FGFO
+-- Conversion from GFO
 -----------------------------------------------------------------------
-instance (s ~ s' , a ~ a' , n ~ Len s , HasSin TFG.Typ a') =>
-         Cnv (FGFO.Exp s '[] a , ET.Env TFG.Typ s , en)
-             (FMWS.Exp s' a')
+instance (s ~ s' , a ~ a' , n ~ Len s , HasSin TG.Typ a') =>
+         Cnv (GFO.Exp s '[] a , ET.Env TG.Typ s , en)
+             (MFS.Exp s' a')
          where
-  cnv (e , s , _) = do e' :: FGHO.Exp s a <- cnv (e , s , ())
+  cnv (e , s , _) = do e' :: GHO.Exp s a <- cnv (e , s , ())
                        cnv (e' , s , ())
 
-instance (s ~ s' , a ~ a' , n ~ Len s , HasSin TFG.Typ a') =>
-         Cnv (FGFO.Exp s '[] a , ET.Env TFG.Typ s , en)
-             (FGHO.Exp s' a')
+instance (s ~ s' , a ~ a' , n ~ Len s , HasSin TG.Typ a') =>
+         Cnv (GFO.Exp s '[] a , ET.Env TG.Typ s , en)
+             (GHO.Exp s' a')
          where
   cnv (e , s , _) = cnv ({- nrm -} e , s)
 
-instance (s ~ s' , a ~ a' , n ~ Len s , HasSin TFG.Typ a') =>
-         Cnv (FGFO.Exp s  '[] a , es , en)
-             (FGFO.Exp s' '[] a')
+instance (s ~ s' , a ~ a' , n ~ Len s , HasSin TG.Typ a') =>
+         Cnv (GFO.Exp s  '[] a , es , en)
+             (GFO.Exp s' '[] a')
          where
   cnv (e , _ , _) = pure e
 
 -----------------------------------------------------------------------
--- Conversion from FGHO
+-- Conversion from GHO
 -----------------------------------------------------------------------
-instance (s ~ s' , a ~ a' , n ~ Len s , HasSin TFG.Typ a') =>
-         Cnv (FGHO.Exp s  a , ET.Env TFG.Typ s , en)
-             (FMWS.Exp s' a')
+instance (s ~ s' , a ~ a' , n ~ Len s , HasSin TG.Typ a') =>
+         Cnv (GHO.Exp s  a , ET.Env TG.Typ s , en)
+             (MFS.Exp s' a')
          where
   cnv (e , s , _) = case getPrfHasSin s of
     PrfHasSin -> cnv ({-nrm (eta e)-} onHOAS nrm e , ())
 
-instance (s ~ s' , a ~ a' , HasSin TFG.Typ a') =>
-         Cnv (FGHO.Exp s  a , es , en)
-             (FGHO.Exp s' a')
+instance (s ~ s' , a ~ a' , HasSin TG.Typ a') =>
+         Cnv (GHO.Exp s  a , es , en)
+             (GHO.Exp s' a')
          where
   cnv (e , _ , _) = pure e
 
-instance (s ~ s' , a ~ a' , n ~ Len s , HasSin TFG.Typ a') =>
-         Cnv (FGHO.Exp s  a , ET.Env TFG.Typ s , en)
-             (FGFO.Exp s' '[] a')
+instance (s ~ s' , a ~ a' , n ~ Len s , HasSin TG.Typ a') =>
+         Cnv (GHO.Exp s  a , ET.Env TG.Typ s , en)
+             (GFO.Exp s' '[] a')
          where
   cnv (e , s , _) = cnv (e , s)
 
 -----------------------------------------------------------------------
--- Conversion from FMWS
+-- Conversion from MFS
 -----------------------------------------------------------------------
-instance (s ~ s' , a ~ a' , n ~ Len s , HasSin TFG.Typ a') =>
-         Cnv (FMWS.Exp s  a , es , en)
-             (FMWS.Exp s' a')
+instance (s ~ s' , a ~ a' , n ~ Len s , HasSin TG.Typ a') =>
+         Cnv (MFS.Exp s  a , es , en)
+             (MFS.Exp s' a')
          where
   cnv (e , _ , _) = pure e
 
-instance (s ~ s' , a ~ a' , n ~ Len s , HasSin TFG.Typ a') =>
-         Cnv (FMWS.Exp s  a , es , en)
-             (FGHO.Exp s' a')
+instance (s ~ s' , a ~ a' , n ~ Len s , HasSin TG.Typ a') =>
+         Cnv (MFS.Exp s  a , es , en)
+             (GHO.Exp s' a')
          where
   cnv (e , _ , _) = cnv (e , ())
 
-instance (s ~ s' , a ~ a' , n ~ Len s , HasSin TFG.Typ a') =>
-         Cnv (FMWS.Exp s  a , ET.Env TFG.Typ s , en)
-             (FGFO.Exp s' '[] a')
+instance (s ~ s' , a ~ a' , n ~ Len s , HasSin TG.Typ a') =>
+         Cnv (MFS.Exp s  a , ET.Env TG.Typ s , en)
+             (GFO.Exp s' '[] a')
          where
-  cnv (e , s , _) = do e' :: FGHO.Exp s a <- cnv (e , ())
+  cnv (e , s , _) = do e' :: GHO.Exp s a <- cnv (e , ())
                        cnv (e' , s)

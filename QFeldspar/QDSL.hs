@@ -31,24 +31,23 @@ import QFeldspar.Expression.Conversion ()
 import QFeldspar.Expression.Conversions.Evaluation.MiniFeldspar ()
 import QFeldspar.Expression.Conversions.Lifting(cnvFOHO)
 
-import qualified QFeldspar.Expression.ADTUntypedNamed as FAUN
-import qualified QFeldspar.Expression.ADTUntypedDebruijn as FAUD
-import qualified QFeldspar.Expression.Utils.ADTUntypedNamed as FAUN
-import qualified QFeldspar.Expression.GADTHigherOrder as FGHO
-import qualified QFeldspar.Expression.GADTFirstOrder as GFO
+import qualified QFeldspar.Expression.ADTUntypedNamed as AUN
+import qualified QFeldspar.Expression.ADTUntypedDebruijn as AUD
+import qualified QFeldspar.Expression.Utils.ADTUntypedNamed as AUN
 import qualified QFeldspar.Expression.GADTHigherOrder as GHO
+import qualified QFeldspar.Expression.GADTFirstOrder as GFO
 import qualified Language.Haskell.TH.Syntax as TH
 
-import qualified QFeldspar.Type.GADT as TFG
+import qualified QFeldspar.Type.GADT as TG
 import qualified QFeldspar.Normalisation as GFO
 
-import QFeldspar.Prelude.Environment (etTFG)
+import QFeldspar.Prelude.Environment (etTG)
 import qualified QFeldspar.Prelude.HaskellEnvironment as PHE
 
 type Data a = TH.Q (TH.TExp a)
 type Qt a = Data a
 type C    = String
-type Type a = HasSin TFG.Typ a
+type Type a = HasSin TG.Typ a
 
 class    FO a                              where {}
 instance FO MP.Bool                        where {}
@@ -70,7 +69,7 @@ dn = (TH.Name (TH.OccName "dummyy") TH.NameS)
 dummy :: Data a
 dummy = MP.return (TH.TExp (TH.VarE dn))
 
-wrp :: Type a => Data a -> FAUN.Exp TH.Name
+wrp :: Type a => Data a -> AUN.Exp TH.Name
 wrp = expand
         ['(>>=)      := [|| \m -> \k ->
                               case m of
@@ -100,18 +99,18 @@ wrp = expand
 wrpTyp :: forall a. Type a => Data a -> Data a
 wrpTyp ee = do e <- ee
                return (TH.TExp (TH.SigE (TH.unType e)
-                         (frmRgtZro (cnv (sin :: TFG.Typ a , ())))))
+                         (frmRgtZro (cnv (sin :: TG.Typ a , ())))))
 
 translate :: forall a.
              (Type a , FO a) =>
              Qt a -> Dp a
-translate f = frmRgtZro (cnv (wrp f , etTFG , PHE.esTH))
+translate f = frmRgtZro (cnv (wrp f , etTG , PHE.esTH))
 
 translateF :: forall a b.
              (Type a , Type b) =>
              Qt (a -> b) -> Dp a -> Dp b
 translateF f = let e :: GFO.Exp PHE.Prelude '[] (a -> b) =
-                    frmRgtZro (cnv (wrp f , etTFG , PHE.esTH))
+                    frmRgtZro (cnv (wrp f , etTG , PHE.esTH))
                    e' :: GHO.Exp PHE.Prelude (a -> b)    =
                     cnvFOHO (GFO.nrm e)
                in frmRgtZro (cnv (e' , ()))
@@ -131,29 +130,29 @@ compileF :: forall a b.
              Bool -> Bool -> Qt (a -> b) -> C
 compileF b1 b2 = CDSL.compileF b1 b2 . translateF
 
-dbg1 :: Type a => Qt a -> FAUN.Exp TH.Name
+dbg1 :: Type a => Qt a -> AUN.Exp TH.Name
 dbg1 e = wrp e
 
-dbg1F :: (Type a , Type b) => Qt (a -> b) -> FAUN.Exp TH.Name
+dbg1F :: (Type a , Type b) => Qt (a -> b) -> AUN.Exp TH.Name
 dbg1F e = wrp e
 
-dbg2 :: Type a => Qt a -> FAUD.Exp
-dbg2 e = frmRgtZro (cnv(wrp e,etTFG , PHE.esTH))
+dbg2 :: Type a => Qt a -> AUD.Exp
+dbg2 e = frmRgtZro (cnv(wrp e,etTG , PHE.esTH))
 
-dbg2F :: (Type a , Type b) => Qt (a -> b) -> FAUD.Exp
-dbg2F e = frmRgtZro (cnv(wrp e,etTFG , PHE.esTH))
+dbg2F :: (Type a , Type b) => Qt (a -> b) -> AUD.Exp
+dbg2F e = frmRgtZro (cnv(wrp e,etTG , PHE.esTH))
 
-gho :: Type a => Qt a -> FGHO.Exp PHE.Prelude a
-gho e = frmRgtZro (cnv(wrp e,etTFG , PHE.esTH))
+gho :: Type a => Qt a -> GHO.Exp PHE.Prelude a
+gho e = frmRgtZro (cnv(wrp e,etTG , PHE.esTH))
 
 ghoF :: (Type a , Type b) =>
-        Qt (a -> b) -> FGHO.Exp PHE.Prelude (a -> b)
-ghoF e = frmRgtZro (cnv(wrp e,etTFG , PHE.esTH))
+        Qt (a -> b) -> GHO.Exp PHE.Prelude (a -> b)
+ghoF e = frmRgtZro (cnv(wrp e,etTG , PHE.esTH))
 
--- nghoF :: (Type a , Type b) => Qt (a -> b) -> FGHO.Exp Prelude (a -> b)
+-- nghoF :: (Type a , Type b) => Qt (a -> b) -> GHO.Exp Prelude (a -> b)
 -- nghoF e = nrm (ghoF e)
 
--- ngho :: Type a => Qt a -> FGHO.Exp Prelude a
+-- ngho :: Type a => Qt a -> GHO.Exp Prelude a
 -- ngho e = nrm (gho e)
 
 qdsl :: (FO a , Type a , Type b) => Qt (a -> b) -> C
@@ -177,17 +176,17 @@ testNrmSmpQt x y = testDpF (CDSL.simplifyF (toDp x)) (CDSL.simplifyF (toDp y))
 testDpF :: (Type a , Type b) => (Dp a -> Dp b) -> (Dp a -> Dp b) -> Bool
 testDpF = CDSL.trmEqlF
 
-toFAUN :: Qt a -> MP.ErrM (FAUN.Exp TH.Name)
-toFAUN ee = MP.evalStateT
-            (cnv (ee,etTFG , PHE.esTH)) 0
+toAUN :: Qt a -> MP.ErrM (AUN.Exp TH.Name)
+toAUN ee = MP.evalStateT
+            (cnv (ee,etTG , PHE.esTH)) 0
 
 data Sbs where
   (:=) :: TH.Name -> Qt a -> Sbs
 
-expand :: [Sbs] -> Qt a -> FAUN.Exp TH.Name
+expand :: [Sbs] -> Qt a -> AUN.Exp TH.Name
 expand sbs ee = MP.frmRgt
-                (do ee' <- toFAUN ee
+                (do ee' <- toAUN ee
                     MP.foldM
-                     (\ e (n := es) -> do es' <- toFAUN es
-                                          MP.return (FAUN.sbs (stripNameSpace n) es' e))
+                     (\ e (n := es) -> do es' <- toAUN es
+                                          MP.return (AUN.sbs (stripNameSpace n) es' e))
                      ee' sbs)

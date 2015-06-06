@@ -5,9 +5,9 @@ import QFeldspar.MyPrelude
 import QFeldspar.Environment.Typed
 import QFeldspar.Expression.GADTFirstOrder
 import QFeldspar.Singleton
-import qualified QFeldspar.Type.GADT as TFG
+import qualified QFeldspar.Type.GADT as TG
 
-tt :: TFG.Typ a
+tt :: TG.Typ a
 tt = tt
 
 eql :: forall s g a.  Exp s g a -> Exp s g a -> Bool
@@ -24,8 +24,8 @@ eql (Var  v)    (Var  v')     = v == v'
 eql (Var  _)    _             = False
 
 eql (Prm x  (ns  :: Env (Exp s g) d))
-    (Prm x' (ns' :: Env (Exp s g) d')) = case eqlSin (sinTyp ns  :: Env TFG.Typ d)
-                                                     (sinTyp ns' :: Env TFG.Typ d') of
+    (Prm x' (ns' :: Env (Exp s g) d')) = case eqlSin (sinTyp ns  :: Env TG.Typ d)
+                                                     (sinTyp ns' :: Env TG.Typ d') of
    Rgt Rfl -> x == x' && eqlEnv ns ns'
    Lft _   -> False
 eql (Prm _ _)   _             = False
@@ -51,13 +51,13 @@ eql (Tpl ef es)    (Tpl ef' es')     = eql ef ef' && eql es es'
 eql (Tpl _  _ )    _                 = False
 
 eql (Fst (e :: Exp s g (t , ts))) (Fst (e' :: Exp s g (t  , ts'))) =
-  case eqlSin (sin :: TFG.Typ ts) (sin :: TFG.Typ ts') of
+  case eqlSin (sin :: TG.Typ ts) (sin :: TG.Typ ts') of
     Rgt Rfl -> eql e e'
     _       -> False
 eql (Fst _)     _               = False
 
 eql (Snd (e :: Exp s g (tf , t))) (Snd (e' :: Exp s g (tf' , t))) =
-  case eqlSin (sin :: TFG.Typ tf) (sin :: TFG.Typ tf') of
+  case eqlSin (sin :: TG.Typ tf) (sin :: TG.Typ tf') of
     Rgt Rfl -> eql e e'
     _       -> False
 eql (Snd _)     _               = False
@@ -138,12 +138,12 @@ eql (Mem _)     _             = False
 eql (Fix e)     (Fix e')      = eql e e'
 eql (Fix _)     _             = False
 
-eqlEnv :: forall d d' s g. (TFG.Types d , TFG.Types d') =>
+eqlEnv :: forall d d' s g. (TG.Types d , TG.Types d') =>
           Env (Exp s g) d ->  Env (Exp s g) d' -> Bool
-eqlEnv d d' = case eqlSin (sin :: Env TFG.Typ d) (sin :: Env TFG.Typ d') of
+eqlEnv d d' = case eqlSin (sin :: Env TG.Typ d) (sin :: Env TG.Typ d') of
    Rgt Rfl -> case (d , d') of
      (Emp      , Emp)        -> True
-     (Ext x xs , Ext x' xs') -> case (TFG.getPrfHasSinEnvOf d , TFG.getPrfHasSinEnvOf d') of
+     (Ext x xs , Ext x' xs') -> case (TG.getPrfHasSinEnvOf d , TG.getPrfHasSinEnvOf d') of
        ((PrfHasSin , PrfHasSin),(PrfHasSin , PrfHasSin)) -> eql x x' && eqlEnv xs xs'
      _                       -> False
    _                         -> False

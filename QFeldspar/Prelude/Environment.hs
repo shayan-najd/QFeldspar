@@ -8,7 +8,7 @@ import qualified Language.Haskell.TH            as TH
 import QFeldspar.Nat.TH
 import qualified QFeldspar.Nat.ADT as NA
 
-import qualified QFeldspar.Type.GADT as TFG
+import qualified QFeldspar.Type.GADT as TG
 
 import qualified QFeldspar.Environment.Map    as EM
 import qualified QFeldspar.Environment.Plain  as EP
@@ -26,11 +26,11 @@ infixr 5 <:>
 (<:>) = ET.Ext
 
 -----------------------------------------------------------------------
--- ETTFG
+-- ETTG
 -----------------------------------------------------------------------
 
-etTFG :: ET.Env TFG.Typ Prelude
-etTFG = sin
+etTG :: ET.Env TG.Typ Prelude
+etTG = sin
 
 -----------------------------------------------------------------------
 -- ESString

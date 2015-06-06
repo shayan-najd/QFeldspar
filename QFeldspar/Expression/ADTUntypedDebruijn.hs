@@ -3,7 +3,7 @@ module QFeldspar.Expression.ADTUntypedDebruijn
 
 import QFeldspar.MyPrelude
 import QFeldspar.Variable.Plain
-import qualified QFeldspar.Type.ADT as TFA
+import qualified QFeldspar.Type.ADT as TA
 
 data Fun = Fun Exp
 
@@ -33,7 +33,7 @@ data Exp = ConI Word32
          | Non
          | Som  Exp
          | May  Exp Exp Exp
-         | Typ  TFA.Typ Exp
+         | Typ  TA.Typ Exp
          | Mul  Exp Exp
          | Add  Exp Exp
          | Sub  Exp Exp

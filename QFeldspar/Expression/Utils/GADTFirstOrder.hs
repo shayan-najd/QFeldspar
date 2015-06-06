@@ -4,7 +4,7 @@ module QFeldspar.Expression.Utils.GADTFirstOrder
        ,isVal,val,pattern V,pattern NV) where
 
 import QFeldspar.MyPrelude
-import QFeldspar.Expression.GADTFirstOrder as FGFO
+import QFeldspar.Expression.GADTFirstOrder as GFO
 import QFeldspar.Variable.Typed
 import QFeldspar.Expression.Utils.Common
 import QFeldspar.Singleton

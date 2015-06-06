@@ -10,24 +10,24 @@ import QFeldspar.Variable.Typed
 import QFeldspar.Singleton
 import QFeldspar.ChangeMonad
 import QFeldspar.Expression.Utils.Common
-import qualified QFeldspar.Type.GADT as TFG
+import qualified QFeldspar.Type.GADT as TG
 import QFeldspar.Environment.Typed
 
-nrm :: HasSin TFG.Typ a => Exp s g a -> Exp s g a
+nrm :: HasSin TG.Typ a => Exp s g a -> Exp s g a
 nrm = tilNotChg nrmOne
 
 cmt :: forall a s g d d' as.
-       (TFG.Type a , as ~ Add d d' , TFG.Types d , TFG.Types d') =>
-       Var s (as TFG.:-> a) -> Env (Exp s g) d -> Env (Exp s g) d' -> Chg (Exp s g a)
+       (TG.Type a , as ~ Add d d' , TG.Types d , TG.Types d') =>
+       Var s (as TG.:-> a) -> Env (Exp s g) d -> Env (Exp s g) d' -> Chg (Exp s g a)
 cmt x d d' = do
-  let tsd  = sin :: Env TFG.Typ d
-  let tsd' = sin :: Env TFG.Typ d'
+  let tsd  = sin :: Env TG.Typ d
+  let tsd' = sin :: Env TG.Typ d'
   PrfHasSin <- getPrfHasSinM (add tsd tsd')
   case d' of
     Emp           -> return (Prm x (add d d'))
-    Ext (NV e) es -> case TFG.getPrfHasSinEnvOf d' of
+    Ext (NV e) es -> case TG.getPrfHasSinEnvOf d' of
      (PrfHasSin,PrfHasSin) -> chg (LeT e (Prm x (add (fmap sucAll d) (Ext (Var Zro) (fmap sucAll es)))))
-    Ext (e :: Exp s g te) (es :: Env (Exp s g) tes) -> case TFG.getPrfHasSinEnvOf d' of
+    Ext (e :: Exp s g te) (es :: Env (Exp s g) tes) -> case TG.getPrfHasSinEnvOf d' of
      (PrfHasSin,PrfHasSin) -> case obvious :: Add (Add d (te ': '[])) tes :~: Add d (te ': tes) of
          Rfl -> do PrfHasSin <- getPrfHasSinM (add tsd (Ext (sinTyp e) Emp))
                    cmt x (add d (Ext e Emp)) es
@@ -35,11 +35,11 @@ cmt x d d' = do
 hasNV :: Env (Exp s g) d -> Bool
 hasNV = foldl (\ b e -> b || (not (isVal e))) False
 
-nrmOne :: forall s g a. HasSin TFG.Typ a => Exp s g a -> Chg (Exp s g a)
-nrmOne ee = let t = sin :: TFG.Typ a in case ee of
+nrmOne :: forall s g a. HasSin TG.Typ a => Exp s g a -> Chg (Exp s g a)
+nrmOne ee = let t = sin :: TG.Typ a in case ee of
     Prm x es
       | hasNV es    -> cmt x Emp es
-      | otherwise   -> Prm x <$> TFG.mapMC nrmOne es
+      | otherwise   -> Prm x <$> TG.mapMC nrmOne es
 
     App ef                      (NV ea) -> chg (LeT ea (App (sucAll ef) (Var Zro)))
     App (TF (Abs eb))           (V  ea) -> chg (sbs ea eb)
@@ -54,9 +54,9 @@ nrmOne ee = let t = sin :: TFG.Typ a in case ee of
     Whl (V  ec) (NV eb) ei      -> chg (LeT eb (Whl (sucAll ec) (Var Zro)  (sucAll ei)))
     Whl (V  ec) (V  eb) (NV ei) -> chg (LeT ei (Whl (sucAll ec) (sucAll eb) (Var Zro)))
 
-    Tpl (NV ef) es               -> case TFG.getPrfHasSinTpl t of
+    Tpl (NV ef) es               -> case TG.getPrfHasSinTpl t of
       (PrfHasSin , PrfHasSin)    -> chg (LeT ef (Tpl (Var Zro) (sucAll es)))
-    Tpl (V ef)  (NV es)          -> case TFG.getPrfHasSinTpl t of
+    Tpl (V ef)  (NV es)          -> case TG.getPrfHasSinTpl t of
       (PrfHasSin , PrfHasSin)    -> chg (LeT es (Tpl (sucAll ef) (Var Zro)))
 
     Fst (NV e)                   -> chg (LeT e (Fst (Var Zro)))
@@ -66,7 +66,7 @@ nrmOne ee = let t = sin :: TFG.Typ a in case ee of
     Snd (TF (Tpl (V _)  (V es))) -> chg  es
 
     Ary (NV el) ef               -> chg (LeT el (Ary (Var Zro) (sucAll ef)))
-    Ary (V  el) (NV ef)          -> case TFG.getPrfHasSinAry t of
+    Ary (V  el) (NV ef)          -> case TG.getPrfHasSinAry t of
       PrfHasSin                  -> chg (LeT ef (Ary (sucAll el) (Var Zro)))
 
     Len (NV ea)                  -> chg (LeT ea (Len (Var Zro)))
@@ -77,7 +77,7 @@ nrmOne ee = let t = sin :: TFG.Typ a in case ee of
     Ind (TF (Ary (V _) ef)) (V ei) -> chg (App ef ei)
 
     AryV (NV el) ef              -> chg (LeT el (AryV (Var Zro) (sucAll ef)))
-    AryV (V  el) (NV ef)         -> case TFG.getPrfHasSinVec t of
+    AryV (V  el) (NV ef)         -> case TG.getPrfHasSinVec t of
       PrfHasSin                  -> chg (LeT ef (AryV (sucAll el) (Var Zro)))
 
     LenV (NV ea)                 -> chg (LeT ea (LenV (Var Zro)))
@@ -96,7 +96,7 @@ nrmOne ee = let t = sin :: TFG.Typ a in case ee of
     LeT (NV v)         eb
       | cntVar Zro eb == 0       -> chg (sbs v eb)
 
-    Som (NV e)                   -> case TFG.getPrfHasSinMay t of
+    Som (NV e)                   -> case TG.getPrfHasSinMay t of
       PrfHasSin                  -> chg (LeT e  (Som (Var Zro)))
 
     May (NV em) en      es       -> chg (LeT em (May (Var Zro)   (sucAll en) (sucAll es)))
@@ -121,8 +121,8 @@ nrmOne ee = let t = sin :: TFG.Typ a in case ee of
     Ltd (NV er) (V ei)           -> chg (LeT er (Ltd (Var Zro)   (sucAll ei)))
 
     Int i                        -> case t of
-      TFG.Wrd                    -> chg (ConI i)
-      TFG.Flt                    -> chg (ConF (fromIntegral i))
+      TG.Wrd                    -> chg (ConI i)
+      TG.Flt                    -> chg (ConF (fromIntegral i))
       _                          -> fail "Type Error3!"
 
     Mem (NV e)                   -> chg (LeT e (Mem (Var Zro)))

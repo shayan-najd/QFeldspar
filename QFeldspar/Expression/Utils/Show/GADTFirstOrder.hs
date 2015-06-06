@@ -2,7 +2,7 @@ module QFeldspar.Expression.Utils.Show.GADTFirstOrder
        () where
 
 import QFeldspar.MyPrelude
-import QFeldspar.Expression.GADTFirstOrder as FGFO
+import QFeldspar.Expression.GADTFirstOrder as GFO
 import QFeldspar.Environment.Typed
 
 deriving instance Show (Exp s g a)
