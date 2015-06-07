@@ -18,6 +18,11 @@ instance Cnv NA.Nat P.Int where
   cnv NA.Zro     = return 0
   cnv (NA.Suc v) = (1 +) <$> cnv v
 
+instance Cnv (NG.Nat n , r) NA.Nat where
+  cnv (nn , r) = case nn of
+    NG.Zro    -> pure NA.Zro
+    NG.Suc n  -> NA.Suc <$> cnv (n , r)
+
 instance Cnv P.Int NA.Nat where
   cnv 0         = return NA.Zro
   cnv x
