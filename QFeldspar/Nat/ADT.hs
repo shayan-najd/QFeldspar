@@ -1,7 +1,8 @@
 module QFeldspar.Nat.ADT
   (Nat(..),prd,inc,add,sub,nat,natStr) where
 
-import QFeldspar.MyPrelude
+import Prelude
+import Data.Word
 
 data Nat =
     Zro
@@ -26,7 +27,7 @@ natStr = nat . read
 
 prd :: Nat -> Nat
 prd (Suc n) = n
-prd _       = badUse "prd"
+prd _       = error "Bad use of prd"
 
 inc :: (Nat -> Nat) -> Nat -> Nat
 inc _ Zro     = Zro
@@ -34,7 +35,7 @@ inc f (Suc x) = Suc (f x)
 
 sub :: Nat -> Nat -> Nat
 sub n       Zro     = n
-sub Zro     _       = badUse "sub"
+sub Zro     _       =  error "Bad use of sub"
 sub (Suc n) (Suc m) = sub n m
 
 add :: Nat -> Nat -> Nat

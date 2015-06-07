@@ -1,6 +1,8 @@
 module QFeldspar.Singleton where
 
-import QFeldspar.MyPrelude
+-- import QFeldspar.MyPrelude
+import Prelude hiding (sin)
+import QFeldspar.ErrorMonad
 import Unsafe.Coerce
 
 import qualified QFeldspar.Nat.ADT as NA

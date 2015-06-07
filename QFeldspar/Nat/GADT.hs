@@ -1,8 +1,9 @@
 module QFeldspar.Nat.GADT
   (Nat(..),prd) where
 
-import QFeldspar.MyPrelude
-
+-- import QFeldspar.MyPrelude
+import Prelude hiding (sin)
+import Data.Word
 import QFeldspar.Singleton
 import qualified QFeldspar.Nat.ADT as NA
 
