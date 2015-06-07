@@ -64,6 +64,14 @@ instance (n ~ Len r , r ~ r' , EqlSin tf , HasSin tf t) =>
                                     pure VT.Zro
   cnv (VS.Suc n , ET.Ext _ xs) = VT.Suc <$> cnv (n , xs)
   cnv _                        = impossibleM
+
+instance (n ~ Len r , r ~ r' , EqlSin tf) =>
+         Cnv (VS.Var n, ET.Env tf r) (Exs1 tf (VT.Var r'))  where
+  cnv (VS.Zro   , ET.Ext x _ ) = return (Exs1 x VT.Zro)
+  cnv (VS.Suc n , ET.Ext _ xs) = do Exs1 tf xs'<- cnv (n , xs)
+                                    return (Exs1 tf (VT.Suc xs'))
+  cnv _                        = impossibleM
+
 {-
 instance Cnv (VS.Var n   , ES.Env n  t) t      where
   cnv (x , r) = pure (ES.get x r)
