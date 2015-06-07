@@ -17,12 +17,13 @@ type ExsTyp = ExsSin TG.Typ
 cnvEnv :: forall s g d. TG.Types d =>
           (Env TG.Typ s , Env TG.Typ g) ->
           [GTD.Exp (Len s) (Len g) TA.Typ] -> NamM ErrM (Env (GFO.Exp s g) d)
-cnvEnv _ []       = case sin :: Env TG.Typ d of
-   Emp           -> return Emp
-   Ext _ _       -> fail "Type Error!"
-cnvEnv r (e : es) = case sin :: Env TG.Typ d of
-   Emp           -> fail "Type Error!"
-   Ext a as      -> case (getPrfHasSin a , getPrfHasSin as) of
+cnvEnv r ess = let d = sin :: Env TG.Typ d in case ess of
+  []        -> case d of
+   Emp      -> return Emp
+   Ext _ _  -> fail "Type Error!"
+  e : es    -> case d of
+   Emp      -> fail "Type Error!"
+   Ext _ _  -> case TG.getPrfHasSinEnvOf d of
     (PrfHasSin , PrfHasSin) -> Ext <$> cnv (e , r) <*> cnvEnv r es
 
 instance (s ~ s' , g ~ g' , m ~ (Len s) , n ~ (Len g) , TG.Type a) =>
