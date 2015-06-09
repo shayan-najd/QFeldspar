@@ -12,6 +12,7 @@ import qualified Language.Haskell.TH.Syntax as TH
 import QFeldspar.Expression.Utils.TemplateHaskell
 import qualified QFeldspar.Type.GADT as TG
 import QFeldspar.Singleton
+import QFeldspar.ChangeMonad
 
 arity :: TG.Typ a -> Int
 arity (TG.Arr _ b) = 1 + arity b
@@ -28,7 +29,7 @@ etaPrms :: (Functor m , Monad m) =>
 etaPrms s g ee = etaPrms' (arities s g) ee
 
 etaPrms' :: (Functor m , Monad m) => EM.Env TH.Name Int -> Exp TH.Name -> NamM m (Exp TH.Name)
-etaPrms' g ee = let prms = mkPrms (fmap fst g) ee
+etaPrms' g ee = let prms = tilNotChg (mkPrms (fmap fst g)) ee
                 in expandPrms g prms
 
 isIn :: TH.Name -> [TH.Name] -> Bool
@@ -50,17 +51,17 @@ delEM x ((y,y') : ys)
   | otherwise   = (y , y') : delEM x ys
 
 
-mkPrms :: forall a.[TH.Name] -> Exp TH.Name -> Exp TH.Name
+mkPrms :: forall a.[TH.Name] -> Exp TH.Name -> Chg (Exp TH.Name)
 mkPrms g ee = case ee of
   Var  x
-    | x `isIn` g    -> Prm x []
-  App  (Prm x ns) m -> mkPrms g (Prm x (ns ++ [m]))
-  _                 -> $(genOverloaded 'ee ''Exp []
+    | x `isIn` g    -> chg (Prm x [])
+  App  (Prm x ns) m -> chg (Prm x (ns ++ [m]))
+  _                 -> $(genOverloadedM 'ee ''Exp []
    (\ tt -> if
      | matchQ tt [t| Exp a   |]     -> [| mkPrms g |]
-     | matchQ tt [t| (a , Exp a) |] -> [| \ (x , e) -> (x , mkPrms (delEP x g) e) |]
-     | matchQ tt [t| [Exp a] |]     -> [| fmap (mkPrms g) |]
-     | otherwise                    -> [| id   |]))
+     | matchQ tt [t| (a , Exp a) |] -> [| \ (x , e) -> (,) <$> pure x <*> mkPrms (delEP x g) e |]
+     | matchQ tt [t| [Exp a] |]     -> [| mapM (mkPrms g) |]
+     | otherwise                    -> [| pure   |]))
 
 expandPrms :: forall a m. (Functor m  , Monad m) => EM.Env TH.Name Int -> Exp TH.Name -> NamM m (Exp TH.Name)
 expandPrms g ee = case ee of
