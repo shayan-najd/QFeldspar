@@ -44,6 +44,7 @@ library
      QFeldspar.InferenceMonad,
      QFeldspar.ChangeMonad,
      QFeldspar.Inference,
+     QFeldspar.Magic,
      QFeldspar.QDSL,
      QFeldspar.Singleton,
      QFeldspar.TraversalGenerator,
@@ -70,7 +71,6 @@ library
      QFeldspar.Expression.ADTUntypedDebruijn,
      QFeldspar.Expression.Conversion,
      QFeldspar.Expression.GADTTyped,
-     QFeldspar.Expression.Utils.GADTHigherOrder,
      QFeldspar.Expression.Utils.MiniFeldspar,
      QFeldspar.Expression.Utils.GADTFirstOrder,
      QFeldspar.Expression.Utils.ADTUntypedNamed,
@@ -106,7 +106,7 @@ library
      QFeldspar.Nat.GADT,
      QFeldspar.Nat.Conversion,
      QFeldspar.Nat.ADT,
-     QFeldspar.Simplification
+     QFeldspar.Simplification,
      QFeldspar.Variable.Typed,
      QFeldspar.Variable.Plain,
      QFeldspar.Variable.Scoped,
@@ -133,6 +133,8 @@ library
      Examples.Power.QDSL,
      Examples.Power.Haskell,
      Examples.Power.CDSL,
+     Examples.Prelude.QDSL,
+     Examples.Prelude.CDSL,
      Examples.FFT.QDSL,
      Examples.FFT.CDSL,
      Examples.Windowing.QDSL,
@@ -149,13 +151,18 @@ library
      Tests.CompareExamples,
      Test
   build-depends:
-     base             >=4.7 && <4.8,
-     array            >=0.5 && <0.6,
-     mtl              >=2.1 && <2.3,
+     base >=4.7 && <4.8,
+     array >=0.5 && <0.6,
+     mtl >=2.2 && <2.3,
      template-haskell >=2.9 && <2.10,
-     pretty           >=1.1 && <1.2,
-     directory        >=1.2 && <1.3,
-     th-desugar       >=1.5 && <1.6,
-     ghc-prim         >=0.3 && <0.4,
-     th-orphans       >=0.11 && <0.12
+     pretty >=1.1 && <1.2,
+     directory >=1.2 && <1.3,
+     th-desugar >=1.5 && <1.6,
+     ghc-prim >=0.3 && <0.4,
+     th-orphans >=0.11 && <0.12,
+     containers >=0.5 && <0.6
+
+
+
+
   default-language:    Haskell2010
