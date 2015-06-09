@@ -37,7 +37,7 @@ instance EqlSin Nat where
   eqlSin Zro     Zro      = return Rfl
   eqlSin (Suc n) (Suc n') = do Rfl <- eqlSin n n'
                                return Rfl
-  eqlSin _       _        = fail "Type Error!"
+  eqlSin n       n'        = fail ("Not equal!\n" ++ show n ++ " with " ++ show n')
 
 instance GetPrfHasSin Nat where
   getPrfHasSin Zro     = PrfHasSin
