@@ -1,5 +1,5 @@
 module QFeldspar.Variable.Typed
-  (Var(..),prd,inc,incM) where
+  (Var(..),prd,inc,incM,eqlVar) where
 
 import QFeldspar.MyPrelude
 
@@ -9,6 +9,12 @@ data Var :: [k] -> k -> * where
 
 deriving instance Eq   (Var e t)
 deriving instance Ord  (Var e t)
+
+eqlVar :: Var g a -> Var g b -> Bool
+eqlVar Zro    Zro       = True
+eqlVar Zro     (Suc _)  = False
+eqlVar (Suc _) Zro      = False
+eqlVar (Suc v) (Suc v') = eqlVar v v'
 
 int :: Var r t -> Word32
 int Zro     = 0
