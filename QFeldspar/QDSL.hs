@@ -7,7 +7,7 @@ module QFeldspar.QDSL
    complement,i2f,cis,ilog2,sqrt,hashTable,
    maybe,return,(>>=),(.),
    qdsl,evaluate,translate,translateF,compile,compileF,
-   dbg1,dbg1F,dbg2,dbg2F,
+   dbg1,dbg15,dbg2,dbg3,dbg4,dbg45,dbg5,dbg6,
    testQt,testNrmQt,testNrmSmpQt,testDpF,toDp,wrp,
    ghoF{-,nghoF-},gho{-,ngho-},trmEql) where
 
@@ -33,16 +33,24 @@ import QFeldspar.Expression.Conversions.Lifting(cnvFOHO)
 
 import qualified QFeldspar.Expression.ADTUntypedNamed as AUN
 import qualified QFeldspar.Expression.ADTUntypedDebruijn as AUD
-import qualified QFeldspar.Expression.Utils.ADTUntypedNamed as AUN
-import qualified QFeldspar.Expression.GADTHigherOrder as GHO
+import qualified QFeldspar.Expression.GADTTyped as GTD
 import qualified QFeldspar.Expression.GADTFirstOrder as GFO
+import qualified QFeldspar.Expression.GADTHigherOrder as GHO
 import qualified Language.Haskell.TH.Syntax as TH
 
+import qualified QFeldspar.Expression.Utils.ADTUntypedNamed as AUN
+
+import qualified QFeldspar.Type.ADT as TA
 import qualified QFeldspar.Type.GADT as TG
+
+import qualified QFeldspar.Nat.ADT as NA
+import qualified QFeldspar.Nat.GADT as NG
+
 import qualified QFeldspar.Normalisation as GFO
 
 import QFeldspar.Prelude.Environment (etTG)
 import qualified QFeldspar.Prelude.HaskellEnvironment as PHE
+import QFeldspar.Expression.Conversions.EtaPrims(etaPrms)
 
 type Data a = TH.Q (TH.TExp a)
 type Qt a = Data a
@@ -131,16 +139,30 @@ compileF :: forall a b.
 compileF b1 b2 = CDSL.compileF b1 b2 . translateF
 
 dbg1 :: Type a => Qt a -> AUN.Exp TH.Name
-dbg1 e = wrp e
+dbg1 e = frmRgtZro (cnv (e,etTG , PHE.esTH))
 
-dbg1F :: (Type a , Type b) => Qt (a -> b) -> AUN.Exp TH.Name
-dbg1F e = wrp e
+dbg15 :: Type a => Qt a -> AUN.Exp TH.Name
+dbg15 e = let e' = frmRgtZro (cnv (e,etTG , PHE.esTH))
+          in frmRgtZro (etaPrms etTG PHE.esTH e')
 
 dbg2 :: Type a => Qt a -> AUD.Exp
-dbg2 e = frmRgtZro (cnv(wrp e,etTG , PHE.esTH))
+dbg2 e = frmRgtZro (cnv(e,etTG , PHE.esTH))
 
-dbg2F :: (Type a , Type b) => Qt (a -> b) -> AUD.Exp
-dbg2F e = frmRgtZro (cnv(wrp e,etTG , PHE.esTH))
+dbg3 :: Type a => Qt a -> GTD.Exp (Len PHE.Prelude) NA.Zro TA.Typ
+dbg3 e = frmRgtZro (cnv(e,etTG , PHE.esTH))
+
+dbg4 :: Type a => Qt a -> GFO.Exp PHE.Prelude '[] a
+dbg4 e = frmRgtZro (cnv(e,etTG , PHE.esTH))
+
+dbg45 :: Type a => Qt a -> GFO.Exp PHE.Prelude '[] a
+dbg45 e = let e = frmRgtZro (cnv(e,etTG , PHE.esTH))
+          in GFO.nrm e
+
+dbg5 :: Type a => Qt a -> GHO.Exp PHE.Prelude a
+dbg5 e = frmRgtZro (cnv(e,etTG , PHE.esTH))
+
+dbg6 :: Type a => Qt a -> Dp a
+dbg6 e = frmRgtZro (cnv(e,etTG , PHE.esTH))
 
 gho :: Type a => Qt a -> GHO.Exp PHE.Prelude a
 gho e = frmRgtZro (cnv(wrp e,etTG , PHE.esTH))
