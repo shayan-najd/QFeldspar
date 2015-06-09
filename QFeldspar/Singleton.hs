@@ -56,3 +56,19 @@ type a :~: b = Eql a b
 
 obvious :: a :~: b
 obvious = unsafeCoerce Rfl
+
+-- Type-level Lookup
+type family Lookup (n :: k) (xss :: [(k , *)]) :: Maybe * where
+  Lookup x '[]                 = 'Nothing
+  Lookup x ('(x   , a) ': xas) = Just a
+  Lookup x ('( x' , a) ': xas) = Lookup x xas
+
+-- type-leve conditional
+type family If a b c where
+  If True  a b = a
+  If False a b = b
+
+-- type-level boolean and operator
+type family And a b where
+  And True True = True
+  And a    b    = False
