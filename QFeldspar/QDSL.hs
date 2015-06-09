@@ -9,7 +9,8 @@ module QFeldspar.QDSL
    qdsl,evaluate,translate,translateF,compile,compileF,
    dbg1,dbg15,dbg2,dbg3,dbg4,dbg45,dbg5,dbg6,
    testQt,testNrmQt,testNrmSmpQt,testDpF,toDp,wrp,
-   ghoF{-,nghoF-},gho{-,ngho-},trmEql) where
+   ghoF{-,nghoF-},gho{-,ngho-},trmEql,
+   translateWith,translateFWith) where
 
 import QFeldspar.MyPrelude hiding (while,save)
 import qualified QFeldspar.MyPrelude as MP
@@ -36,12 +37,16 @@ import qualified QFeldspar.Expression.ADTUntypedDebruijn as AUD
 import qualified QFeldspar.Expression.GADTTyped as GTD
 import qualified QFeldspar.Expression.GADTFirstOrder as GFO
 import qualified QFeldspar.Expression.GADTHigherOrder as GHO
+import qualified QFeldspar.Expression.MiniFeldspar as MWS
 import qualified Language.Haskell.TH.Syntax as TH
 
 import qualified QFeldspar.Expression.Utils.ADTUntypedNamed as AUN
 
 import qualified QFeldspar.Type.ADT as TA
 import qualified QFeldspar.Type.GADT as TG
+
+import qualified QFeldspar.Environment.Scoped as ES
+import qualified QFeldspar.Environment.Typed as ET
 
 import qualified QFeldspar.Nat.ADT as NA
 
@@ -211,3 +216,12 @@ expand sbs ee = MP.frmRgt
                      (\ e (n := es) -> do es' <- toAUN es
                                           MP.return (AUN.sbs (stripNameSpace n) es' e))
                      ee' sbs)
+
+translateWith :: (Type a , FO a) => ET.Env TG.Typ s -> ES.Env (Len s) TH.Name -> TH.Q (TH.TExp a) -> MWS.Exp s a
+translateWith et es e = frmRgtZro (cnv (e , et , es))
+
+translateFWith :: forall a b s. (Type a , FO a , Type b , FO b) =>
+                   ET.Env TG.Typ s -> ES.Env (Len s) TH.Name -> TH.Q (TH.TExp (a -> b)) -> (MWS.Exp s a -> MWS.Exp s b)
+translateFWith et es f = let e  :: GFO.Exp s '[] (a -> b) = frmRgtZro (cnv (f , et , es))
+                             e' :: GHO.Exp s (a -> b)     = cnvFOHO (GFO.nrm e)
+                         in frmRgtZro (cnv (e' , ()))
