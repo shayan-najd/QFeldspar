@@ -44,7 +44,6 @@ import qualified QFeldspar.Type.ADT as TA
 import qualified QFeldspar.Type.GADT as TG
 
 import qualified QFeldspar.Nat.ADT as NA
-import qualified QFeldspar.Nat.GADT as NG
 
 import qualified QFeldspar.Normalisation as GFO
 
@@ -155,8 +154,8 @@ dbg4 :: Type a => Qt a -> GFO.Exp PHE.Prelude '[] a
 dbg4 e = frmRgtZro (cnv(e,etTG , PHE.esTH))
 
 dbg45 :: Type a => Qt a -> GFO.Exp PHE.Prelude '[] a
-dbg45 e = let e = frmRgtZro (cnv(e,etTG , PHE.esTH))
-          in GFO.nrm e
+dbg45 e = let e' = frmRgtZro (cnv(e,etTG , PHE.esTH))
+          in GFO.nrm e'
 
 dbg5 :: Type a => Qt a -> GHO.Exp PHE.Prelude a
 dbg5 e = frmRgtZro (cnv(e,etTG , PHE.esTH))

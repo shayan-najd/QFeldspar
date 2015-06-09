@@ -54,6 +54,7 @@ instance Pretty TA.Typ where
     TA.Tpl a b -> text "Tpl" <> pretty a <> pretty b
     TA.Ary a   -> text "Ary" <> pretty a
     TA.May a   -> text "May" <> pretty a
+    TA.TVr _   -> impossible
     TA.Arr _ _ -> impossible
     TA.Vec _   -> impossible
 

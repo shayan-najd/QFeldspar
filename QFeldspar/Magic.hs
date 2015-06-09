@@ -11,19 +11,19 @@ import QFeldspar.Environment.Typed
 import qualified QFeldspar.Nat.GADT as NG
 
 -- Subtituition
-type family Sbs s a where
-  Sbs '[] a                              = a
-  Sbs s   (TVr x)                        = Case_Sbs x (Lookup x s)
+type family Subs s a where
+  Subs '[] a                              = a
+  Subs s   (TVr x)                        = Case_Subs x (Lookup x s)
   -- Todo: add support for higher number of arguments
-  Sbs s   (k (a :: *) (b :: *) (c :: *)) = k (Sbs s a) (Sbs s b) (Sbs s c)
-  Sbs s   (k (a :: *) (b :: *))          = k (Sbs s a) (Sbs s b)
-  Sbs s   (k (a :: *))                   = k (Sbs s a)
-  Sbs s   a                              = a
+  Subs s   (k (a :: *) (b :: *) (c :: *)) = k (Subs s a) (Subs s b) (Subs s c)
+  Subs s   (k (a :: *) (b :: *))          = k (Subs s a) (Subs s b)
+  Subs s   (k (a :: *))                   = k (Subs s a)
+  Subs s   a                              = a
 
 -- Helper function
-type family Case_Sbs x t where
-  Case_Sbs x (Just t) = t
-  Case_Sbs x Nothing  = TVr x
+type family Case_Subs x t where
+  Case_Subs x (Just t) = t
+  Case_Subs x Nothing  = TVr x
 
 -- Most general unifier
 type family Mgu a a' :: Maybe [(Nat,*)] where
@@ -36,7 +36,7 @@ type family Mgu a a' :: Maybe [(Nat,*)] where
 
 -- Helper Function
 type family Case_Mgu b b' t  where
-  Case_Mgu b b' (Just s) = FMapAppend s (Mgu (Sbs s b) b')
+  Case_Mgu b b' (Just s) = FMapAppend s (Mgu (Subs s b) b')
   Case_Mgu b b' Nothing  = Nothing
 
 -- type-level fmap (xs ++) mys
@@ -54,7 +54,7 @@ type family AppFul a b where
 
 -- Helper Function
 type family Case_AppFul s b as where
-  Case_AppFul (Just s) b as = AppFul (Sbs s b) as
+  Case_AppFul (Just s) b as = AppFul (Subs s b) as
   Case_AppFul Nothing  b as = Nothing
 
 -- a predicate stating whether a type has TVr inside it
@@ -109,22 +109,22 @@ getPrfMatch a d b = case case_Match (appFul a d) b of
   STrue -> return PrfMatch
   SFalse -> fail "Type Error when checking Match constraint!"
 
-sbs :: Env (SPair NG.Nat TG.Typ) s -> TG.Typ a -> TG.Typ (Sbs s a)
-sbs Emp a          = a
-sbs s@(Ext _ _) (TG.TVr x)   = case_Sbs x (lookup x s)
-sbs s@(Ext _ _) (TG.Arr a b) = TG.Arr (sbs s a) (sbs s b)
-sbs s@(Ext _ _) (TG.Tpl a b) = TG.Tpl (sbs s a) (sbs s b)
-sbs s@(Ext _ _) (TG.Ary a)   = TG.Ary (sbs s a)
-sbs s@(Ext _ _) (TG.Vct a)   = TG.Vct (sbs s a)
-sbs s@(Ext _ _) (TG.May a)   = TG.May (sbs s a)
-sbs (Ext _ _)   TG.Wrd       = TG.Wrd
-sbs (Ext _ _)   TG.Bol       = TG.Bol
-sbs (Ext _ _)   TG.Flt       = TG.Flt
-sbs (Ext _ _)   TG.Cmx       = TG.Cmx
+subs :: Env (SPair NG.Nat TG.Typ) s -> TG.Typ a -> TG.Typ (Subs s a)
+subs Emp a          = a
+subs s@(Ext _ _) (TG.TVr x)   = case_Subs x (lookup x s)
+subs s@(Ext _ _) (TG.Arr a b) = TG.Arr (subs s a) (subs s b)
+subs s@(Ext _ _) (TG.Tpl a b) = TG.Tpl (subs s a) (subs s b)
+subs s@(Ext _ _) (TG.Ary a)   = TG.Ary (subs s a)
+subs s@(Ext _ _) (TG.Vct a)   = TG.Vct (subs s a)
+subs s@(Ext _ _) (TG.May a)   = TG.May (subs s a)
+subs (Ext _ _)   TG.Wrd       = TG.Wrd
+subs (Ext _ _)   TG.Bol       = TG.Bol
+subs (Ext _ _)   TG.Flt       = TG.Flt
+subs (Ext _ _)   TG.Cmx       = TG.Cmx
 
-case_Sbs :: NG.Nat x -> SMaybe TG.Typ a -> TG.Typ (Case_Sbs x a)
-case_Sbs _ (SJust t) = t
-case_Sbs x SNothing  = TG.TVr x
+case_Subs :: NG.Nat x -> SMaybe TG.Typ a -> TG.Typ (Case_Subs x a)
+case_Subs _ (SJust t) = t
+case_Subs x SNothing  = TG.TVr x
 
 lookup :: forall n xss f g. EqlSin f =>
           f n -> Env (SPair f g) xss ->
@@ -163,7 +163,7 @@ mgu _            _              = case obvious :: Mgu a a' :~:
 
 case_Mgu :: TG.Typ b -> TG.Typ b' -> SMaybe (Env (SPair NG.Nat TG.Typ)) s ->
             SMaybe (Env (SPair NG.Nat TG.Typ)) (Case_Mgu b b' s)
-case_Mgu b b' (SJust s) = fmapAppend s (mgu (sbs s b) b')
+case_Mgu b b' (SJust s) = fmapAppend s (mgu (subs s b) b')
 case_Mgu _ _  SNothing  = SNothing
 
 fmapAppend :: Env f xs -> SMaybe (Env f) mys ->
@@ -185,7 +185,7 @@ appFul _            (Ext _ _)   = case obvious :: AppFul a a' :~:
 
 case_AppFul :: SMaybe (Env (SPair NG.Nat TG.Typ)) s -> TG.Typ b ->
                Env TG.Typ as -> SMaybe TG.Typ (Case_AppFul s b as)
-case_AppFul (SJust s) b as = appFul (sbs s b) as
+case_AppFul (SJust s) b as = appFul (subs s b) as
 case_AppFul SNothing  _ _  = SNothing
 
 data SBool b where
