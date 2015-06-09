@@ -1,6 +1,8 @@
+
 module QFeldspar.Type.ADT where
 
 import QFeldspar.MyPrelude
+import QFeldspar.Nat.ADT
 
 data Typ =
     Wrd
@@ -12,6 +14,7 @@ data Typ =
   | Vec Typ
   | May Typ
   | Cmx
+  | TVr Nat
 
 deriving instance Eq   Typ
 deriving instance Show Typ

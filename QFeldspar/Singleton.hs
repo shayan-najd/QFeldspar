@@ -58,7 +58,7 @@ obvious :: a :~: b
 obvious = unsafeCoerce Rfl
 
 -- Type-level Lookup
-type family Lookup (n :: k) (xss :: [(k , *)]) :: Maybe * where
+type family Lookup (n :: k) (xss :: [(k , k')]) :: Maybe k' where
   Lookup x '[]                 = 'Nothing
   Lookup x ('(x   , a) ': xas) = Just a
   Lookup x ('( x' , a) ': xas) = Lookup x xas

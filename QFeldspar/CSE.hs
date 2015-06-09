@@ -13,6 +13,7 @@ import QFeldspar.ChangeMonad
 import QFeldspar.Singleton
 import QFeldspar.Variable.Typed
 import QFeldspar.Environment.Typed
+import QFeldspar.Magic
 
 -- type family Env a :: [*]
 -- type instance Env (Exp s g a) = g
@@ -83,9 +84,9 @@ hasSubtermEnv :: (TG.Type b , TG.Types d) => Exp s g b -> Env (Exp s g) d -> Boo
 hasSubtermEnv ex = TG.fld (\ b e -> b || hasSubterm ex e) False
 
 
-cseOneEnv :: forall s g a d d' as.
-       (TG.Type a , TG.Types d , TG.Types d' , as ~ Add d d') =>
-       Var s (as TG.:-> a) -> Env (Exp s g) d -> Env (Exp s g) d' ->
+cseOneEnv :: forall s g a d d' as c.
+       (Match c as a , TG.Type a , TG.Types d , TG.Types d' , as ~ Add d d') =>
+       Var s c -> Env (Exp s g) d -> Env (Exp s g) d' ->
                            Chg (Exp s g a)
 cseOneEnv x d d' = do
   let tsd  = sin :: Env TG.Typ d

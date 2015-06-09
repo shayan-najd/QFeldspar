@@ -21,17 +21,18 @@ import QFeldspar.Environment.Typed (Env(Emp,Ext))
 import QFeldspar.Prelude.Environment
 import QFeldspar.Prelude.HaskellEnvironment hiding (cis,ilog2,i2f)
 import qualified QFeldspar.Variable.Typed as VT
+import QFeldspar.Magic
 -- import QFeldspar.Expression.Utils.MiniFeldspar (shared)
 
-prm0 :: VT.Var Prelude ('[] TG.:-> t) -> Dp t
+prm0 :: Match a '[] t => VT.Var Prelude a -> Dp t
 prm0 v = Prm v Emp
 
-prm1 :: (TG.Type t1) =>
-        VT.Var Prelude ('[t1] TG.:-> t) -> Dp t1 -> Dp t
+prm1 :: (TG.Type t1 , Match a '[t1] t) =>
+        VT.Var Prelude a -> Dp t1 -> Dp t
 prm1 v e = Prm v (Ext e Emp)
 
-prm2 :: (TG.Type t1,TG.Type t2) =>
-        VT.Var Prelude (('[t1, t2]) TG.:-> t) -> Dp t1 -> Dp t2 -> Dp t
+prm2 :: (TG.Type t1 , TG.Type t2 , Match a '[t1, t2] t) =>
+        VT.Var Prelude a -> Dp t1 -> Dp t2 -> Dp t
 prm2 v e1 e2 = Prm v (Ext e1 (Ext e2 Emp))
 
 trmEql ::  TG.Type a => Dp a -> Dp a -> MP.Bool

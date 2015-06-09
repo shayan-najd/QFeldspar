@@ -10,6 +10,7 @@ import QFeldspar.Conversion
 import QFeldspar.Nat.Conversion ()
 import QFeldspar.Expression.GADTTyped
 import QFeldspar.Environment.Scoped  as ES
+import qualified QFeldspar.Environment.Map  as EM
 import QFeldspar.InferenceMonad
 
 type TypFld = Typ (EnvFld '[])
@@ -63,6 +64,14 @@ matchArgs tf (ta : ts) = do tb <- newMT
                             addC (tf :~: Arr ta tb)
                             matchArgs tb ts
 
+refresh :: TypFld -> InfM (EnvFld '[]) TypFld
+refresh t = do r <- sequence [(,) <$> pure n <*> newMT | n <- (nub (mtas t))]
+               refresh' r t
+
+refresh' :: EM.Env Nat (Typ t) -> Typ t -> InfM (EnvFld '[])  (Typ t)
+refresh' r (TH.App x as) = TH.App x <$> mapM (refresh' r) as
+refresh' r (TH.Mta n)    = EM.get n r
+
 collect :: Exp m n TypFld -> (ES.Env m TypFld , ES.Env n TypFld) ->
            InfM (EnvFld '[]) TypFld
 collect ee (s , g) = case ee of
@@ -73,7 +82,8 @@ collect ee (s , g) = case ee of
     Prm ts x  es   -> do let tx = get x s
                          tes <- mapM (flip collect (s , g)) es
                          sequence_ (zipWith (\ t te -> addC (t :~: te)) ts tes)
-                         matchArgs tx tes
+                         tx' <- refresh tx
+                         matchArgs tx' tes
     Abs eb         -> do ta <- newMT
                          tb <- collect eb (s , Ext ta g)
                          return (Arr ta tb)

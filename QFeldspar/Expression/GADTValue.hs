@@ -9,6 +9,8 @@ import qualified QFeldspar.MyPrelude as MP
 import qualified QFeldspar.Type.GADT as TG
 import qualified QFeldspar.Environment.Typed as ET
 import QFeldspar.Singleton
+import QFeldspar.Magic
+import Unsafe.Coerce
 
 data Exp :: * -> * where
   Exp :: t -> Exp t
@@ -18,10 +20,10 @@ deriving instance Functor Exp
 getTrm :: Exp t -> t
 getTrm (Exp x) = x
 
-prm :: forall as b. Exp (as TG.:-> b) -> ET.Env Exp as -> Exp b
-prm f xss = case xss of
-  ET.Ext x xs -> prm (app f x) xs
-  ET.Emp      -> f
+-- The functionunsafeCoerce is "safe" to be used here,
+-- since type-safety is guaranteed by Trm datatype.
+prm :: forall a as b. Match a as b => Exp a -> ET.Env Exp as -> Exp b
+prm f xss = unsafeCoerce(ET.foldl (\ (Exp f') (Exp x) -> Exp ((unsafeCoerce f') x)) f xss)
 
 prm0 :: a -> Exp a
 prm0 = Exp

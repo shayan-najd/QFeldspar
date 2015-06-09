@@ -6,8 +6,12 @@ import qualified QFeldspar.Type.ADT  as TA
 import qualified QFeldspar.Type.GADT as TG
 import qualified QFeldspar.Type.Herbrand      as HR
 import qualified Language.Haskell.TH          as TH
-
+import qualified Language.Haskell.TH.Desugar as  DTH
+import QFeldspar.Nat.Conversion()
+import qualified Data.Set as Set
+import qualified QFeldspar.Environment.Map as EM
 import QFeldspar.Conversion
+import QFeldspar.Nat.ADT
 
 ---------------------------------------------------------------------------------
 --  Conversion from TA.Typ
@@ -31,6 +35,8 @@ instance Cnv (TA.Typ) (ExsSin TG.Typ) where
   cnv TA.Cmx         = return (ExsSin TG.Cmx)
   cnv (TA.May t)     = do ExsSin t' <- cnv t
                           return (ExsSin (TG.May t'))
+  cnv (TA.TVr n)     = do ExsSin n' <- cnv (n , ())
+                          return (ExsSin (TG.TVr n'))
 
 instance Cnv (TA.Typ , r)  (ExsSin TG.Typ) where
   cnv (t , _) = cnv t
@@ -46,6 +52,7 @@ instance Cnv (TA.Typ , r) (HR.Typ (HR.EnvFld '[])) where
     TA.Vec ta    -> HR.Vec <$> cnvWth r ta
     TA.May ta    -> HR.May <$> cnvWth r ta
     TA.Cmx       -> pure HR.Cmx
+    TA.TVr n     -> pure (HR.Mta n)
 
 instance Cnv (TA.Typ , r) TH.Type where
   cnv (th , r) = case th of
@@ -62,6 +69,7 @@ instance Cnv (TA.Typ , r) TH.Type where
     TA.Vec ta    -> TH.AppT (TH.ConT ''Vec) <$> cnvWth r ta
     TA.May ta    -> TH.AppT (TH.ConT ''Maybe) <$> cnvWth r ta
     TA.Cmx       -> pure (TH.AppT (TH.ConT ''Complex) (TH.ConT ''Float))
+    TA.TVr n     -> pure (TH.VarT (TH.mkName (show n)))
 
 ---------------------------------------------------------------------------------
 --  Conversion from TG.Typ
@@ -78,7 +86,7 @@ instance Cnv (TG.Typ a , r) TA.Typ where
     TG.Vct ta    -> TA.Vec <$> cnvWth r ta
     TG.May ta    -> TA.May <$> cnvWth r ta
     TG.Cmx       -> pure TA.Cmx
-
+    TG.TVr n     -> TA.TVr <$> cnvWth r n
 
 instance Cnv (TG.Typ a , r) TH.Type where
   cnv (t , r) = do t' :: TA.Typ <- cnv (t , r)
@@ -136,3 +144,44 @@ instance Cnv (TH.Type , r) TA.Typ where
        | n == ''Vec                     -> TA.Vec <$@> a
    _            -> fail ("Type Error:\n" ++ show th)
 -}
+
+instance Cnv DTH.DType TA.Typ where
+  cnv t = cnvWth (zip (Set.toList (freeVarsT t)) [Zro ..]) t
+
+instance Cnv (DTH.DType , EM.Env TH.Name Nat) TA.Typ where
+  cnv (th , r) = case th of
+   DTH.DConT n
+       | n == ''Word32                     -> pure TA.Wrd
+       | n == ''Bool                       -> pure TA.Bol
+       | n == ''Float                      -> pure TA.Flt
+   DTH.DAppT (DTH.DAppT (DTH.DConT n) (DTH.DConT m)) a
+       | n == ''Array && m == ''Word32     -> TA.Ary <$> cnvWth r a
+   DTH.DAppT (DTH.DAppT DTH.DArrowT   a) b -> TA.Arr <$> cnvWth r a <*> cnvWth r b
+   DTH.DAppT (DTH.DAppT (DTH.DConT n) a) b
+       | n == ''(->)                       -> TA.Arr <$> cnvWth r a <*> cnvWth r b
+       | n == ''(,)                        -> TA.Tpl <$> cnvWth r a <*> cnvWth r b
+   DTH.DAppT (DTH.DConT n) (DTH.DConT m)
+       | n == ''Complex && m == ''Float    -> pure TA.Cmx
+   DTH.DAppT (DTH.DConT n) a
+       | n == ''Maybe                      -> TA.May <$> cnvWth r a
+       | n == ''Ary                        -> TA.Ary <$> cnvWth r a
+       | n == ''Vec                        -> TA.Vec <$> cnvWth r a
+   DTH.DVarT n                             -> TA.TVr <$> EM.get n r
+   _            -> fail ("Syntax not supported:\n" ++ show th)
+
+-- not supported:
+--           | DLitT TyLit
+--           | DVarT Name
+--           | DSigT DType DKind
+--           | DForallT [DTyVarBndr] DCxt DType
+
+
+freeVarsT :: DTH.DType -> Set.Set TH.Name
+freeVarsT ee = case ee of
+  DTH.DAppT c b  -> freeVarsT c `Set.union` freeVarsT b
+  DTH.DSigT a  _ -> freeVarsT a
+  DTH.DVarT x    -> Set.singleton x
+  DTH.DConT _    -> Set.empty
+  DTH.DArrowT    -> Set.empty
+  DTH.DLitT _    -> Set.empty
+  _              -> badUse "freeVarsT"

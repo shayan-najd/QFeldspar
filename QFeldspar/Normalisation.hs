@@ -12,13 +12,14 @@ import QFeldspar.ChangeMonad
 import QFeldspar.Expression.Utils.Common
 import qualified QFeldspar.Type.GADT as TG
 import QFeldspar.Environment.Typed
+import QFeldspar.Magic
 
 nrm :: TG.Type a => Exp s g a -> Exp s g a
 nrm = tilNotChg nrmOne
 
-cmt :: forall a s g d d' as.
-       (TG.Type a , as ~ Add d d' , TG.Types d , TG.Types d') =>
-       Var s (as TG.:-> a) -> Env (Exp s g) d -> Env (Exp s g) d' -> Chg (Exp s g a)
+cmt :: forall a s g d d' as c.
+       (Match c as a , TG.Type a , as ~ Add d d' , TG.Types d , TG.Types d') =>
+       Var s c -> Env (Exp s g) d -> Env (Exp s g) d' -> Chg (Exp s g a)
 cmt x d d' = do
   let tsd  = sin :: Env TG.Typ d
   let tsd' = sin :: Env TG.Typ d'

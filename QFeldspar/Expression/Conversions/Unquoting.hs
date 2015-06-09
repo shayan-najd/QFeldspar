@@ -2,7 +2,6 @@ module QFeldspar.Expression.Conversions.Unquoting () where
 
 import QFeldspar.MyPrelude
 
-import qualified QFeldspar.Type.ADT as TA
 import qualified QFeldspar.Expression.ADTUntypedNamed as AUN
 import qualified Language.Haskell.TH.Syntax as TH
 import qualified Language.Haskell.TH.Desugar as  DTH
@@ -187,7 +186,7 @@ instance Cnv (DTH.MExp , r) (AUN.Exp TH.Name) where
       | n === 'while    -> AUN.Whl  <$> cnvWth r l1 <*> cnvWth r l2 <*> cnvWth r ei
     DTH.MAppE ef ea     -> AUN.App  <$> cnvWth r ef <*> cnvWth r ea
     DTH.MLamE x   eb    -> AUN.Abs  <$> cnvWth r (x , eb)
-    DTH.MSigE e  t      -> AUN.Typ  <$> cnvWth r t <*> cnvWth r e
+    DTH.MSigE e  t      -> AUN.Typ  <$> cnv  t <*> cnvWth r e
     DTH.MLetE x el eb   ->
         AUN.LeT  <$> cnvWth r el <*> cnvWth r (x , eb)
     DTH.MCaseE ec [(DTH.DConPa n [DTH.DVarPa xf , DTH.DVarPa xs],eb)]
@@ -232,32 +231,6 @@ instance Cnv (DTH.MExp , r) (AUN.Exp TH.Name) where
 
 instance Cnv ((TH.Name , DTH.MExp) , r) (TH.Name , AUN.Exp TH.Name) where
     cnv ((x , e) , r) = (,) <$> pure (stripNameSpace x) <*> cnvWth r e
-
-instance Cnv (DTH.DType , r) TA.Typ where
-  cnv (th , r) = case th of
-   DTH.DConT n
-       | n == ''Word32                     -> pure TA.Wrd
-       | n == ''Bool                       -> pure TA.Bol
-       | n == ''Float                      -> pure TA.Flt
-   DTH.DAppT (DTH.DAppT (DTH.DConT n) (DTH.DConT m)) a
-       | n == ''Array && m == ''Word32     -> TA.Ary <$> cnvWth r a
-   DTH.DAppT (DTH.DAppT DTH.DArrowT   a) b -> TA.Arr <$> cnvWth r a <*> cnvWth r b
-   DTH.DAppT (DTH.DAppT (DTH.DConT n) a) b
-       | n == ''(->)                       -> TA.Arr <$> cnvWth r a <*> cnvWth r b
-       | n == ''(,)                        -> TA.Tpl <$> cnvWth r a <*> cnvWth r b
-   DTH.DAppT (DTH.DConT n) (DTH.DConT m)
-       | n == ''Complex && m == ''Float    -> pure TA.Cmx
-   DTH.DAppT (DTH.DConT n) a
-       | n == ''Maybe                      -> TA.May <$> cnvWth r a
-       | n == ''Ary                        -> TA.Ary <$> cnvWth r a
-       | n == ''Vec                        -> TA.Vec <$> cnvWth r a
-   _            -> fail ("Syntax not supported:\n" ++ show th)
-
--- not supported:
---           | DLitT TyLit
---           | DVarT Name
---           | DSigT DType DKind
---           | DForallT [DTyVarBndr] DCxt DType
 
 newTHVar :: NamM ErrM TH.Name
 newTHVar = do v1 <- newVar

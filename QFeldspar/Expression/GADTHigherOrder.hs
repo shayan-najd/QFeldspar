@@ -5,13 +5,14 @@ import QFeldspar.MyPrelude
 import QFeldspar.Environment.Typed
 import QFeldspar.Variable.Typed
 import QFeldspar.Type.GADT
+import QFeldspar.Magic
 
 data Exp :: [*] -> * -> * where
   ConI :: Word32   -> Exp s Word32
   ConB :: Bool     -> Exp s Bool
   ConF :: Float    -> Exp s Float
-  Prm  :: Types as =>
-          Var s (as :-> b) -> Env (Exp s) as -> Exp s b
+  Prm  :: (Match a as b , Types as) =>
+          Var s a -> Env (Exp s) as -> Exp s b
   Abs  :: (Exp s a -> Exp s b) -> Exp s (a -> b)
   App  :: Type a =>
           Exp s (a -> b) -> Exp s a -> Exp s b

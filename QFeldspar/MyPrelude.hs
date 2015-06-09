@@ -36,11 +36,13 @@ module QFeldspar.MyPrelude
         module Control.Applicative,
         module Control.Monad,
         module Data.Array,
-        Ary,Vec(..),
+        Ary,Vec(..),TVr(..),
         cnd,while,whileM,tpl,mkArr,lnArr,ixArr,non,som,may,save,fix,
-        fixM)
+        fixM,trace)
        where
+import Debug.Trace
 import Prelude hiding (Int,mapM,sequence)
+import QFeldspar.Nat.GADT
 import QFeldspar.Existential
 import Data.Maybe
 import QFeldspar.ErrorMonad
@@ -83,8 +85,10 @@ badTypValM = fail "Value of wrong type!"
 getState :: MonadState s m => m s
 getState = get
 
-type Ary a   = Array Word32 a
-data Vec a   = Vec Word32 (Word32 -> a)
+type Ary a = Array Word32 a
+data Vec a = Vec Word32 (Word32 -> a)
+data TVr x = TVar (Nat x)
+
 
 cnd :: Bool -> s -> s -> s
 cnd c t f = if c then t else f

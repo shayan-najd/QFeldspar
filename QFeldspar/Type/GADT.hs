@@ -4,6 +4,7 @@ module QFeldspar.Type.GADT where
 import QFeldspar.MyPrelude
 import qualified QFeldspar.Environment.Typed as ET
 import QFeldspar.Singleton
+import QFeldspar.Nat.GADT
 
 data Typ :: * -> * where
   Wrd :: Typ Word32
@@ -15,6 +16,7 @@ data Typ :: * -> * where
   Vct :: Typ t  -> Typ (Vec t)
   May :: Typ t  -> Typ (Maybe t)
   Cmx :: Typ (Complex Float)
+  TVr :: Nat a  -> Typ (TVr a)
 
 deriving instance Show (Typ t)
 
@@ -48,6 +50,9 @@ instance Type ta => HasSin Typ (Maybe ta) where
 instance HasSin Typ (Complex Float) where
   sin = Cmx
 
+instance (HasSin Nat x) => HasSin Typ (TVr x) where
+  sin = TVr sin
+
 instance EqlSin Typ where
   eqlSin Wrd         Wrd           = return Rfl
   eqlSin Bol         Bol           = return Rfl
@@ -65,7 +70,10 @@ instance EqlSin Typ where
   eqlSin (May t)     (May t')      = do Rfl <- eqlSin t t'
                                         return Rfl
   eqlSin Cmx         Cmx           = return Rfl
-  eqlSin _              _          = fail "Type Error!"
+  eqlSin (TVr n)     (TVr n')      = do Rfl <- eqlSin n n'
+                                        return Rfl
+  eqlSin a            a'            = fail ("Type Error!\n"++
+                 show a ++ " is not equal to " ++ show a' ++"!")
 
 instance GetPrfHasSin Typ where
   getPrfHasSin t  = case t of
@@ -83,6 +91,8 @@ instance GetPrfHasSin Typ where
     May ta    -> case getPrfHasSin ta of
       PrfHasSin -> PrfHasSin
     Cmx       -> PrfHasSin
+    TVr n     -> case getPrfHasSin n of
+      PrfHasSin -> PrfHasSin
 
 getPrfHasSinArr :: forall ta tb t. Type (ta -> tb) =>
                    t (ta -> tb) -> (PrfHasSin Typ ta , PrfHasSin Typ tb)

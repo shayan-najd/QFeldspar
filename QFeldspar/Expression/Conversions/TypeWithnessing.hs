@@ -1,6 +1,6 @@
 module QFeldspar.Expression.Conversions.TypeWithnessing () where
 
-import QFeldspar.MyPrelude
+import QFeldspar.MyPrelude hiding (lookup)
 import qualified QFeldspar.Expression.GADTTyped as GTD
 import qualified QFeldspar.Expression.GADTFirstOrder as GFO
 import qualified QFeldspar.Type.GADT as TG
@@ -11,20 +11,21 @@ import QFeldspar.Variable.Conversion ()
 import QFeldspar.Type.Conversion ()
 import QFeldspar.Singleton
 import qualified QFeldspar.Variable.Typed as VT
+import QFeldspar.Magic
 
 type ExsTyp = ExsSin TG.Typ
 
-cnvEnv :: forall s g d. TG.Types d =>
-          (Env TG.Typ s , Env TG.Typ g) ->
+cnvEnv :: forall s g d. (TG.Types d) =>
+          Env TG.Typ s -> Env TG.Typ g ->
           [GTD.Exp (Len s) (Len g) TA.Typ] -> NamM ErrM (Env (GFO.Exp s g) d)
-cnvEnv r ess = let d = sin :: Env TG.Typ d in case ess of
+cnvEnv s g ess = let d = sin :: Env TG.Typ d in case ess of
   []        -> case d of
    Emp      -> return Emp
    Ext _ _  -> fail "Type Error!"
   e : es    -> case d of
    Emp      -> fail "Type Error!"
    Ext _ _  -> case TG.getPrfHasSinEnvOf d of
-    (PrfHasSin , PrfHasSin) -> Ext <$> cnv (e , r) <*> cnvEnv r es
+    (PrfHasSin , PrfHasSin) -> Ext <$> cnvWth (s , g) e <*> cnvEnv s g es
 
 instance (s ~ s' , g ~ g' , m ~ (Len s) , n ~ (Len g) , TG.Type a) =>
          Cnv (GTD.Exp m n TA.Typ , (Env TG.Typ s , Env TG.Typ g))
@@ -39,12 +40,13 @@ instance (s ~ s' , g ~ g' , m ~ (Len s) , n ~ (Len g) , TG.Type a) =>
     GTD.ConF f       -> case t of
       TG.Flt         -> pure (GFO.ConF f)
       _               -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
-    GTD.Prm tx x ns  -> do ExsSin (as :: Env TG.Typ as):: ExsSin (Env TG.Typ) <- cnv (tx , ())
+    GTD.Prm ts x es  -> do ExsSin (as :: Env TG.Typ as):: ExsSin (Env TG.Typ) <- cnv (ts , ())
                            PrfHasSin <- getPrfHasSinM as
-                           ns' :: Env (GFO.Exp s g) as <- cnvEnv r ns
-                           PrfHasSin <- getPrfHasSinM (TG.cur as t)
-                           x' :: VT.Var s (as TG.:-> a) <- cnv (x , s)
-                           return (GFO.Prm x' ns')
+                           es' :: Env (GFO.Exp s g) as <- cnvEnv s g es
+                           Exs1 (tx :: TG.Typ xa)
+                             (x' :: VT.Var s xa) <- cnv (x , s)
+                           PrfMatch <- getPrfMatch tx as t
+                           return (GFO.Prm x' es')
     GTD.Abs eb       -> case t of
       TG.Arr ta _    -> case TG.getPrfHasSinArr t of
        (PrfHasSin , PrfHasSin) -> GFO.Abs <$> cnvWth r (ta , eb)
