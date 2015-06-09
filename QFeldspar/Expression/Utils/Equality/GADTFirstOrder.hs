@@ -2,6 +2,7 @@ module QFeldspar.Expression.Utils.Equality.GADTFirstOrder (eql) where
 
 import QFeldspar.MyPrelude
 
+import QFeldspar.Variable.Typed
 import QFeldspar.Environment.Typed
 import QFeldspar.Expression.GADTFirstOrder
 import QFeldspar.Singleton
@@ -26,7 +27,7 @@ eql (Var  _)    _             = False
 eql (Prm x  (ns  :: Env (Exp s g) d))
     (Prm x' (ns' :: Env (Exp s g) d')) = case eqlSin (sinTyp ns  :: Env TG.Typ d)
                                                      (sinTyp ns' :: Env TG.Typ d') of
-   Rgt Rfl -> x == x' && eqlEnv ns ns'
+   Rgt Rfl -> eqlVar x x' && eqlEnv ns ns'
    Lft _   -> False
 eql (Prm _ _)   _             = False
 
