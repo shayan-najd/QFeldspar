@@ -19,6 +19,6 @@ instance (m ~ m' , n ~ n') =>
   cnv (e , (s , g)) = do
     s' :: Env m (TH.Typ (TH.EnvFld '[])) <- cnv (s , ())
     g' :: Env n (TH.Typ (TH.EnvFld '[])) <- cnv (g, ())
-    e'  <- traverse (maybe (return Nothing) (fmap Just . (\ t -> cnv (t , ()))))  e
+    e'  <- traverse (maybe (return Nothing) (fmap Just . cnvWth ()))  e
     e'' <- typInf e' (s' , g')
-    traverse (\ t -> cnv (t , ()))  e''
+    traverse (cnvWth ())  e''
