@@ -9,7 +9,7 @@ import qualified Tests.GADTFirstOrder      as GFO
 import qualified Tests.GADTHigherOrder     as GHO
 import qualified Tests.MiniFeldspar        as MFS
 import qualified Tests.Conversion          as CNV
-
+import qualified Tests.Examples ()
 import qualified Tests.CompareExamples     as TC
 
 import qualified Examples.CRC.CDSL ()
@@ -22,12 +22,26 @@ import qualified Examples.IPGray.CDSL ()
 import qualified Examples.IPGray.QDSL ()
 import qualified Examples.Windowing.CDSL ()
 import qualified Examples.Windowing.QDSL ()
+import qualified Examples.Power.Haskell ()
 
 import QFeldspar.Expression.Utils.GADTTyped ()
 import QFeldspar.Normalisation ()
 import QFeldspar.Simplification ()
 import QFeldspar.CSE ()
 
+import QFeldspar.Expression.Utils.Reuse.GADTHigherOrder ()
+import QFeldspar.Expression.Utils.Equality.GADTHigherOrder ()
+import QFeldspar.Expression.Utils.Show.GADTFirstOrder ()
+import QFeldspar.Expression.Utils.Show.GADTHigherOrder ()
+import QFeldspar.Expression.Utils.ADTUntypedDebruijn ()
+import QFeldspar.Expression.Utils.ADTUntypedNamed ()
+import QFeldspar.Expression.Utils.GADTTyped ()
+import QFeldspar.Expression.Utils.MiniFeldspar ()
+
+import Experiment.Common ()
+import Experiment.CSV ()
+import Experiment.Process ()
+import Experiment.GenExperiment ()
 
 main :: IO ()
 main = print (if AUN.test  && AUD.test && GTD.test  &&
