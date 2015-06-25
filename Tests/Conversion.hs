@@ -52,13 +52,13 @@ envAddValG = ET.Ext (FGV.Exp (+)
              ET.Emp
 
 envAddValV :: ES.Env One FAV.Exp
-envAddValV = ES.Ext (FAV.lft ((+) :: Word32 -> Word32 -> Word32)) ES.Emp
+envAddValV = ES.Ext (FAV.toExp ((+) :: Word32 -> Word32 -> Word32)) ES.Emp
 
 envAddValA :: EP.Env FAV.Exp
-envAddValA = (FAV.lft ((+) :: Word32 -> Word32 -> Word32)) : []
+envAddValA = (FAV.toExp ((+) :: Word32 -> Word32 -> Word32)) : []
 
 envAddValM :: EM.Env TH.Name FAV.Exp
-envAddValM = (stripNameSpace 'TH.add , FAV.lft ((+) :: Word32 -> Word32 -> Word32)) : []
+envAddValM = (stripNameSpace 'TH.add , FAV.toExp ((+) :: Word32 -> Word32 -> Word32)) : []
 
 cnvMFS :: Cnv (e , ET.Env TG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
                (GFO.Exp EnvAdd '[] Word32) => e -> Word32 -> Bool
@@ -93,7 +93,7 @@ cnvGTD :: Cnv (e , ET.Env TG.Typ EnvAdd , ES.Env One TH.Name)
 cnvGTD e j = case runNamM
               (do e' :: GTD.Exp One NA.Zro TA.Typ <- cnv (e , envAddTypG , vec)
                   cnv (e' , (envAddValV,ES.Emp :: ES.Env NA.Zro FAV.Exp))) of
-           Rgt (FAV.colft -> Rgt i) -> i == j
+           Rgt (FAV.frmExp -> Rgt i) -> i == j
            _                        -> False
 
 cnvAUD :: Cnv (e , ET.Env TG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
@@ -101,7 +101,7 @@ cnvAUD :: Cnv (e , ET.Env TG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
 cnvAUD e j = case runNamM
               (do e' :: AUD.Exp <- cnv (e , envAddTypG , vec)
                   cnv (e' , (envAddValA , [] :: EP.Env FAV.Exp))) of
-           Rgt (FAV.colft -> Rgt i) -> i == j
+           Rgt (FAV.frmExp -> Rgt i) -> i == j
            _                        -> False
 
 cnvAUN :: Cnv (e , ET.Env TG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
@@ -109,7 +109,7 @@ cnvAUN :: Cnv (e , ET.Env TG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
 cnvAUN e j = case runNamM
               (do e' :: AUN.Exp TH.Name <- cnv (e , envAddTypG , vec)
                   cnv (e' , (envAddValM,[] :: EM.Env TH.Name FAV.Exp))) of
-           Rgt (FAV.colft -> Rgt i) -> i == j
+           Rgt (FAV.frmExp -> Rgt i) -> i == j
            _                        -> False
 
 test :: Bool

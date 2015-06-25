@@ -23,7 +23,8 @@ getTrm (Exp x) = x
 -- The functionunsafeCoerce is "safe" to be used here,
 -- since type-safety is guaranteed by Trm datatype.
 prm :: forall a as b. Match a as b => Exp a -> ET.Env Exp as -> Exp b
-prm f xss = unsafeCoerce(ET.foldl (\ (Exp f') (Exp x) -> Exp ((unsafeCoerce f') x)) f xss)
+prm f xss = unsafeCoerce(ET.foldl (\ (Exp f') (Exp x) ->
+                                    Exp ((unsafeCoerce f') x)) f xss)
 
 prm0 :: a -> Exp a
 prm0 = Exp

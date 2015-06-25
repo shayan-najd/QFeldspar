@@ -59,7 +59,7 @@ $(sequence (join
 
 $(sequence (join
  [[TH.SigD n <$> [t| FAV.Exp |]
- , do e <- [| FAV.lft $(TH.varE nHsk) |]
+ , do e <- [| FAV.toExp $(TH.varE nHsk) |]
       return (TH.ValD (TH.VarP n) (TH.NormalB e) [])]
   | nHsk <- epTH ,
     let nB = TH.nameBase nHsk,

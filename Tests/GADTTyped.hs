@@ -28,8 +28,8 @@ four = App TA.Wrd
          (compose TA.Wrd TA.Wrd) dbl) dbl) (ConI 1)
 
 test :: Bool
-test = (case runNamM (cnv (four , (Ext (V.lft ((+) :: Word32 -> Word32 -> Word32)) Emp , Emp :: Env 'NA.Zro V.Exp))) of
-          Rgt (V.colft -> Rgt (4 :: Word32)) -> True
+test = (case runNamM (cnv (four , (Ext (V.toExp ((+) :: Word32 -> Word32 -> Word32)) Emp , Emp :: Env 'NA.Zro V.Exp))) of
+          Rgt (V.frmExp -> Rgt (4 :: Word32)) -> True
           _                           -> False)
        && (runNamM (typChk four (Ext (TA.Arr TA.Wrd
                              (TA.Arr TA.Wrd TA.Wrd)) Emp , Emp :: Env 'NA.Zro TA.Typ))

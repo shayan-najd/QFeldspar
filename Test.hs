@@ -24,7 +24,6 @@ import qualified Examples.Windowing.CDSL ()
 import qualified Examples.Windowing.QDSL ()
 import qualified Examples.Power.Haskell ()
 
-import QFeldspar.Expression.Utils.GADTTyped ()
 import QFeldspar.Normalisation ()
 import QFeldspar.Simplification ()
 import QFeldspar.CSE ()

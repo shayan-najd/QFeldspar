@@ -22,6 +22,6 @@ four :: Exp
 four = App (App (App compose dbl) dbl) (ConI 1)
 
 test :: Bool
-test = (case runNamM (cnv (four , ([V.lft ((+) :: Word32 -> Word32 -> Word32)],[] :: [V.Exp]))) of
-          Rgt (V.colft -> Rgt (4 :: Word32)) -> True
+test = (case runNamM (cnv (four , ([V.toExp ((+) :: Word32 -> Word32 -> Word32)],[] :: [V.Exp]))) of
+          Rgt (V.frmExp -> Rgt (4 :: Word32)) -> True
           _                               -> False)

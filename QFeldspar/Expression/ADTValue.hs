@@ -2,7 +2,7 @@ module QFeldspar.Expression.ADTValue
     (Exp
     ,conI,conB,conF,prm,var,abs,app,cnd,whl,tpl,fst,snd,ary,len,ind,leT
     ,cmx,typ,mul,add,sub,eql,ltd,int,mem,fix,aryV,lenV,indV,non,som,may
-    ,Lft(..),CoLft(..)) where
+    ,Rep(..)) where
 
 import QFeldspar.MyPrelude hiding (abs,fst,snd,may,som,non,tpl,cnd,fix)
 import qualified QFeldspar.MyPrelude as MP
@@ -11,174 +11,122 @@ import qualified QFeldspar.Type.ADT as TA
 data Exp = ConI Word32
          | ConB Bool
          | ConF Float
-         | Abs (Exp -> ErrM Exp)
+         | Abs (Exp -> Exp)
          | Tpl (Exp , Exp)
          | Ary (Ary Exp)
          | Cmx (Complex Float)
 
-class Lft t where
-  lft :: t -> Exp
+class Rep a where
+  toExp  :: a -> Exp
+  frmExp :: Exp -> ErrM a
 
-instance Lft Exp where
-  lft = id
+instance Rep Exp where
+  toExp  = id
+  frmExp = pure
 
-instance Lft Word32 where
-  lft = ConI
+instance Rep Word32 where
+  toExp = ConI
+  frmExp (ConI i) = return i
+  frmExp _        = badTypValM
 
-instance Lft Bool where
-  lft = ConB
+instance Rep Bool where
+  toExp  = ConB
+  frmExp (ConB b) = return b
+  frmExp _        = badTypValM
 
-instance Lft Float where
-  lft = ConF
+instance Rep Float where
+  toExp  = ConF
+  frmExp (ConF f) = return f
+  frmExp _        = badTypValM
 
-instance (CoLft a , Lft b) => Lft (a -> b) where
-  lft f = Abs (fmap (lft . f) . colft)
+instance (Rep a , Rep b) => Rep (a -> b) where
+  toExp  f = Abs (toExp . f . frmRgt . frmExp)
+  frmExp (Abs f)  = return
+                    (frmRgt . frmExp . f  . toExp)
+  frmExp _        = badTypValM
 
-instance (Lft a , Lft b) => Lft (a , b) where
-  lft (x , y) = Tpl (lft x , lft y)
+instance (Rep a , Rep b) => Rep (a , b) where
+  toExp (x , y) = Tpl (toExp x , toExp y)
+  frmExp (Tpl (x , y)) = ((,)) <$> frmExp x <*> frmExp y
+  frmExp _             = badTypValM
 
-instance Lft a => Lft (Array Word32 a) where
-  lft a = Ary (fmap lft a)
+instance Rep a => Rep (Array Word32 a) where
+  toExp a = Ary (fmap toExp a)
+  frmExp (Ary x) = mapM frmExp x
+  frmExp _       = badTypValM
 
-instance Lft (Complex Float) where
-  lft = Cmx
+instance Rep (Complex Float) where
+  toExp = Cmx
+  frmExp (Cmx c)  = return c
+  frmExp _        = badTypVal
 
-class CoLft t where
-  colft :: Exp -> ErrM t
+prm0 :: Rep a => a -> NamM ErrM Exp
+prm0 = return . toExp
 
-instance CoLft Word32 where
-  colft (ConI i) = return i
-  colft _        = badTypValM
+prm1 :: (Rep a , Rep b) => (a -> b) -> Exp -> NamM ErrM Exp
+prm1 f x = lift (do x' <- frmExp x
+                    return (toExp (f x')))
 
-instance CoLft Bool where
-  colft (ConB b) = return b
-  colft _        = badTypValM
+prm2 :: (Rep a,Rep b,Rep c) =>
+        (a -> b -> c) -> Exp -> Exp -> NamM ErrM Exp
+prm2 f x y = lift (do x' <- frmExp x
+                      y' <- frmExp y
+                      return (toExp (f x' y')))
 
-instance CoLft Float where
-  colft (ConF f) = return f
-  colft _        = badTypValM
-
-instance (Lft a , CoLft b) => CoLft (a -> ErrM b) where
-  colft (Abs f)  = return (\ e -> colft =<< (f (lft e)))
-  colft _        = badTypValM
-
-instance (CoLft a , CoLft b) => CoLft (a , b) where
-  colft (Tpl (x , y)) = ((,)) <$> colft x <*> colft y
-  colft _             = badTypValM
-
-instance CoLft a => CoLft (Array Word32 a) where
-  colft (Ary x)  = mapM colft x
-  colft _        = badTypValM
-
-instance CoLft (Complex Float) where
-  colft (Cmx c)  = return c
-  colft _        = badTypVal
-
-class ToHsk t where
-  toHsk :: Exp -> ErrM t
-
-instance ToHsk Word32 where
-  toHsk (ConI i) = return i
-  toHsk _        = badTypValM
-
-instance ToHsk Bool where
-  toHsk (ConB b) = return b
-  toHsk _        = badTypValM
-
-instance ToHsk Float where
-  toHsk (ConF f) = return f
-  toHsk _        = badTypValM
-
-instance ToHsk (Exp -> ErrM Exp) where
-  toHsk (Abs f)  = return f
-  toHsk _        = badTypValM
-
-instance ToHsk (Exp , Exp) where
-  toHsk (Tpl p ) = return p
-  toHsk _        = badTypValM
-
-instance ToHsk (Array Word32 Exp) where
-  toHsk (Ary x)  = return x
-  toHsk _        = badTypValM
-
-instance ToHsk (Complex Float) where
-  toHsk (Cmx c)  = return c
-  toHsk _        = badTypVal
-
-prm :: Exp -> [Exp] -> NamM ErrM Exp
-prm f []       = return f
-prm f (x : xs) =  do f' <- app f x
-                     prm f' xs
-
-prm0 :: Lft a => a -> ErrM Exp
-prm0 = return . lft
-
-{-
-prm1 :: (ToHsk a , Lft b) => (a -> b) -> Exp -> ErrM Exp
-prm1 f x = do x' <- toHsk x
-              return (lft (f x'))
-
-prm2 :: (ToHsk a,ToHsk b,Lft c) => (a -> b -> c) -> Exp -> Exp -> ErrM Exp
-prm2 f x y = do x' <- toHsk x
-                y' <- toHsk y
-                return (lft (f x' y'))
--}
+prm3 :: (Rep a,Rep b,Rep c,Rep d) =>
+        (a -> b -> c -> d) -> Exp -> Exp -> Exp -> NamM ErrM Exp
+prm3 f x y z = lift (do x' <- frmExp x
+                        y' <- frmExp y
+                        z' <- frmExp z
+                        return (toExp (f x' y' z')))
 
 var :: a -> NamM ErrM a
 var = return
 
 conI :: Word32 -> NamM ErrM Exp
-conI = lift . prm0
+conI =  prm0
 
 conB :: Bool -> NamM ErrM Exp
-conB = lift . prm0
+conB =  prm0
 
 conF :: Float -> NamM ErrM Exp
-conF = lift . prm0
+conF =  prm0
 
 abs :: (Exp -> Exp) -> NamM ErrM Exp
-abs f = return (Abs (return . f))
+abs f = return (Abs f)
 
 app :: Exp -> Exp -> NamM ErrM Exp
-app vf va = do vf' <- lift (toHsk vf)
-               lift (vf' va)
+app = prm2 ((\ f a -> f a) :: (Exp -> Exp) -> Exp -> Exp)
+
+prm :: Exp -> [Exp] -> NamM ErrM Exp
+prm = foldM app
 
 cnd :: Exp -> Exp -> Exp -> NamM ErrM Exp
-cnd vc v1 v2 = do vc' <- lift (toHsk vc)
-                  return (if vc' then v1 else v2)
+cnd = prm3 (MP.cnd :: Bool -> Exp -> Exp -> Exp)
 
 whl :: Exp -> Exp -> Exp -> NamM ErrM Exp
-whl fc fb v = do fc' <- lift (toHsk fc)
-                 fb' <- lift (toHsk fb)
-                 whileM ((lift . colft =<<) . (lift . fc')) (lift . fb') v
+whl = prm3 (while :: (Exp -> Bool) -> (Exp -> Exp) -> Exp -> Exp)
 
 fst :: Exp -> NamM ErrM Exp
-fst (Tpl p) = return (MP.fst p)
-fst _       = badTypValM
+fst =  prm1 (MP.fst :: (Exp , Exp) -> Exp)
 
 snd :: Exp -> NamM ErrM Exp
-snd (Tpl p) = return (MP.snd p)
-snd _       = badTypValM
+snd =  prm1 (MP.snd :: (Exp , Exp) -> Exp)
 
 tpl :: Exp -> Exp -> NamM ErrM Exp
-tpl vf vs = return (lft (vf , vs))
+tpl = prm2 ((,) :: Exp -> Exp -> (Exp , Exp))
 
 ary :: Exp -> Exp -> NamM ErrM Exp
-ary (ConI l) (Abs vf) = fmap lft (sequence (mkArr l ((lift . vf) . ConI)))
-ary _        _        = badTypValM
+ary = prm2 (mkArr :: Word32 -> (Word32 -> Exp) -> Array Word32 Exp)
 
 len :: Exp -> NamM ErrM Exp
-len (Ary a) = return (lft (lnArr a))
-len _       = badTypValM
+len = prm1 (lnArr :: Array Word32 Exp -> Word32)
 
 ind :: Exp -> Exp -> NamM ErrM Exp
-ind (Ary a) (ConI i) = return (a ! i)
-ind _       _        = badTypValM
+ind  = prm2 (ixArr :: Array Word32 Exp -> Word32 -> Exp)
 
 cmx :: Exp -> Exp -> NamM ErrM Exp
-cmx fr fi = do fr' <- lift (toHsk fr)
-               fi' <- lift (toHsk fi)
-               return (Cmx (fr' :+ fi'))
+cmx = prm2 ((:+) :: Float -> Float -> Complex Float)
 
 leT :: Exp -> (Exp -> Exp) -> NamM ErrM Exp
 leT e f = return (f e)
@@ -187,39 +135,43 @@ typ :: TA.Typ -> Exp -> NamM ErrM Exp
 typ _ = return
 
 mul :: Exp -> Exp -> NamM ErrM Exp
-mul (ConI i) (ConI i') = return (lft (i * i'))
-mul (ConF f) (ConF f') = return (lft (f * f'))
-mul _        _         = badTypValM
+mul (ConI x) (ConI y) = return (toExp (x * y))
+mul (ConF x) (ConF y) = return (toExp (x * y))
+mul (Cmx  x) (Cmx  y) = return (toExp (x * y))
+mul _        _        = badTypValM
 
 add :: Exp -> Exp -> NamM ErrM Exp
-add (ConI i) (ConI i') = return (lft (i + i'))
-add (ConF f) (ConF f') = return (lft (f + f'))
-add _        _         = badTypValM
+add (ConI x) (ConI y) = return (toExp (x + y))
+add (ConF x) (ConF y) = return (toExp (x + y))
+add (Cmx  x) (Cmx  y) = return (toExp (x + y))
+add _        _        = badTypValM
 
 sub :: Exp -> Exp -> NamM ErrM Exp
-sub (ConI i) (ConI i') = return (lft (i - i'))
-sub (ConF f) (ConF f') = return (lft (f - f'))
-sub _        _         = badTypValM
+sub (ConI x) (ConI y) = return (toExp (x - y))
+sub (ConF x) (ConF y) = return (toExp (x - y))
+sub (Cmx  x) (Cmx  y) = return (toExp (x - y))
+sub _        _        = badTypValM
 
 eql :: Exp -> Exp -> NamM ErrM Exp
-eql (ConI i) (ConI i') = return (lft (i == i'))
-eql (ConF f) (ConF f') = return (lft (f == f'))
-eql _        _         = badTypValM
+eql (ConI x) (ConI y) = return (toExp (x == y))
+eql (ConF x) (ConF y) = return (toExp (x == y))
+eql (ConB x) (ConB y) = return (toExp (x == y))
+eql _        _        = badTypValM
 
 ltd :: Exp -> Exp -> NamM ErrM Exp
-ltd (ConI i) (ConI i') = return (lft (i < i'))
-ltd (ConF f) (ConF f') = return (lft (f < f'))
-ltd _        _         = badTypValM
+ltd (ConI x) (ConI y) = return (toExp (x < y))
+ltd (ConF x) (ConF y) = return (toExp (x < y))
+ltd (ConB x) (ConB y) = return (toExp (x < y))
+ltd _        _        = badTypValM
 
 int :: Word32 -> NamM ErrM Exp
-int = lift . prm0
+int = prm0
 
 mem :: Exp -> NamM ErrM Exp
 mem = return
 
 fix :: Exp -> NamM ErrM Exp
-fix (Abs  l) = lift (fixM l)
-fix _        = badTypValM
+fix = prm1 (MP.fix :: (Exp -> Exp) -> Exp)
 
 aryV :: Exp -> Exp -> NamM ErrM Exp
 aryV _ _  = impossibleM
