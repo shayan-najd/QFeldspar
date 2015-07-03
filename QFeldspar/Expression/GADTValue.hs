@@ -4,13 +4,13 @@ module QFeldspar.Expression.GADTValue
     ,cmx,tag,mul,add,sub,eql,ltd,int,mem,fix,aryV,lenV,indV,non,som,may
     ,getTrm) where
 
-import QFeldspar.MyPrelude hiding (abs,fst,snd,may,som,non,tpl,cnd,fix)
-import qualified QFeldspar.MyPrelude as MP
+import QFeldspar.MyPrelude hiding (abs,fst,snd)
 import qualified QFeldspar.Type.GADT as TG
 import qualified QFeldspar.Environment.Typed as ET
 import QFeldspar.Singleton
 import QFeldspar.Magic
 import Unsafe.Coerce
+import qualified QFeldspar.Prelude.Haskell as PH
 
 data Exp :: * -> * where
   Exp :: t -> Exp t
@@ -64,34 +64,34 @@ app :: Exp (ta -> tb) -> Exp ta -> Exp tb
 app = prm2 (\ f x -> f x)
 
 cnd :: Exp Bool -> Exp a -> Exp a -> Exp a
-cnd = prm3 MP.cnd
+cnd = prm3 PH.cnd
 
 whl :: Exp (s -> Bool) -> Exp (s -> s) -> Exp s -> Exp s
-whl = prm3 MP.while
+whl = prm3 PH.while
 
 tpl :: Exp tf -> Exp ts -> Exp (tf , ts)
-tpl = prm2 MP.tpl
+tpl = prm2 PH.tpl
 
 fst :: Exp (a , b) -> Exp a
-fst = prm1 MP.fst
+fst = prm1 PH.fst
 
 snd :: Exp (a , b) -> Exp b
-snd = prm1 MP.snd
+snd = prm1 PH.snd
 
 ary :: Exp Word32 -> Exp (Word32 -> a) -> Exp (Ary a)
-ary = prm2 MP.mkArr
+ary = prm2 PH.mkArr
 
 len :: Exp (Ary a) -> Exp Word32
-len = prm1 MP.lnArr
+len = prm1 PH.lnArr
 
 ind :: Exp (Ary a) -> Exp Word32 -> Exp a
-ind = prm2 MP.ixArr
+ind = prm2 PH.ixArr
 
 leT :: Exp tl -> Exp (tl -> tb) -> Exp tb
 leT = prm2 (\ x f -> f x)
 
 cmx :: Exp Float -> Exp Float -> Exp (Complex Float)
-cmx = prm2 (:+)
+cmx = prm2 (PH.cmx)
 
 mul :: forall a. TG.Type a => Exp a -> Exp a -> Exp a
 mul = case sin :: TG.Typ a of
@@ -141,7 +141,7 @@ mem :: Exp a -> Exp a
 mem = id
 
 fix :: Exp (a -> a) -> Exp a
-fix = prm1 MP.fix
+fix = prm1 PH.fix
 
 aryV :: Exp Word32 -> Exp (Word32 -> a) -> Exp (Vec a)
 aryV = badUse "aryV"

@@ -4,8 +4,9 @@ module QFeldspar.Expression.ADTValue
     ,cmx,typ,mul,add,sub,eql,ltd,int,mem,fix,aryV,lenV,indV,non,som,may
     ,Rep(..)) where
 
-import QFeldspar.MyPrelude hiding (abs,fst,snd,may,som,non,tpl,cnd,fix)
-import qualified QFeldspar.MyPrelude as MP
+
+import QFeldspar.MyPrelude hiding (abs,fst,snd)
+import qualified QFeldspar.Prelude.Haskell as PH
 import qualified QFeldspar.Type.ADT as TA
 
 data Exp = ConI Word32
@@ -102,31 +103,31 @@ prm :: Exp -> [Exp] -> NamM ErrM Exp
 prm = foldM app
 
 cnd :: Exp -> Exp -> Exp -> NamM ErrM Exp
-cnd = prm3 (MP.cnd :: Bool -> Exp -> Exp -> Exp)
+cnd = prm3 (PH.cnd :: Bool -> Exp -> Exp -> Exp)
 
 whl :: Exp -> Exp -> Exp -> NamM ErrM Exp
-whl = prm3 (while :: (Exp -> Bool) -> (Exp -> Exp) -> Exp -> Exp)
+whl = prm3 (PH.while :: (Exp -> Bool) -> (Exp -> Exp) -> Exp -> Exp)
 
 fst :: Exp -> NamM ErrM Exp
-fst =  prm1 (MP.fst :: (Exp , Exp) -> Exp)
+fst =  prm1 (PH.fst :: (Exp , Exp) -> Exp)
 
 snd :: Exp -> NamM ErrM Exp
-snd =  prm1 (MP.snd :: (Exp , Exp) -> Exp)
+snd =  prm1 (PH.snd :: (Exp , Exp) -> Exp)
 
 tpl :: Exp -> Exp -> NamM ErrM Exp
 tpl = prm2 ((,) :: Exp -> Exp -> (Exp , Exp))
 
 ary :: Exp -> Exp -> NamM ErrM Exp
-ary = prm2 (mkArr :: Word32 -> (Word32 -> Exp) -> Array Word32 Exp)
+ary = prm2 (PH.mkArr :: Word32 -> (Word32 -> Exp) -> Array Word32 Exp)
 
 len :: Exp -> NamM ErrM Exp
-len = prm1 (lnArr :: Array Word32 Exp -> Word32)
+len = prm1 (PH.lnArr :: Array Word32 Exp -> Word32)
 
 ind :: Exp -> Exp -> NamM ErrM Exp
-ind  = prm2 (ixArr :: Array Word32 Exp -> Word32 -> Exp)
+ind  = prm2 (PH.ixArr :: Array Word32 Exp -> Word32 -> Exp)
 
 cmx :: Exp -> Exp -> NamM ErrM Exp
-cmx = prm2 ((:+) :: Float -> Float -> Complex Float)
+cmx = prm2 ((PH.cmx) :: Float -> Float -> Complex Float)
 
 leT :: Exp -> (Exp -> Exp) -> NamM ErrM Exp
 leT e f = return (f e)
@@ -171,7 +172,7 @@ mem :: Exp -> NamM ErrM Exp
 mem = return
 
 fix :: Exp -> NamM ErrM Exp
-fix = prm1 (MP.fix :: (Exp -> Exp) -> Exp)
+fix = prm1 (PH.fix :: (Exp -> Exp) -> Exp)
 
 aryV :: Exp -> Exp -> NamM ErrM Exp
 aryV _ _  = impossibleM

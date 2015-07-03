@@ -1,7 +1,6 @@
 module QFeldspar.Prelude.HaskellEnvironment where
 
-import QFeldspar.MyPrelude hiding (cis,realPart,imagPart,i2f,ilog2)
-import qualified QFeldspar.MyPrelude as MP
+import QFeldspar.MyPrelude hiding (realPart,imagPart)
 
 import qualified QFeldspar.Environment.Scoped  as ES
 import qualified QFeldspar.Environment.Plain   as EP
@@ -11,6 +10,7 @@ import QFeldspar.Singleton
 import QFeldspar.Environment.Conversion ()
 import QFeldspar.Expression.Utils.TemplateHaskell
 import QFeldspar.Conversion
+import qualified QFeldspar.Prelude.Haskell as PH
 
 infixr 5 <+>
 (<+>) :: t -> ES.Env n t -> ES.Env (NA.Suc n) t
@@ -22,21 +22,21 @@ esTH = fmap stripNameSpace esTH'
 epTH :: EP.Env TH.Name
 epTH = frmRgtZro (cnv (esTH , ()))
 
-type Prelude = [Complex Float -> Float          ,
-                Complex Float -> Float          ,
-                Word32 -> (Word32 -> Word32) ,
-                Float -> (Float -> Float) ,
-                Word32 -> (Word32 -> Word32) ,
-                Word32 -> (Word32 -> Word32) ,
-                Word32 -> (Word32 -> Word32) ,
-                Word32 -> (Word32 -> Word32) ,
-                Word32 -> (Word32 -> Word32) ,
-                Word32 -> Word32          ,
-                Word32 -> Float          ,
-                Float -> Complex Float          ,
-                Word32 -> Word32          ,
-                Float -> Float          ,
-                Ary Word32             ]
+type Prelude = [Complex Float -> Float,
+                Complex Float -> Float,
+                Word32 -> (Word32 -> Word32),
+                Float -> (Float -> Float),
+                Word32 -> (Word32 -> Word32),
+                Word32 -> (Word32 -> Word32),
+                Word32 -> (Word32 -> Word32),
+                Word32 -> (Word32 -> Word32),
+                Word32 -> (Word32 -> Word32),
+                Word32 -> Word32,
+                Word32 -> Float,
+                Float -> Complex Float,
+                Word32 -> Word32,
+                Float -> Float,
+                Ary Word32]
 
 esTH' :: ES.Env (Len Prelude) TH.Name
 esTH' = 'realPart
@@ -57,46 +57,46 @@ esTH' = 'realPart
     <+> ES.Emp
 
 realPart :: Complex Float -> Float
-realPart = MP.realPart
+realPart = PH.realPart
 
 imagPart :: Complex Float -> Float
-imagPart = MP.imagPart
+imagPart = PH.imagPart
 
 divWrd :: Word32 -> (Word32 -> Word32)
-divWrd =  div
+divWrd =  PH.div
 
 divFlt :: Float -> (Float -> Float)
-divFlt = (/)
+divFlt = (PH./)
 
 andWrd :: Word32 -> (Word32 -> Word32)
-andWrd = (.&.)
+andWrd = (PH..&.)
 
 orWrd :: Word32 -> (Word32 -> Word32)
-orWrd = (.|.)
+orWrd = (PH..|.)
 
 xorWrd :: Word32 -> (Word32 -> Word32)
-xorWrd = xor
+xorWrd = PH.xor
 
 shrWrd :: Word32 -> (Word32 -> Word32)
-shrWrd = shfRgt
+shrWrd = PH.shfRgt
 
 shlWrd :: Word32 -> (Word32 -> Word32)
-shlWrd = shfLft
+shlWrd = PH.shfLft
 
 cmpWrd :: Word32 -> Word32
-cmpWrd = complement
+cmpWrd = PH.complement
 
 i2f :: Word32 -> Float
-i2f = MP.i2f
+i2f = PH.i2f
 
 cis :: Float -> Complex Float
-cis = MP.cis
+cis = PH.cis
 
 ilog2 :: Word32 -> Word32
-ilog2 = MP.ilog2
+ilog2 = PH.ilog2
 
 sqrtFlt :: Float -> Float
-sqrtFlt = sqrt
+sqrtFlt = PH.sqrt
 
 hshTbl :: Ary Word32
-hshTbl = hashTable
+hshTbl = PH.hashTable

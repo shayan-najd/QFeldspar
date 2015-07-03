@@ -12,7 +12,7 @@ module QFeldspar.QDSL
    ghoF{-,nghoF-},gho{-,ngho-},trmEql,
    translateWith,translateFWith) where
 
-import QFeldspar.MyPrelude hiding (while,save)
+import QFeldspar.MyPrelude
 import qualified QFeldspar.MyPrelude as MP
 
 import QFeldspar.Expression.Utils.Show.GADTFirstOrder()
@@ -51,10 +51,12 @@ import qualified QFeldspar.Environment.Typed as ET
 import qualified QFeldspar.Nat.ADT as NA
 
 import qualified QFeldspar.Normalisation as GFO
-
+import QFeldspar.Prelude.Haskell hiding (save,while)
+import qualified QFeldspar.Prelude.Haskell as PH
 import QFeldspar.Prelude.Environment (etTG)
 import qualified QFeldspar.Prelude.HaskellEnvironment as PHE
 import QFeldspar.Expression.Conversions.EtaPrims(etaPrms)
+
 
 type Data a = TH.Q (TH.TExp a)
 type Qt a = Data a
@@ -70,10 +72,10 @@ instance FO a => FO (MP.Ary a)             where {}
 instance FO (MP.Complex MP.Float)          where {}
 
 while :: FO a => (a -> MP.Bool) -> (a -> a) -> a -> a
-while = MP.while
+while = PH.while
 
 save :: FO a => a -> a
-save = MP.save
+save = PH.save
 
 dn :: TH.Name
 dn = (TH.Name (TH.OccName "dummyy") TH.NameS)

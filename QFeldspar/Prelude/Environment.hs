@@ -1,6 +1,6 @@
 module QFeldspar.Prelude.Environment where
 
-import QFeldspar.MyPrelude hiding (cis,realPart,imagPart,i2f,ilog2)
+import QFeldspar.MyPrelude hiding (realPart,imagPart)
 
 import qualified QFeldspar.Expression.ADTValue  as FAV
 import qualified QFeldspar.Expression.GADTValue as FGV

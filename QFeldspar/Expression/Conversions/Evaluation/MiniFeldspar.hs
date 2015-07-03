@@ -51,8 +51,9 @@ instance (TG.Type t , r ~ r' , t ~ t') =>
                                                 (FGV.Exp (fromJust
                                                    . flip lookup (assocs v))) , r)
         | otherwise           -> fail "Bad Array!"
-    TG.Cmx                   -> Cmx <$> cnv (FGV.Exp (realPart v) , r)
-                                     <*> cnv (FGV.Exp (imagPart v) , r)
+    TG.Cmx                   -> Cmx
+                                <$> cnv (FGV.Exp (realPart v) , r)
+                                <*> cnv (FGV.Exp (imagPart v) , r)
     TG.Arr _ _               -> fail "Type Error!"
     TG.May _                 -> fail "Type Error!"
     TG.Vct _                 -> fail "Type Error!"

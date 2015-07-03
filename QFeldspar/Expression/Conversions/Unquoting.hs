@@ -10,6 +10,7 @@ import Language.Haskell.TH.Instances ()
 import QFeldspar.Expression.Utils.TemplateHaskell
 import QFeldspar.Conversion
 import QFeldspar.Type.Conversion ()
+import QFeldspar.Prelude.Haskell
 
 instance Cnv (DTH.MExp , r) (AUN.Exp TH.Name) where
   cnv (ee , r) = case ee of
