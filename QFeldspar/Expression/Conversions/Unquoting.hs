@@ -5,6 +5,7 @@ import QFeldspar.MyPrelude
 import qualified QFeldspar.Expression.ADTUntypedNamed as AUN
 import qualified Language.Haskell.TH.Syntax as TH
 import qualified Language.Haskell.TH.Desugar as  DTH
+import qualified Language.Haskell.TH.Desugar.MiniCore as  DTH
 import qualified GHC.Types
 import Language.Haskell.TH.Instances ()
 import QFeldspar.Expression.Utils.TemplateHaskell
