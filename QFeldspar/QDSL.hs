@@ -9,7 +9,7 @@ module QFeldspar.QDSL
    qdsl,evaluate,translate,translateF,compile,compileF,
    dbg1,dbg15,dbg2,dbg3,dbg4,dbg45,dbg5,dbg6,
    testQt,testNrmQt,testNrmSmpQt,testDpF,toDp,wrp,
-   ghoF{-,nghoF-},gho{-,ngho-},trmEql,
+   ghoF{-,nghoF-},gho{-,ngho-},trmEql,CDSL.makeIP,
    translateWith,translateFWith) where
 
 import QFeldspar.MyPrelude

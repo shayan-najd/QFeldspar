@@ -1,12 +1,12 @@
 module QFeldspar.CDSL
   (module QFeldspar.Prelude.MiniFeldspar{-,shared-},(.),
    evaluate,compile,compileF,normalise,normaliseF,
-   simplify,simplifyF,cdsl) where
+   simplify,simplifyF,cdsl,makeIP) where
 
 import QFeldspar.Prelude.MiniFeldspar
 import QFeldspar.Prelude.Environment
 import QFeldspar.Singleton
-import QFeldspar.MyPrelude (frmRgt,String,(.))
+import QFeldspar.MyPrelude (frmRgt,String,(.),(++),IO,writeFile,return)
 import qualified QFeldspar.MyPrelude as MP
 
 import QFeldspar.Conversion
@@ -22,6 +22,8 @@ import QFeldspar.Expression.Utils.Reuse.MiniFeldspar
 -- import QFeldspar.Expression.Utils.MiniFeldspar(shared)
 import QFeldspar.CSE(cse,remTag)
 import QFeldspar.Simplification (smp)
+import System.Process
+
 
 type C    = String
 
@@ -64,3 +66,30 @@ simplifyF ff = let f = toExpF ff
 
 cdsl :: (Type a , Type b) => (Dp a -> Dp b) -> C
 cdsl = compileF MP.True MP.True
+
+makeIP :: String -> String -> IO ()
+makeIP c name = do
+  let fileContent = "#include\"ppm.h\"\n" ++
+                    c ++
+                    "\nint main(int argc, char *argv[])"++
+                    "\n{"++
+                    "\n  Image   imgIn = readImage(argv[1]);"++
+                    "\n  AryWrd aryIn = newAry(Wrd,size(imgIn)); "++
+                    "\n  for (unsigned int i = 0; i < size(imgIn); i++)"++
+                    "\n    aryIn = setAry(aryIn , i , imgIn.data[i]);"++
+                    "\n  AryWrd aryOut;"++
+                    "\n  aryOut = func(aryIn);"++
+                    "\n  unsigned int t;"++
+                    "\n  sscanf(argv[3],\"%d\",&t);" ++
+                    "\n  Image imgOut = {.sizeX = imgIn.sizeX, "++
+                    "\n                  .sizeY = imgIn.sizeY,"++
+                    "\n                  .type  = t,"++
+                    "\n                  .data  = malloc(len(aryOut) * sizeof(unsigned int))}; "++
+                    "\n  for(unsigned int i = 0; i < len(aryOut); i++)"++
+                    "\n    imgOut.data[i] = ind(aryOut , i);"++
+                    "\n  writeImage (argv[2] , imgOut);"++
+                    "\n  return 0;"++
+                    "\n}"
+     in do writeFile ("Examples/C/"++name++".c") fileContent
+           _ <- runCommand ("gcc -o ./Examples/C/" ++ name ++" ./Examples/C/" ++ name ++ ".c -lm -std=c99")
+           return ()
