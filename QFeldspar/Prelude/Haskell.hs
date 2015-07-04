@@ -1,6 +1,6 @@
 module QFeldspar.Prelude.Haskell
        (cnd,while,tpl,fst,snd,mkArr,lnArr,ixArr,cmx,Complex(..),
-        non,som,may,save,fix,
+        non,som,may,save,fix,Vec(..),
         realPart,imagPart,div,(/),(.&.),(.|.),xor,
         shfRgt,shfLft,complement,
         i2f,cis,ilog2,sqrt,hashTable,add)

@@ -78,5 +78,8 @@ getState :: MonadState s m => m s
 getState = get
 
 type Ary a = Array Word32 a
-data Vec a = Vec Word32 (Word32 -> a)
+data Vec a = Vec { lnVec :: Word32,
+                   ixVec :: Word32 -> a}
 data TVr x = TVar (Nat x)
+
+deriving instance Functor Vec

@@ -20,11 +20,6 @@ deriving instance Functor Exp
 getTrm :: Exp t -> t
 getTrm (Exp x) = x
 
--- The functionunsafeCoerce is "safe" to be used here,
--- since type-safety is guaranteed by Trm datatype.
-prm :: forall a as b. Match a as b => Exp a -> ET.Env Exp as -> Exp b
-prm f xss = unsafeCoerce(ET.foldl (\ (Exp f') (Exp x) ->
-                                    Exp ((unsafeCoerce f') x)) f xss)
 
 prm0 :: a -> Exp a
 prm0 = Exp
@@ -62,6 +57,12 @@ abs = id
 
 app :: Exp (ta -> tb) -> Exp ta -> Exp tb
 app = prm2 (\ f x -> f x)
+
+-- The functionunsafeCoerce is "safe" to be used here,
+-- since type-safety is guaranteed by Trm datatype.
+prm :: forall a as b. Match a as b => Exp a -> ET.Env Exp as -> Exp b
+prm f xss = unsafeCoerce(ET.foldl (\ (Exp f') (Exp x) ->
+                                    Exp ((unsafeCoerce f') x)) f xss)
 
 cnd :: Exp Bool -> Exp a -> Exp a -> Exp a
 cnd = prm3 PH.cnd
@@ -144,20 +145,20 @@ fix :: Exp (a -> a) -> Exp a
 fix = prm1 PH.fix
 
 aryV :: Exp Word32 -> Exp (Word32 -> a) -> Exp (Vec a)
-aryV = badUse "aryV"
+aryV = prm2 PH.Vec
 
 lenV :: Exp (Vec a) -> Exp Word32
-lenV = badUse "lenV"
+lenV = prm1 PH.lnVec
 
 indV :: Exp (Vec a) -> Exp Word32 -> Exp a
-indV = badUse "indV"
+indV = prm2 PH.ixVec
 
 non  :: Exp (Maybe a)
-non  = badUse "non"
+non  = prm0 Nothing
 
 som  :: Exp a -> Exp (Maybe a)
-som  = badUse "som"
+som  = prm1 Just
 
 may  :: Exp (Maybe a) ->
         Exp b -> Exp (a -> b) -> Exp b
-may  = badUse "may"
+may  = prm3 PH.may

@@ -5,7 +5,7 @@ module QFeldspar.Expression.ADTValue
     ,Rep(..)) where
 
 
-import QFeldspar.MyPrelude hiding (abs,fst,snd)
+import QFeldspar.MyPrelude hiding (abs,fst,snd,Vec)
 import qualified QFeldspar.Prelude.Haskell as PH
 import qualified QFeldspar.Type.ADT as TA
 
@@ -16,6 +16,8 @@ data Exp = ConI Word32
          | Tpl (Exp , Exp)
          | Ary (Ary Exp)
          | Cmx (Complex Float)
+         | Vec (PH.Vec Exp)
+         | May (Maybe Exp)
 
 class Rep a where
   toExp  :: a -> Exp
@@ -26,40 +28,50 @@ instance Rep Exp where
   frmExp = pure
 
 instance Rep Word32 where
-  toExp = ConI
+  toExp            = ConI
   frmExp (ConI i) = return i
   frmExp _        = badTypValM
 
 instance Rep Bool where
-  toExp  = ConB
+  toExp           = ConB
   frmExp (ConB b) = return b
   frmExp _        = badTypValM
 
 instance Rep Float where
-  toExp  = ConF
+  toExp           = ConF
   frmExp (ConF f) = return f
   frmExp _        = badTypValM
 
 instance (Rep a , Rep b) => Rep (a -> b) where
-  toExp  f = Abs (toExp . f . frmRgt . frmExp)
+  toExp  f        = Abs (toExp . f . frmRgt . frmExp)
   frmExp (Abs f)  = return
                     (frmRgt . frmExp . f  . toExp)
   frmExp _        = badTypValM
 
 instance (Rep a , Rep b) => Rep (a , b) where
-  toExp (x , y) = Tpl (toExp x , toExp y)
+  toExp (x , y)        = Tpl (toExp x , toExp y)
   frmExp (Tpl (x , y)) = ((,)) <$> frmExp x <*> frmExp y
   frmExp _             = badTypValM
 
 instance Rep a => Rep (Array Word32 a) where
-  toExp a = Ary (fmap toExp a)
+  toExp a        = Ary (fmap toExp a)
   frmExp (Ary x) = mapM frmExp x
   frmExp _       = badTypValM
 
+instance Rep a => Rep (PH.Vec a) where
+  toExp a        = Vec (fmap toExp a)
+  frmExp (Vec v) = return (fmap (frmRgt . frmExp) v)
+  frmExp _       = badTypValM
+
 instance Rep (Complex Float) where
-  toExp = Cmx
+  toExp           = Cmx
   frmExp (Cmx c)  = return c
-  frmExp _        = badTypVal
+  frmExp _        = badTypValM
+
+instance Rep a => Rep (Maybe a) where
+  toExp x         = May (fmap toExp x)
+  frmExp (May m)  = mapM frmExp m
+  frmExp _        = badTypValM
 
 prm0 :: Rep a => a -> NamM ErrM Exp
 prm0 = return . toExp
@@ -175,19 +187,19 @@ fix :: Exp -> NamM ErrM Exp
 fix = prm1 (PH.fix :: (Exp -> Exp) -> Exp)
 
 aryV :: Exp -> Exp -> NamM ErrM Exp
-aryV _ _  = impossibleM
+aryV = prm2 (PH.Vec :: Word32 -> (Word32 -> Exp) -> PH.Vec Exp)
 
 lenV :: Exp -> NamM ErrM Exp
-lenV _    = impossibleM
+lenV = prm1 (PH.lnVec :: PH.Vec Exp -> Word32)
 
 indV :: Exp -> Exp -> NamM ErrM Exp
-indV _ _  = impossibleM
+indV = prm2 (PH.ixVec :: PH.Vec Exp -> Word32 -> Exp)
 
 non :: NamM ErrM Exp
-non       = impossibleM
+non  = prm0 (Nothing :: Maybe Exp)
 
 som :: Exp -> NamM ErrM Exp
-som _     = impossibleM
+som  = prm1 (Just :: Exp -> Maybe Exp)
 
 may :: Exp -> Exp -> Exp -> NamM ErrM Exp
-may _ _ _ = impossibleM
+may = prm3 (PH.may ::  Maybe Exp -> Exp -> (Exp -> Exp) -> Exp)
