@@ -119,6 +119,7 @@ library
      QFeldspar.Prelude.MiniFeldspar,
      QFeldspar.Prelude.HaskellEnvironment,
      QFeldspar.Prelude.Environment,
+     QFeldspar.Prelude.Haskell,
      Language.Haskell.TH.Desugar.MiniCore
   other-modules:
      Experiment.GenExperiment,
