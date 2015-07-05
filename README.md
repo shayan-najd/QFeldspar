@@ -18,3 +18,7 @@ To redo the experiment:
 To compile the project:
 
 * use "cabal install"
+
+To load the project in Docker:
+
+* execute "rundocker"
