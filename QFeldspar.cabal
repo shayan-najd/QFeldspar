@@ -61,6 +61,8 @@ library
      QFeldspar.Type.ADT,
      QFeldspar.CSE,
      QFeldspar.Normalisation,
+     QFeldspar.Literal.ADT,
+     QFeldspar.Literal.GADT,
      QFeldspar.Expression.GADTHigherOrder,
      QFeldspar.Expression.GADTValue,
      QFeldspar.Expression.ADTValue,
