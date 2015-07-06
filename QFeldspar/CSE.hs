@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-incomplete-patterns -fno-max-relevant-binds #-}
 module QFeldspar.CSE where
 
 import QFeldspar.Expression.GADTFirstOrder

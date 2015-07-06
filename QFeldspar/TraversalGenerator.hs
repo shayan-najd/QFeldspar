@@ -250,7 +250,7 @@ recAppM :: Name -> Name -> (Name -> Exp) -> [Name] -> Exp -> Exp -> Exp ->
            (Type -> Exp) -> Q Exp
 recAppM e dn g ns o0 o1 o2 wf fn = do
   TyConI (DataD _ _ _ ds _) <- reify dn
-  return $ CaseE (VarE e)
+  return $ CaseE (VarE e) $
              [Match (ConP n
                      [VarP (mkName ("_x" ++ show i))
                      | i <- [0.. length tl-1]])
@@ -277,4 +277,10 @@ recAppM e dn g ns o0 o1 o2 wf fn = do
                )
               ) []
              | d <- ds, let (n , tl) = getNameCount d
-             , not (n `elem` ns)]
+             , not (n `elem` ns)] ++
+             [ Match (ConP n
+                     [VarP (mkName ("_x" ++ show i))
+                     | i <- [0.. length tl-1]])
+                (NormalB (AppE (VarE 'error) (LitE (StringL "Impossible!")))) []
+             | d <- ds, let (n , tl) = getNameCount d
+             , n `elem` ns]

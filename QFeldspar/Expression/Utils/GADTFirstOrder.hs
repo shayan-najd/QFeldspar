@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 module QFeldspar.Expression.Utils.GADTFirstOrder
        (sucAll,prdAll,prdAllM,mapVar,sbs,replaceOne,cntVar,pattern TF
        ,isVal,val,pattern V,pattern NV) where

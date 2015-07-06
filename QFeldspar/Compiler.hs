@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 module QFeldspar.Compiler where
 
 import QFeldspar.MyPrelude hiding (fst,snd)

@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 module QFeldspar.Expression.Utils.GADTTyped
        (sucAll,prdAll,mapVar,sbs,fre,fre') where
 

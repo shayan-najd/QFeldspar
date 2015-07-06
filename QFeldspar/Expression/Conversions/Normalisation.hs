@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 module QFeldspar.Expression.Conversions.Normalisation () where
 
 import QFeldspar.MyPrelude

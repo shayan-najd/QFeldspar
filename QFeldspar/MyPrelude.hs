@@ -30,7 +30,7 @@ module QFeldspar.MyPrelude
    module QFeldspar.NameMonad,
    module QFeldspar.Existential,
    module QFeldspar.TraversalGenerator,
-   trace)
+   trace, error)
   where
 
 import Debug.Trace

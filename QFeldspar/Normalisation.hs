@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 module QFeldspar.Normalisation (nrm) where
 
 import QFeldspar.MyPrelude hiding (fmap,foldl)

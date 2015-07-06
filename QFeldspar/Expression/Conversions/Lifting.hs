@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 module QFeldspar.Expression.Conversions.Lifting (cnvHOFOF,cnvFOHO,cnvFOHOF) where
 
 import QFeldspar.MyPrelude
