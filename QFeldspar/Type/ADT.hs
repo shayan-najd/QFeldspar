@@ -8,12 +8,16 @@ data Typ =
     Wrd
   | Bol
   | Flt
+  | Cmx
+  | Int
+  | Rat
+  | Chr
+  | Str
   | Arr Typ Typ
   | Tpl Typ Typ
   | Ary Typ
   | Vec Typ
   | May Typ
-  | Cmx
   | TVr Nat
 
 deriving instance Eq   Typ

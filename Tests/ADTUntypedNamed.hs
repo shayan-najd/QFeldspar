@@ -26,7 +26,7 @@ compose :: Exp Var
 compose = Abs (x2 , (Abs (x1 , (Abs (x0 , (App (Var x2) (App (Var x1) (Var x0))))))))
 
 four :: Exp Var
-four = App (App (App compose dbl) dbl) (ConI 1)
+four = App (App (App compose dbl) dbl) (Int 1)
 
 test :: Bool
 test = (case runNamM (cnv (four , ([((stripNameSpace 'add)

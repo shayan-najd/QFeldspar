@@ -4,7 +4,7 @@ import QFeldspar.MyPrelude
 
 import QFeldspar.Nat.ADT
 import qualified QFeldspar.Type.Herbrand as TH
-import QFeldspar.Type.Herbrand hiding (Tpl,May,Cmx,Ary,App)
+import QFeldspar.Type.Herbrand hiding (Tpl,May,Cmx,Ary,App,Int,Rat)
 import QFeldspar.Solver
 import QFeldspar.Conversion
 import QFeldspar.Nat.Conversion ()
@@ -12,6 +12,7 @@ import QFeldspar.Expression.GADTTyped
 import QFeldspar.Environment.Scoped  as ES
 import qualified QFeldspar.Environment.Map  as EM
 import QFeldspar.InferenceMonad
+import QFeldspar.Literal.ADT
 
 type TypFld = Typ (EnvFld '[])
 
@@ -75,9 +76,11 @@ refresh' r (TH.Mta n)    = EM.get n r
 collect :: Exp m n TypFld -> (ES.Env m TypFld , ES.Env n TypFld) ->
            InfM (EnvFld '[]) TypFld
 collect ee (s , g) = case ee of
-    ConI _         -> return TH.Wrd
+    Lit (IntegerL _)  -> return TH.Int
+    Lit (RationalL _) -> return TH.Rat
+    Lit (CharL _)     -> return TH.Chr
+    Lit (StringL _)   -> return TH.Str
     ConB _         -> return Bol
-    ConF _         -> return Flt
     Var x          -> return (get x g)
     Prm ts x  es   -> do let tx = get x s
                          tes <- mapM (flip collect (s , g)) es
@@ -201,6 +204,7 @@ collect ee (s , g) = case ee of
                          addC (t  :~: tr)
                          return Bol
     Int _          -> newMT
+    Rat _          -> newMT
     Mem e          -> collect e (s , g)
     Fix e          -> do te <- collect e (s , g)
                          ta <- newMT

@@ -4,11 +4,11 @@ module QFeldspar.Expression.GADTTyped
 import QFeldspar.MyPrelude
 import QFeldspar.Variable.Scoped
 import qualified QFeldspar.Nat.ADT as NA
+import QFeldspar.Literal.ADT
 
 data Exp :: NA.Nat -> NA.Nat -> * -> * where
-  ConI :: Word32  -> Exp n m t
+  Lit  :: Lit     -> Exp n m t
   ConB :: Bool    -> Exp n m t
-  ConF :: Float   -> Exp n m t
   Var  :: Var m   -> Exp n m t
   Prm  :: [t] -> Var n -> [Exp n m t] -> Exp n m t
   Abs  :: Exp n (NA.Suc m) t -> Exp n m t
@@ -35,7 +35,8 @@ data Exp :: NA.Nat -> NA.Nat -> * -> * where
   Sub  :: Exp n m t  -> Exp n m t -> Exp n m t
   Eql  :: t -> Exp n m t -> Exp n m t -> Exp n m t
   Ltd  :: t -> Exp n m t -> Exp n m t -> Exp n m t
-  Int  :: Word32 -> Exp n m t
+  Int  :: Integer -> Exp n m t
+  Rat  :: Rational -> Exp n m t
   Mem  :: Exp n m t -> Exp n m t
   Fix  :: Exp n m t -> Exp n m t
 

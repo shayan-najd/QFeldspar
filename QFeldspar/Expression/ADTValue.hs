@@ -1,23 +1,31 @@
 module QFeldspar.Expression.ADTValue
-    (Exp
+    (Exp,lit
     ,conI,conB,conF,prm,var,abs,app,cnd,whl,tpl,fst,snd,ary,len,ind,leT
-    ,cmx,typ,mul,add,sub,eql,ltd,int,mem,fix,aryV,lenV,indV,non,som,may
+    ,cmx,typ,mul,add,sub,eql,ltd,rat,int,mem,fix,aryV,lenV,indV
+    ,non,som,may
     ,Rep(..)) where
 
 
 import QFeldspar.MyPrelude hiding (abs,fst,snd,Vec)
 import qualified QFeldspar.Prelude.Haskell as PH
 import qualified QFeldspar.Type.ADT as TA
+import QFeldspar.Literal.ADT
 
-data Exp = ConI Word32
-         | ConB Bool
+data Exp = Lit Lit
+         | ConI Word32
          | ConF Float
+         | ConB Bool
          | Abs (Exp -> Exp)
          | Tpl (Exp , Exp)
          | Ary (Ary Exp)
          | Cmx (Complex Float)
          | Vec (PH.Vec Exp)
          | May (Maybe Exp)
+
+pattern IntL i = Lit (IntegerL i)
+pattern RatL i = Lit (RationalL i)
+pattern ChrL c = Lit (CharL c)
+pattern StrL s = Lit (StringL s)
 
 class Rep a where
   toExp  :: a -> Exp
@@ -26,6 +34,31 @@ class Rep a where
 instance Rep Exp where
   toExp  = id
   frmExp = pure
+
+instance Rep Lit where
+  toExp = Lit
+  frmExp (Lit l) = return l
+  frmExp _       = badTypValM
+
+instance Rep Integer where
+  toExp = IntL
+  frmExp (IntL i) = return i
+  frmExp _        = badTypValM
+
+instance Rep Rational where
+  toExp = RatL
+  frmExp (RatL i) = return i
+  frmExp _        = badTypValM
+
+instance Rep Char where
+  toExp = ChrL
+  frmExp (ChrL i) = return i
+  frmExp _        = badTypValM
+
+instance Rep String where
+  toExp = StrL
+  frmExp (StrL i) = return i
+  frmExp _        = badTypValM
 
 instance Rep Word32 where
   toExp            = ConI
@@ -96,17 +129,20 @@ prm3 f x y z = lift (do x' <- frmExp x
 var :: a -> NamM ErrM a
 var = return
 
+lit :: Lit -> NamM ErrM Exp
+lit = prm0
+
 conI :: Word32 -> NamM ErrM Exp
 conI =  prm0
-
-conB :: Bool -> NamM ErrM Exp
-conB =  prm0
 
 conF :: Float -> NamM ErrM Exp
 conF =  prm0
 
+conB :: Bool -> NamM ErrM Exp
+conB =  prm0
+
 abs :: (Exp -> Exp) -> NamM ErrM Exp
-abs f = return (Abs f)
+abs = prm0
 
 app :: Exp -> Exp -> NamM ErrM Exp
 app = prm2 ((\ f a -> f a) :: (Exp -> Exp) -> Exp -> Exp)
@@ -151,34 +187,51 @@ mul :: Exp -> Exp -> NamM ErrM Exp
 mul (ConI x) (ConI y) = return (toExp (x * y))
 mul (ConF x) (ConF y) = return (toExp (x * y))
 mul (Cmx  x) (Cmx  y) = return (toExp (x * y))
+mul (IntL x) (IntL y) = return (toExp (x * y))
+mul (RatL x) (RatL y) = return (toExp (x * y))
 mul _        _        = badTypValM
 
 add :: Exp -> Exp -> NamM ErrM Exp
 add (ConI x) (ConI y) = return (toExp (x + y))
 add (ConF x) (ConF y) = return (toExp (x + y))
 add (Cmx  x) (Cmx  y) = return (toExp (x + y))
+add (IntL x) (IntL y) = return (toExp (x + y))
+add (RatL x) (RatL y) = return (toExp (x + y))
 add _        _        = badTypValM
 
 sub :: Exp -> Exp -> NamM ErrM Exp
 sub (ConI x) (ConI y) = return (toExp (x - y))
 sub (ConF x) (ConF y) = return (toExp (x - y))
 sub (Cmx  x) (Cmx  y) = return (toExp (x - y))
+sub (IntL x) (IntL y) = return (toExp (x - y))
+sub (RatL x) (RatL y) = return (toExp (x - y))
 sub _        _        = badTypValM
 
 eql :: Exp -> Exp -> NamM ErrM Exp
 eql (ConI x) (ConI y) = return (toExp (x == y))
 eql (ConF x) (ConF y) = return (toExp (x == y))
 eql (ConB x) (ConB y) = return (toExp (x == y))
+eql (IntL x) (IntL y) = return (toExp (x == y))
+eql (RatL x) (RatL y) = return (toExp (x == y))
+eql (ChrL x) (ChrL y) = return (toExp (x == y))
+eql (StrL x) (StrL y) = return (toExp (x == y))
 eql _        _        = badTypValM
 
 ltd :: Exp -> Exp -> NamM ErrM Exp
 ltd (ConI x) (ConI y) = return (toExp (x < y))
 ltd (ConF x) (ConF y) = return (toExp (x < y))
 ltd (ConB x) (ConB y) = return (toExp (x < y))
+ltd (IntL x) (IntL y) = return (toExp (x < y))
+ltd (RatL x) (RatL y) = return (toExp (x < y))
+ltd (ChrL x) (ChrL y) = return (toExp (x < y))
+ltd (StrL x) (StrL y) = return (toExp (x < y))
 ltd _        _        = badTypValM
 
-int :: Word32 -> NamM ErrM Exp
-int = prm0
+int :: Integer -> NamM ErrM Exp
+int = prm0 . (fromInteger :: Integer -> Word32)
+
+rat :: Rational -> NamM ErrM Exp
+rat = prm0 . (fromRational :: Rational -> Float)
 
 mem :: Exp -> NamM ErrM Exp
 mem = return

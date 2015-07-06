@@ -4,15 +4,15 @@ module QFeldspar.Expression.ADTUntypedDebruijn
 import QFeldspar.MyPrelude
 import QFeldspar.Variable.Plain
 import qualified QFeldspar.Type.ADT as TA
+import QFeldspar.Literal.ADT
 
 data Fun = Fun Exp
 
 deriving instance Eq   Fun
 deriving instance Show Fun
 
-data Exp = ConI Word32
+data Exp = Lit  Lit
          | ConB Bool
-         | ConF Float
          | Var  Var
          | Prm  Var [Exp]
          | Abs  Fun
@@ -39,7 +39,8 @@ data Exp = ConI Word32
          | Sub  Exp Exp
          | Eql  Exp Exp
          | Ltd  Exp Exp
-         | Int  Word32
+         | Int  Integer
+         | Rat  Rational
          | Mem  Exp
          | Fix  Exp
 

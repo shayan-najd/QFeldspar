@@ -1,8 +1,8 @@
 module QFeldspar.Expression.GADTValue
-    (Exp(..)
+    (Exp(..),lit
     ,conI,conB,conF,prm,var,abs,app,cnd,whl,tpl,fst,snd,ary,len,ind,leT
-    ,cmx,tag,mul,add,sub,eql,ltd,int,mem,fix,aryV,lenV,indV,non,som,may
-    ,getTrm) where
+    ,cmx,tag,mul,add,sub,eql,ltd,int,rat,mem,fix,aryV,lenV,indV,non,som
+    ,may,getTrm) where
 
 import QFeldspar.MyPrelude hiding (abs,fst,snd)
 import qualified QFeldspar.Type.GADT as TG
@@ -11,6 +11,7 @@ import QFeldspar.Singleton
 import QFeldspar.Magic
 import Unsafe.Coerce
 import qualified QFeldspar.Prelude.Haskell as PH
+import QFeldspar.Literal.GADT
 
 data Exp :: * -> * where
   Exp :: t -> Exp t
@@ -19,7 +20,6 @@ deriving instance Functor Exp
 
 getTrm :: Exp t -> t
 getTrm (Exp x) = x
-
 
 prm0 :: a -> Exp a
 prm0 = Exp
@@ -42,6 +42,9 @@ prm3 f e1 e2 e3 = let e1' = getTrm e1
 
 var :: t -> t
 var = id
+
+lit :: Lit a -> Exp a
+lit = Exp . unLit
 
 conI :: Word32 -> Exp Word32
 conI = prm0
@@ -99,6 +102,8 @@ mul = case sin :: TG.Typ a of
   TG.Wrd -> prm2 (*)
   TG.Flt -> prm2 (*)
   TG.Cmx -> prm2 (*)
+  TG.Int -> prm2 (*)
+  TG.Rat -> prm2 (*)
   _      -> badTypVal
 
 add :: forall a. TG.Type a => Exp a -> Exp a -> Exp a
@@ -106,6 +111,8 @@ add = case sin :: TG.Typ a of
   TG.Wrd -> prm2 (+)
   TG.Flt -> prm2 (+)
   TG.Cmx -> prm2 (+)
+  TG.Int -> prm2 (+)
+  TG.Rat -> prm2 (+)
   _      -> badTypVal
 
 sub :: forall a. TG.Type a => Exp a -> Exp a -> Exp a
@@ -113,6 +120,8 @@ sub = case sin :: TG.Typ a of
   TG.Wrd -> prm2 (-)
   TG.Flt -> prm2 (-)
   TG.Cmx -> prm2 (-)
+  TG.Int -> prm2 (-)
+  TG.Rat -> prm2 (-)
   _      -> badTypVal
 
 eql :: forall a. TG.Type a => Exp a -> Exp a -> Exp Bool
@@ -120,6 +129,10 @@ eql = case sin :: TG.Typ a of
   TG.Wrd -> prm2 (==)
   TG.Flt -> prm2 (==)
   TG.Bol -> prm2 (==)
+  TG.Int -> prm2 (==)
+  TG.Rat -> prm2 (==)
+  TG.Chr -> prm2 (==)
+  TG.Str -> prm2 (==)
   _      -> badTypVal
 
 ltd :: forall a. TG.Type a => Exp a -> Exp a -> Exp Bool
@@ -127,15 +140,28 @@ ltd = case sin :: TG.Typ a of
   TG.Wrd -> prm2 (<)
   TG.Flt -> prm2 (<)
   TG.Bol -> prm2 (<)
+  TG.Int -> prm2 (<)
+  TG.Rat -> prm2 (<)
+  TG.Chr -> prm2 (<)
+  TG.Str -> prm2 (<)
   _      -> badTypVal
 
 tag :: String -> Exp a -> Exp a
 tag = const id
 
-int :: forall a. TG.Type a => Word32 -> Exp a
+int :: forall a. TG.Type a => Integer -> Exp a
 int = case sin :: TG.Typ a of
   TG.Wrd -> Exp . fromIntegral
   TG.Flt -> Exp . fromIntegral
+  TG.Int -> Exp
+  TG.Rat -> Exp . fromIntegral
+  _      -> badTypVal
+
+
+rat :: forall a. TG.Type a => Rational -> Exp a
+rat = case sin :: TG.Typ a of
+  TG.Flt -> Exp . fromRational
+  TG.Rat -> Exp
   _      -> badTypVal
 
 mem :: Exp a -> Exp a

@@ -3,6 +3,7 @@ module QFeldspar.Expression.Conversions.Unquoting () where
 import QFeldspar.MyPrelude
 
 import qualified QFeldspar.Expression.ADTUntypedNamed as AUN
+import qualified QFeldspar.Literal.ADT as AUN
 import qualified Language.Haskell.TH.Syntax as TH
 import qualified Language.Haskell.TH.Desugar as  DTH
 import qualified Language.Haskell.TH.Desugar.MiniCore as  DTH
@@ -16,8 +17,10 @@ import QFeldspar.Prelude.Haskell
 instance Cnv (DTH.MExp , r) (AUN.Exp TH.Name) where
   cnv (ee , r) = case ee of
     DTH.MLitE l         -> case l of
-      TH.IntegerL  i    -> pure (AUN.Int  (fromInteger  i :: Word32))
-      TH.RationalL i    -> pure (AUN.ConF (fromRational i :: Float))
+      TH.IntegerL  i    -> pure (AUN.Int i)
+      TH.RationalL i    -> pure (AUN.Rat i)
+      TH.CharL i        -> pure (AUN.Lit (AUN.CharL i))
+      TH.StringL i      -> pure (AUN.Lit (AUN.StringL i))
       _                 -> fail "Not Supported!"
     DTH.MVarE n
       | n === 'fst          -> do vv1 <- newTHVar

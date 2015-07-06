@@ -8,7 +8,7 @@ import QFeldspar.Expression.GADTFirstOrder as GFO
 import QFeldspar.Variable.Typed
 import QFeldspar.Expression.Utils.Common
 import QFeldspar.Singleton
-import QFeldspar.Type.GADT hiding (May,Cmx,Ary,Tpl)
+import QFeldspar.Type.GADT hiding (May,Cmx,Ary,Tpl,Int,Rat)
 import qualified QFeldspar.Environment.Typed as ET
 
 
@@ -103,9 +103,8 @@ sbs'F e' v' e = sbs' (sucAll e') (Suc v') e
 
 isVal :: Exp s g a -> Bool
 isVal ee = case ee of
-    ConI _        -> True
+    Lit  _        -> True
     ConB _        -> True
-    ConF _        -> True
     Prm  _ _      -> False
     Var  _        -> True
     Abs  _        -> True
@@ -132,6 +131,7 @@ isVal ee = case ee of
     Eql _ _       -> False
     Ltd _ _       -> False
     Int _         -> True -- shouldn't matter
+    Rat _         -> True -- shouldn't matter
     Tag _ e       -> isVal e
     Mem _         -> False
     Fix _         -> False

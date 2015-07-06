@@ -10,6 +10,7 @@ import QFeldspar.Conversion
 import QFeldspar.Variable.Conversion ()
 import QFeldspar.Singleton
 import QFeldspar.Expression.Utils.Common
+import qualified QFeldspar.Prelude.Haskell as PH
 
 instance (TG.Type a, a ~ a') =>
          Cnv (Exp s a , Env FGV.Exp s) (FGV.Exp a')
@@ -42,22 +43,21 @@ instance (TG.Type t , r ~ r' , t ~ t') =>
     TG.Bol                   -> pure (ConB v)
     TG.Flt                   -> pure (ConF v)
     TG.Tpl _ _               -> case TG.getPrfHasSinTpl t of
-     (PrfHasSin , PrfHasSin)  -> Tpl  <$> cnv (FGV.Exp (fst v) , r)
-                                      <*> cnv (FGV.Exp (snd v) , r)
-    TG.Ary ta                -> case TG.getPrfHasSinAry t of
-      PrfHasSin
-        | fst (bounds v) == 0 -> Ary  <$> cnv ((FGV.Exp . (+ 1) . snd . bounds) v , r)
-                                      <*> cnv (samTyp (TG.Arr TG.Wrd ta)
-                                                (FGV.Exp (fromJust
-                                                   . flip lookup (assocs v))) , r)
-        | otherwise           -> fail "Bad Array!"
-    TG.Cmx                   -> Cmx
-                                <$> cnv (FGV.Exp (realPart v) , r)
-                                <*> cnv (FGV.Exp (imagPart v) , r)
+     (PrfHasSin , PrfHasSin) -> Tpl  <$> cnv (FGV.Exp (fst v) , r)
+                                     <*> cnv (FGV.Exp (snd v) , r)
+    TG.Ary _                 -> case TG.getPrfHasSinAry t of
+      PrfHasSin              -> Ary  <$> cnv (FGV.Exp (PH.lnArr v) , r)
+                                     <*> cnv (FGV.Exp (PH.ixArr v) , r)
+    TG.Cmx                   -> Cmx  <$> cnv (FGV.Exp (realPart v) , r)
+                                     <*> cnv (FGV.Exp (imagPart v) , r)
     TG.Arr _ _               -> fail "Type Error!"
     TG.May _                 -> fail "Type Error!"
     TG.Vct _                 -> fail "Type Error!"
-
+    TG.Int                   -> fail "Type Error!"
+    TG.Rat                   -> fail "Type Error!"
+    TG.Chr                   -> fail "Type Error!"
+    TG.Str                   -> fail "Type Error!"
+    TG.TVr _                 -> fail "Type Error!"
 
 instance (TG.Type ta , TG.Type tb , r ~ r' , ta ~ ta' , tb ~ tb')=>
          Cnv (FGV.Exp (ta' -> tb') , Env FGV.Exp r') (Exp r ta -> Exp r tb)

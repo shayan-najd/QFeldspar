@@ -3,10 +3,10 @@ module QFeldspar.Expression.ADTUntypedNamed
 
 import QFeldspar.MyPrelude
 import qualified QFeldspar.Type.ADT as TA
+import QFeldspar.Literal.ADT
 
-data Exp x = ConI Word32
+data Exp x = Lit Lit
            | ConB Bool
-           | ConF Float
            | Var x
            | Prm x [Exp x]
            | Abs (x , Exp x)
@@ -33,7 +33,8 @@ data Exp x = ConI Word32
            | Sub (Exp x) (Exp x)
            | Eql (Exp x) (Exp x)
            | Ltd (Exp x) (Exp x)
-           | Int Word32
+           | Int Integer
+           | Rat Rational
            | Mem (Exp x)
            | Fix (Exp x)
 

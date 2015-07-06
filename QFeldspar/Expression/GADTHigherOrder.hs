@@ -5,12 +5,12 @@ import QFeldspar.MyPrelude
 import QFeldspar.Environment.Typed
 import QFeldspar.Variable.Typed
 import QFeldspar.Type.GADT
+import QFeldspar.Literal.GADT
 import QFeldspar.Magic
 
 data Exp :: [*] -> * -> * where
-  ConI :: Word32   -> Exp s Word32
+  Lit :: Lit a    -> Exp s a
   ConB :: Bool     -> Exp s Bool
-  ConF :: Float    -> Exp s Float
   Prm  :: (Match a as b , Types as) =>
           Var s a -> Env (Exp s) as -> Exp s b
   Abs  :: (Exp s a -> Exp s b) -> Exp s (a -> b)
@@ -39,8 +39,9 @@ data Exp :: [*] -> * -> * where
   Sub  :: Exp s a  -> Exp s a -> Exp s a
   Eql  :: Type a => Exp s a  -> Exp s a -> Exp s Bool
   Ltd  :: Type a => Exp s a  -> Exp s a -> Exp s Bool
-  Tmp  :: String -> Exp s a
-  Int  :: Word32 -> Exp s a
-  Tag  :: String -> Exp s a -> Exp s a
+  Tmp  :: String  -> Exp s a
+  Int  :: Integer -> Exp s a
+  Rat  :: Rational -> Exp s a
+  Tag  :: String  -> Exp s a -> Exp s a
   Mem  :: Exp s a -> Exp s a
   Fix  :: Exp s (a -> a) -> Exp s a

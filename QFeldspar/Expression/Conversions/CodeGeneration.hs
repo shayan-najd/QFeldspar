@@ -57,6 +57,10 @@ instance Pretty TA.Typ where
     TA.TVr _   -> impossible
     TA.Arr _ _ -> impossible
     TA.Vec _   -> impossible
+    TA.Int     -> impossible
+    TA.Rat     -> impossible
+    TA.Chr     -> impossible
+    TA.Str     -> impossible
 
 commaCat :: [Doc] -> Doc
 commaCat ds = foldl1 (<>) (Data.List.intersperse (comma<>space) ds)

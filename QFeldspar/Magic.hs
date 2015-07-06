@@ -121,6 +121,10 @@ subs (Ext _ _)   TG.Wrd       = TG.Wrd
 subs (Ext _ _)   TG.Bol       = TG.Bol
 subs (Ext _ _)   TG.Flt       = TG.Flt
 subs (Ext _ _)   TG.Cmx       = TG.Cmx
+subs (Ext _ _)   TG.Int       = TG.Int
+subs (Ext _ _)   TG.Rat       = TG.Rat
+subs (Ext _ _)   TG.Chr       = TG.Chr
+subs (Ext _ _)   TG.Str       = TG.Str
 
 case_Subs :: NG.Nat x -> SMaybe TG.Typ a -> TG.Typ (Case_Subs x a)
 case_Subs _ (SJust t) = t

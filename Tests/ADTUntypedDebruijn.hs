@@ -19,7 +19,7 @@ compose = Abs (Fun
                                            (Var Zro))))))))
 
 four :: Exp
-four = App (App (App compose dbl) dbl) (ConI 1)
+four = App (App (App compose dbl) dbl) (Int 1)
 
 test :: Bool
 test = (case runNamM (cnv (four , ([V.toExp ((+) :: Word32 -> Word32 -> Word32)],[] :: [V.Exp]))) of

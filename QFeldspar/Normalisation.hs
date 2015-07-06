@@ -121,11 +121,6 @@ nrmOne ee = let t = sin :: TG.Typ a in case ee of
     Ltd er  (NV ei)              -> chg (LeT ei (Ltd (sucAll er) (Var Zro)))
     Ltd (NV er) (V ei)           -> chg (LeT er (Ltd (Var Zro)   (sucAll ei)))
 
-    Int i                        -> case t of
-      TG.Wrd                    -> chg (ConI i)
-      TG.Flt                    -> chg (ConF (fromIntegral i))
-      _                          -> fail "Type Error3!"
-
     Mem (NV e)                   -> chg (LeT e (Mem (Var Zro)))
 
     _                            -> $(genOverloadedMW 'ee ''Exp  ['Prm] (trvWrp 't)

@@ -4,6 +4,7 @@ import QFeldspar.Variable.Typed                             as VT
 import QFeldspar.Environment.Typed
 import qualified QFeldspar.Expression.GADTFirstOrder        as GFO
 import QFeldspar.Variable.Conversion ()
+import qualified QFeldspar.Literal.GADT as LG
 
 import qualified Language.Haskell.TH.Syntax as TH
 
@@ -23,11 +24,17 @@ instance TH.Lift (Env (GFO.Exp s g) d) where
    Emp      -> [| Emp |]
    Ext x xs -> [| Ext x xs |]
 
+instance TH.Lift (LG.Lit a) where
+  lift l = case l of
+    LG.IntegerL  i -> [| LG.IntegerL i |]
+    LG.RationalL i -> [| LG.RationalL i |]
+    LG.CharL     i -> [| LG.CharL i |]
+    LG.StringL   i -> [| LG.StringL i |]
+
 instance TH.Lift (GFO.Exp s g a) where
  lift ee = case ee of
+  GFO.Lit  i    -> [| GFO.Lit i |]
   GFO.ConB b    -> [| GFO.ConB b |]
-  GFO.ConF f    -> [| GFO.ConF f |]
-  GFO.ConI i    -> [| GFO.ConI i |]
   GFO.Prm x ms  -> [| GFO.Prm x ms |]
   GFO.Cnd l m n -> [| GFO.Cnd  l m n |]
   GFO.Whl l m n -> [| GFO.Whl l m n |]
@@ -39,6 +46,7 @@ instance TH.Lift (GFO.Exp s g a) where
   GFO.Snd l     -> [| GFO.Snd  l |]
   GFO.LeT m n   -> [| GFO.LeT  m n |]
   GFO.Int i     -> [| GFO.Int  i |]
+  GFO.Rat i     -> [| GFO.Rat  i |]
   GFO.Tag s m   -> [| GFO.Tag  s m |]
   GFO.Mem m     -> [| GFO.Mem  m |]
   GFO.Fix m     -> [| GFO.Fix  m |]

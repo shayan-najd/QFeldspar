@@ -2,7 +2,9 @@ module QFeldspar.Expression.Conversions.TypeWithnessing () where
 
 import QFeldspar.MyPrelude hiding (lookup)
 import qualified QFeldspar.Expression.GADTTyped as GTD
+import qualified QFeldspar.Literal.ADT as GTD
 import qualified QFeldspar.Expression.GADTFirstOrder as GFO
+import qualified QFeldspar.Literal.GADT as GFO
 import qualified QFeldspar.Type.GADT as TG
 import qualified QFeldspar.Type.ADT as TA
 import QFeldspar.Environment.Typed
@@ -31,14 +33,20 @@ instance (s ~ s' , g ~ g' , m ~ (Len s) , n ~ (Len g) , TG.Type a) =>
          Cnv (GTD.Exp m n TA.Typ , (Env TG.Typ s , Env TG.Typ g))
              (GFO.Exp s' g' a) where
   cnv (ee , r@(s , g)) = let t = sin :: TG.Typ a in case ee of
-    GTD.ConI i       -> case t of
-      TG.Wrd         -> pure (GFO.ConI i)
-      _               -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
+    GTD.Lit (GTD.IntegerL i) -> case t of
+      TG.Int         -> pure (GFO.Lit (GFO.IntegerL i))
+      _              -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
+    GTD.Lit (GTD.RationalL i) -> case t of
+      TG.Rat         -> pure (GFO.Lit (GFO.RationalL i))
+      _              -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
+    GTD.Lit (GTD.CharL i) -> case t of
+      TG.Chr         -> pure (GFO.Lit (GFO.CharL i))
+      _              -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
+    GTD.Lit (GTD.StringL i) -> case t of
+      TG.Str         -> pure (GFO.Lit (GFO.StringL i))
+      _              -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
     GTD.ConB b       -> case t of
       TG.Bol         -> pure (GFO.ConB b)
-      _               -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
-    GTD.ConF f       -> case t of
-      TG.Flt         -> pure (GFO.ConF f)
       _               -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
     GTD.Prm ts x es  -> do ExsSin (as :: Env TG.Typ as):: ExsSin (Env TG.Typ) <- cnv (ts , ())
                            PrfHasSin <- getPrfHasSinM as
@@ -161,7 +169,13 @@ instance (s ~ s' , g ~ g' , m ~ (Len s) , n ~ (Len g) , TG.Type a) =>
     GTD.Int i        -> case t of
       TG.Wrd         -> pure (GFO.Int i)
       TG.Flt         -> pure (GFO.Int i)
-      _               -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
+      TG.Int         -> pure (GFO.Int i)
+      TG.Rat         -> pure (GFO.Int i)
+      _              -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
+    GTD.Rat i        -> case t of
+      TG.Rat         -> pure (GFO.Rat i)
+      TG.Flt         -> pure (GFO.Rat i)
+      _              -> fail ("Type Error!\n" ++ show ee ++ " :: " ++ show t)
     GTD.Mem e        -> GFO.Mem <$> cnvWth r e
     GTD.Fix e        -> GFO.Fix <$> cnvWth r e
 

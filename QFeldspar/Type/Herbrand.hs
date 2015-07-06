@@ -41,21 +41,29 @@ appTtas :: [(NA.Nat , Typ r)] -> Typ r -> Typ r
 appTtas ttas t = foldl (\ ta (i , t') -> appT i t' ta) t ttas
 
 type EnvFld r = $(natT 0 "NA.") ':
-                $(natT 2 "NA.") ':
+                $(natT 0 "NA.") ':
+                $(natT 0 "NA.") ':
+                $(natT 0 "NA.") ':
+                $(natT 0 "NA.") ':
+                $(natT 0 "NA.") ':
+                $(natT 0 "NA.") ':
                 $(natT 0 "NA.") ':
                 $(natT 2 "NA.") ':
+                $(natT 2 "NA.") ':
                 $(natT 1 "NA.") ':
-                $(natT 0 "NA.") ':
-                $(natT 0 "NA.") ':
                 $(natT 1 "NA.") ':
-                $(natT 1 "NA.") ':r
+                $(natT 1 "NA.") ': r
 
 pattern Wrd       = App $(natP 0 "") Emp
-pattern Arr ta tb = App $(natP 1 "") (Ext ta (Ext tb Emp))
-pattern Bol       = App $(natP 2 "") Emp
-pattern Tpl tf ts = App $(natP 3 "") (Ext tf (Ext ts Emp))
-pattern Ary ta    = App $(natP 4 "") (Ext ta  Emp)
-pattern Flt       = App $(natP 5 "") Emp
-pattern Cmx       = App $(natP 6 "") Emp
-pattern May a     = App $(natP 7 "") (Ext a Emp)
-pattern Vec ta    = App $(natP 8 "") (Ext ta  Emp)
+pattern Bol       = App $(natP 1 "") Emp
+pattern Flt       = App $(natP 2 "") Emp
+pattern Cmx       = App $(natP 3 "") Emp
+pattern Int       = App $(natP 4 "") Emp
+pattern Rat       = App $(natP 5 "") Emp
+pattern Chr       = App $(natP 6 "") Emp
+pattern Str       = App $(natP 7 "") Emp
+pattern Arr ta tb = App $(natP 8 "") (Ext ta (Ext tb Emp))
+pattern Tpl tf ts = App $(natP 9 "") (Ext tf (Ext ts Emp))
+pattern Ary ta    = App $(natP 10 "") (Ext ta  Emp)
+pattern May a     = App $(natP 11 "") (Ext a Emp)
+pattern Vec ta    = App $(natP 12 "") (Ext ta  Emp)

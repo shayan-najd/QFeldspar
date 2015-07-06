@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
+-- {-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
 module QFeldspar.Type.GADT where
 
 import QFeldspar.MyPrelude
@@ -10,12 +10,16 @@ data Typ :: * -> * where
   Wrd :: Typ Word32
   Bol :: Typ Bool
   Flt :: Typ Float
+  Cmx :: Typ (Complex Float)
+  Int :: Typ Integer
+  Rat :: Typ Rational
+  Chr :: Typ Char
+  Str :: Typ String
   Arr :: Typ ta -> Typ tb -> Typ (ta -> tb)
   Tpl :: Typ tf -> Typ ts -> Typ (tf , ts)
   Ary :: Typ t  -> Typ (Ary t)
   Vct :: Typ t  -> Typ (Vec t)
   May :: Typ t  -> Typ (Maybe t)
-  Cmx :: Typ (Complex Float)
   TVr :: Nat a  -> Typ (TVr a)
 
 deriving instance Show (Typ t)
@@ -32,6 +36,21 @@ instance HasSin Typ Bool where
 instance HasSin Typ Float where
   sin = Flt
 
+instance HasSin Typ (Complex Float) where
+  sin = Cmx
+
+instance HasSin Typ Integer where
+  sin = Int
+
+instance HasSin Typ Rational where
+  sin = Rat
+
+instance HasSin Typ Char where
+  sin = Chr
+
+instance HasSin Typ String where
+  sin = Str
+
 instance (Type ta , Type tb) => HasSin Typ (ta -> tb) where
   sin = Arr sin sin
 
@@ -47,39 +66,78 @@ instance Type ta => HasSin Typ (Vec ta) where
 instance Type ta => HasSin Typ (Maybe ta) where
   sin = May sin
 
-instance HasSin Typ (Complex Float) where
-  sin = Cmx
-
 instance (HasSin Nat x) => HasSin Typ (TVr x) where
   sin = TVr sin
 
 instance EqlSin Typ where
-  eqlSin Wrd         Wrd           = return Rfl
-  eqlSin Bol         Bol           = return Rfl
-  eqlSin Flt         Flt           = return Rfl
-  eqlSin (Arr ta tb) (Arr ta' tb') = do Rfl <- eqlSin ta ta'
-                                        Rfl <- eqlSin tb tb'
-                                        return Rfl
-  eqlSin (Tpl tf ts) (Tpl tf' ts') = do Rfl <- eqlSin tf tf'
-                                        Rfl <- eqlSin ts ts'
-                                        return Rfl
-  eqlSin (Ary t)     (Ary t')      = do Rfl <- eqlSin t t'
-                                        return Rfl
-  eqlSin (Vct t)     (Vct t')      = do Rfl <- eqlSin t t'
-                                        return Rfl
-  eqlSin (May t)     (May t')      = do Rfl <- eqlSin t t'
-                                        return Rfl
-  eqlSin Cmx         Cmx           = return Rfl
-  eqlSin (TVr n)     (TVr n')      = do Rfl <- eqlSin n n'
-                                        return Rfl
-  eqlSin a            a'            = fail ("Type Error!\n"++
-                 show a ++ " is not equal to " ++ show a' ++"!")
+  eqlSin   Wrd         Wrd           = return Rfl
+  eqlSin a@Wrd         a'            = inEqualError a a'
+
+  eqlSin   Bol         Bol           = return Rfl
+  eqlSin a@Bol         a'            = inEqualError a a'
+
+  eqlSin Flt           Flt           = return Rfl
+  eqlSin a@Flt         a'            = inEqualError a a'
+
+  eqlSin   Cmx         Cmx           = return Rfl
+  eqlSin a@Cmx         a'            = inEqualError a a'
+
+  eqlSin   Int         Int           = return Rfl
+  eqlSin a@Int         a'            = inEqualError a a'
+
+  eqlSin   Rat         Rat           = return Rfl
+  eqlSin a@Rat         a'            = inEqualError a a'
+
+  eqlSin   Chr         Chr           = return Rfl
+  eqlSin a@Chr         a'            = inEqualError a a'
+
+  eqlSin   Str         Str           = return Rfl
+  eqlSin a@Str         a'            = inEqualError a a'
+
+  eqlSin   (Arr ta tb) (Arr ta' tb') = do Rfl <- eqlSin ta ta'
+                                          Rfl <- eqlSin tb tb'
+                                          return Rfl
+  eqlSin a@(Arr _ _)   a'            = inEqualError a a'
+
+  eqlSin   (Tpl tf ts) (Tpl tf' ts') = do Rfl <- eqlSin tf tf'
+                                          Rfl <- eqlSin ts ts'
+                                          return Rfl
+  eqlSin a@(Tpl _ _)   a'            = inEqualError a a'
+
+  eqlSin   (Ary t)     (Ary t')      = do Rfl <- eqlSin t t'
+                                          return Rfl
+  eqlSin a@(Ary _)     a'            = inEqualError a a'
+
+  eqlSin   (Vct t)     (Vct t')      = do Rfl <- eqlSin t t'
+                                          return Rfl
+  eqlSin a@(Vct _)     a'            = inEqualError a a'
+
+  eqlSin (May t)       (May t')      = do Rfl <- eqlSin t t'
+                                          return Rfl
+  eqlSin a@(May _)     a'            = inEqualError a a'
+
+
+  eqlSin (TVr n)       (TVr n')      = do Rfl <- eqlSin n n'
+                                          return Rfl
+  eqlSin a@(TVr _)     a'            = inEqualError a a'
+
+
+
+inEqualError :: Monad m => Typ a -> Typ a' -> m b
+inEqualError a a' = fail ("Type Error!\n"++
+                          show a ++ " is not equal to " ++
+                          show a' ++"!")
 
 instance GetPrfHasSin Typ where
   getPrfHasSin t  = case t of
     Wrd       -> PrfHasSin
     Bol       -> PrfHasSin
     Flt       -> PrfHasSin
+    Cmx       -> PrfHasSin
+    Int       -> PrfHasSin
+    Rat       -> PrfHasSin
+    Chr       -> PrfHasSin
+    Str       -> PrfHasSin
     Arr ta tb -> case (getPrfHasSin ta , getPrfHasSin tb) of
       (PrfHasSin , PrfHasSin) -> PrfHasSin
     Tpl tf ts -> case (getPrfHasSin tf , getPrfHasSin ts) of
@@ -90,7 +148,7 @@ instance GetPrfHasSin Typ where
       PrfHasSin -> PrfHasSin
     May ta    -> case getPrfHasSin ta of
       PrfHasSin -> PrfHasSin
-    Cmx       -> PrfHasSin
+
     TVr n     -> case getPrfHasSin n of
       PrfHasSin -> PrfHasSin
 

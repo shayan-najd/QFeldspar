@@ -25,12 +25,20 @@ instance (TG.Type t , t ~ t' , r ~ r') =>
     GHO.AryV _ _             -> fail "Normalisation Error!"
     GHO.LenV _               -> fail "Normalisation Error!"
     GHO.IndV _ _             -> fail "Normalisation Error!"
-    GHO.Int  _               -> fail "Normalisation Error!"
     GHO.Fix  _               -> fail "Normalisation Error!"
+    GHO.Lit _                -> fail "Normalisation Error!"
     GHO.Prm x ns             -> MFS.Prm x <$> TG.mapMC (cnvWth r) ns
-    _                         -> $(biGenOverloadedMW 'ee ''GHO.Exp "MFS"
-     ['GHO.Prm,'GHO.Abs,'GHO.App,'GHO.Non,'GHO.Som,'GHO.May
-     ,'GHO.AryV,'GHO.LenV,'GHO.IndV,'GHO.Int,'GHO.Fix] (trvWrp 't) (const [| cnvWth r |]))
+    GHO.Int i                -> case t of
+      TG.Wrd                 -> pure (MFS.ConI (fromInteger i))
+      TG.Flt                 -> pure (MFS.ConF (fromInteger i))
+      _                      -> fail "Normalisation Error!"
+    GHO.Rat i                -> case t of
+      TG.Flt                 -> pure (MFS.ConF (fromRational i))
+      _                      -> fail "Normalisation Error!"
+    _                        -> $(biGenOverloadedMW 'ee ''GHO.Exp "MFS"
+     ['GHO.Prm,'GHO.Abs,'GHO.App,'GHO.Non,'GHO.Som,'GHO.May,'GHO.Lit
+     ,'GHO.AryV,'GHO.LenV,'GHO.IndV,'GHO.Int,'GHO.Fix,'GHO.Rat]
+     (trvWrp 't) (const [| cnvWth r |]))
 
 instance (TG.Type a , TG.Type b, a ~ a' , b ~ b' , r ~ r') =>
     Cnv (GHO.Exp r' (a' -> b') , rr) (MFS.Exp r a -> MFS.Exp r b)  where
@@ -50,7 +58,10 @@ instance (TG.Type t , t' ~ t , r' ~ r) =>
   cnv (ee , r) = let t = sin :: TG.Typ t in
     case ee of
       MFS.Prm x ns -> GHO.Prm x <$> TG.mapMC (cnvWth r) ns
-      _             -> $(biGenOverloadedMW 'ee ''MFS.Exp "GHO" ['MFS.Prm]
+      MFS.ConI i   -> pure (GHO.Int (toInteger i))
+      MFS.ConF i   -> pure (GHO.Rat (toRational i))
+      _            -> $(biGenOverloadedMW 'ee ''MFS.Exp "GHO"
+                        ['MFS.Prm,'MFS.ConI,'MFS.ConF]
                             (trvWrp 't) (const [| cnvWth r |]))
 
 instance (TG.Type a , TG.Type b, a ~ a' , b ~ b' , r ~ r') =>

@@ -10,6 +10,8 @@ import QFeldspar.Conversion
 import QFeldspar.Variable.Conversion ()
 import QFeldspar.Singleton
 import QFeldspar.Expression.Utils.Common
+import QFeldspar.Literal.GADT
+import qualified QFeldspar.Prelude.Haskell as PH
 
 instance (TG.Type a , a ~ a') =>
          Cnv (Exp s a , Env FGV.Exp s) (FGV.Exp a') where
@@ -38,26 +40,33 @@ instance (TG.Type t , r ~ r' , t ~ t') =>
          Cnv (FGV.Exp t' , Env FGV.Exp r') (Exp r t)
          where
   cnv (FGV.Exp v , r) = let t = sin :: TG.Typ t in case t of
-    TG.Wrd                   -> pure (ConI v)
+    TG.Wrd                   -> pure (Int (toInteger v))
     TG.Bol                   -> pure (ConB v)
-    TG.Flt                   -> pure (ConF v)
+    TG.Flt                   -> pure (Rat (toRational v))
     TG.Arr (_ :: TG.Typ b) (_ :: TG.Typ c) -> case TG.getPrfHasSinArr t of
      (PrfHasSin , PrfHasSin)  -> Abs  <$> pure (frmRgtZro
                                                 . cnvWth r
-                                                . (fmap v :: FGV.Exp b -> FGV.Exp c)
+                                                . (fmap v :: FGV.Exp b
+                                                          -> FGV.Exp c)
                                                 . frmRgtZro
                                                 . cnvWth r)
     TG.Tpl _ _               -> case TG.getPrfHasSinTpl t of
-     (PrfHasSin , PrfHasSin)  -> Tpl  <$> cnv (FGV.Exp (fst v) , r)
-                                      <*> cnv (FGV.Exp (snd v) , r)
-    TG.Ary ta                -> case TG.getPrfHasSinAry t of
-      PrfHasSin
-        | fst (bounds v) == 0 -> Ary  <$> cnv ((FGV.Exp . (+ 1) . snd . bounds) v , r)
-                                      <*> cnv ((samTyp (TG.Arr TG.Wrd ta)
-                                                (FGV.Exp (fromJust
-                                                          . flip lookup (assocs v)))) , r)
-        | otherwise           -> fail "Bad Array!"
-    TG.Cmx                   -> Cmx <$> cnv (FGV.Exp (realPart v) , r)
+     (PrfHasSin , PrfHasSin) -> Tpl  <$> cnv (FGV.Exp (fst v) , r)
+                                     <*> cnv (FGV.Exp (snd v) , r)
+    TG.Ary _                 -> case TG.getPrfHasSinAry t of
+      PrfHasSin              -> Ary  <$> cnv (FGV.Exp (PH.lnArr v) , r)
+                                     <*> cnv (FGV.Exp (PH.ixArr v) , r)
+    TG.Cmx                   -> Cmx  <$> cnv (FGV.Exp (realPart v) , r)
                                      <*> cnv (FGV.Exp (imagPart v) , r)
-    TG.Vct _                 -> impossibleM
-    TG.May _                 -> impossibleM
+    TG.Vct _                 -> case TG.getPrfHasSinVec t of
+      PrfHasSin              -> AryV <$> cnv (FGV.Exp (PH.lnVec v) , r)
+                                     <*> cnv (FGV.Exp (PH.ixVec v) , r)
+    TG.May _                 -> case TG.getPrfHasSinMay t of
+      PrfHasSin              -> case v of
+        Just x               -> Som <$> cnv (FGV.Exp x , r)
+        Nothing              -> pure Non
+    TG.Int                   -> pure (Lit (IntegerL v))
+    TG.Rat                   -> pure (Lit (RationalL v))
+    TG.Chr                   -> pure (Lit (CharL v))
+    TG.Str                   -> pure (Lit (StringL v))
+    TG.TVr _                 -> impossibleM

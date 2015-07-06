@@ -25,7 +25,7 @@ four :: Exp (NA.Suc NA.Zro) NA.Zro TA.Typ
 four = App TA.Wrd
        (App (TA.Arr TA.Wrd TA.Wrd)
         (App (TA.Arr TA.Wrd TA.Wrd)
-         (compose TA.Wrd TA.Wrd) dbl) dbl) (ConI 1)
+         (compose TA.Wrd TA.Wrd) dbl) dbl) (Int 1)
 
 test :: Bool
 test = (case runNamM (cnv (four , (Ext (V.toExp ((+) :: Word32 -> Word32 -> Word32)) Emp , Emp :: Env 'NA.Zro V.Exp))) of

@@ -23,9 +23,8 @@ cse = tilNotChg cseOne
 
 cseOne :: forall s g a. TG.Type a => Exp s g a -> Chg (Exp s g a)
 cseOne ee = let t = sin :: TG.Typ a in case ee of
-  ConI i                    -> pure (ConI i)
+  Lit i                     -> pure (Lit i)
   ConB b                    -> pure (ConB b)
-  ConF f                    -> pure (ConF f)
   Prm  x es                 -> cseOneEnv x Emp es
   Var x                     -> pure (Var x)
   Abs eb                    -> case TG.getPrfHasSinArr t of
@@ -58,7 +57,9 @@ cseOne ee = let t = sin :: TG.Typ a in case ee of
   LenV n                    -> LenV <$> cseOne n
   IndV m n                  -> cseOne2 IndV m n
   Int  i                    -> pure (Int i)
+  Rat  i                    -> pure (Rat i)
   Mem  m                    -> Mem <$> cseOne m
+  Fix  m                    -> Fix <$> cseOne m
 
 remTag :: forall s g a. Exp s g a -> Exp s g a
 remTag ee = case ee of

@@ -6,11 +6,11 @@ import QFeldspar.Environment.Typed
 import QFeldspar.Variable.Typed
 import QFeldspar.Type.GADT
 import QFeldspar.Magic
+import QFeldspar.Literal.GADT
 
 data Exp :: [*] -> [*] -> * -> * where
-  ConI :: Word32   -> Exp s g Word32
+  Lit  :: Lit a    -> Exp s g a
   ConB :: Bool     -> Exp s g Bool
-  ConF :: Float    -> Exp s g Float
   Var  :: Var g a  -> Exp s g a
   Prm  :: (Match a as b , Types as) =>
           Var s a -> Env (Exp s g) as -> Exp s g b
@@ -40,7 +40,8 @@ data Exp :: [*] -> [*] -> * -> * where
   Sub  :: Exp s g a  -> Exp s g a -> Exp s g a
   Eql  :: Type a => Exp s g a  -> Exp s g a -> Exp s g Bool
   Ltd  :: Type a => Exp s g a  -> Exp s g a -> Exp s g Bool
-  Int  :: Word32 -> Exp s g a
+  Int  :: Integer  -> Exp s g a
+  Rat  :: Rational -> Exp s g a
   Tag  :: String -> Exp s g a -> Exp s g a
   Mem  :: Exp s g a -> Exp s g a
   Fix  :: Exp s g (a -> a) -> Exp s g a

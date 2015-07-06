@@ -12,14 +12,11 @@ tt :: TG.Typ a
 tt = tt
 
 eql :: forall s g a.  Exp s g a -> Exp s g a -> Bool
-eql (ConI i)    (ConI i')     = i == i'
-eql (ConI _)    _             = False
+eql (Lit i)     (Lit i')      = i == i'
+eql (Lit _)     _             = False
 
 eql (ConB b)    (ConB b')     = b == b'
 eql (ConB _)    _             = False
-
-eql (ConF f)    (ConF f')     = f == f'
-eql (ConF _)    _             = False
 
 eql (Var  v)    (Var  v')     = v == v'
 eql (Var  _)    _             = False
@@ -129,6 +126,9 @@ eql (Ltd _  _ ) _             = False
 
 eql (Int i)     (Int j)       = i == j
 eql (Int _)     _             = False
+
+eql (Rat i)     (Rat j)       = i == j
+eql (Rat _)     _             = False
 
 eql (Tag _ e)   (Tag _ e')    = eql e e' -- ignore tags
 eql (Tag _ _)   _             = False
