@@ -1,6 +1,6 @@
 module QFeldspar.Prelude.Environment where
 
-import QFeldspar.MyPrelude hiding (realPart,imagPart)
+import QFeldspar.MyPrelude hiding (realPart,imagPart,mod)
 
 import qualified QFeldspar.Expression.ADTValue  as FAV
 import qualified QFeldspar.Expression.GADTValue as FGV
@@ -17,7 +17,7 @@ import qualified QFeldspar.Environment.Typed  as ET
 import QFeldspar.Conversion
 import QFeldspar.Environment.Conversion ()
 import QFeldspar.Variable.Typed
-import QFeldspar.Singleton
+import qualified QFeldspar.Singleton as S
 import QFeldspar.Expression.Utils.TemplateHaskell
 import QFeldspar.Prelude.HaskellEnvironment
 
@@ -30,13 +30,13 @@ infixr 5 <:>
 -----------------------------------------------------------------------
 
 etTG :: ET.Env TG.Typ Prelude
-etTG = sin
+etTG = S.sin
 
 -----------------------------------------------------------------------
 -- ESString
 -----------------------------------------------------------------------
 
-esString :: ES.Env (Len Prelude) String
+esString :: ES.Env (S.Len Prelude) String
 esString = fmap TH.nameBase esTH
 
 -----------------------------------------------------------------------
@@ -82,7 +82,7 @@ etFGV = $(return (foldr
 -- ESFAV
 -----------------------------------------------------------------------
 
-esFAV :: ES.Env (Len Prelude) FAV.Exp
+esFAV :: ES.Env (S.Len Prelude) FAV.Exp
 esFAV = $(return (foldr
             (\ a b ->
                TH.InfixE (Just (TH.VarE a)) (TH.ConE 'ES.Ext) (Just b))

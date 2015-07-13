@@ -292,14 +292,20 @@ genStructs ts = concat (
 
 scompileWith :: (TypeCollectable a , Compilable (a , ES.Env n String)) =>
                 [Var] -> TG.Typ t -> ES.Env n String -> Word32 -> a -> ErrM String
-scompileWith vs t r i e =
+scompileWith = scompileWith' True
+
+
+scompileWith' :: (TypeCollectable a , Compilable (a , ES.Env n String)) =>
+                Bool -> [Var] -> TG.Typ t -> ES.Env n String -> Word32 -> a -> ErrM String
+scompileWith' b vs t r i e =
                         do t' :: TA.Typ <- runNamM (cnvWth r t)
                            c <- runCompileMonad t'
                                 (do mapM_ addParam vs
                                     cmpWth r e) i
-                           return ("#include \"header.h\"\n\n" ++
+                           return ((if b then "#include \"header.h\"\n\n" else "") ++
                                    genStructs (nub (collectTypes e)) ++ "\n" ++
                                    ((show . pretty) c))
+
 
 scompile :: (TypeCollectable a , Compilable (a , ES.Env n String)) =>
                 TG.Typ t -> ES.Env n String -> a -> ErrM String

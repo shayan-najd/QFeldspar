@@ -45,6 +45,11 @@
 #define newTpl(X,Y,Z) (((Tpl##X) {.fst = Y , .snd = Z}))
 #define newAry(X,Y) (((Ary##X) {.size = Y , .elems = malloc(Y * sizeof(X))}))
 #define setAry(X,Y,Z) (({X.elems [Y] = Z;X;}))
+#define sin(X) (sinf(X))
+#define cos(X) (cosf(X))
+#define round(X) (roundf(X))
+#define atan2(X,Y) (atan2f(X,Y))
+#define mod(X,Y) (X % Y)
 
 Cmx cis (Flt f)
 {

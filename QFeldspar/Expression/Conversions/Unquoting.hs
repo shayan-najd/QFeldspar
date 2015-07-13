@@ -232,7 +232,7 @@ instance Cnv (DTH.MExp , r) (AUN.Exp TH.Name) where
         | nr === 'Nothing ,
           nl === 'Just  -> AUN.May <$> cnvWth r ec <*> cnvWth r er <*>
                            cnvWth r (DTH.MLamE xr el)
-    DTH.MCaseE _ _      -> fail "case expression form is not supported!"
+    DTH.MCaseE _ _      -> fail ("case expression form is not supported!\n" ++ show ee)
 
 instance Cnv ((TH.Name , DTH.MExp) , r) (TH.Name , AUN.Exp TH.Name) where
     cnv ((x , e) , r) = (,) <$> pure (stripNameSpace x) <*> cnvWth r e

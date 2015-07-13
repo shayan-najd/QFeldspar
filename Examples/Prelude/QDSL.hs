@@ -1,7 +1,4 @@
-module Examples.Prelude.QDSL
-  (toArr,fromArr,toArrF,frmTo,permute,reverse,foldl,zipWith,sum,
-   scalarProd,fmap,forVec,replicate,append,for,not,and,or,notEql,gt,
-   lte,gte,min,pi,testBit,lsbs,oneBits) where
+module Examples.Prelude.QDSL where
 
 import qualified Prelude as P
 import QFeldspar.QDSL
@@ -132,3 +129,61 @@ oneBits    =  [|| \ n -> complement (shfLft (complement 0) n) ||]
 
 lsbs :: Qt (Word32 -> Word32 -> Word32)
 lsbs       = [|| \ k -> \ i -> i .&. ($$oneBits k) ||]
+
+lenV :: Qt (Vec a -> Word32)
+lenV = [|| \ (Vec l _ixf) -> l ||]
+
+indV :: Qt (Vec a -> Word32 -> a)
+indV = [|| \ (Vec _l ixf) -> ixf ||]
+
+type Pixel = (Word32,(Word32,Word32))
+
+mkPixel :: Qt (Word32 -> Word32 -> Word32 -> Pixel)
+mkPixel = [|| \ r g b -> (r , (g , b)) ||]
+
+red :: Qt (Pixel -> Word32)
+red = [|| \ pixel -> fst pixel ||]
+
+green :: Qt (Pixel -> Word32)
+green = [|| \ pixel -> fst (snd pixel) ||]
+
+blue :: Qt (Pixel -> Word32)
+blue = [|| \ pixel -> snd (snd pixel) ||]
+
+-- non-empty image
+type Image = Vec (Vec Pixel)
+
+mkImage :: Qt (Word32 -> Word32 ->
+                (Word32 -> Word32 -> Pixel) -> Image)
+mkImage = [|| \ height width ixf ->
+  Vec height (\ i ->
+    Vec width (\ j -> ixf i j)) ||]
+
+heightImage :: Qt (Image -> Word32)
+heightImage = [|| \ image -> $$lenV image ||]
+
+widthImage :: Qt (Image -> Word32)
+widthImage = [|| \ image -> $$lenV ($$indV image 0) ||]
+
+getPixel :: Qt (Image -> Word32 -> Word32 -> Pixel)
+getPixel = [|| \ vec i j -> $$indV ($$indV vec i) j ||]
+
+aryToImage :: Qt (Word32 -> Word32 -> Ary Word32 -> Image)
+aryToImage = [|| \ height width as ->
+                 $$mkImage height width (\ i j ->
+                     $$mkPixel (ixArr as ((j+i*width)*3))
+                               (ixArr as ((j+i*width)*3+1))
+                               (ixArr as ((j+i*width)*3+2))) ||]
+
+imageToAry :: Qt (Image -> Ary Word32)
+imageToAry = [|| \ image -> let height = $$heightImage image
+                                width  = $$widthImage  image
+                            in  mkArr (height * width * 3)
+                                (\ ii -> let i = div (div ii 3) width
+                                             j = mod (div ii 3) width
+                                             p = $$getPixel image i j
+                                         in if mod ii 3 == 0
+                                            then $$red   p
+                                            else if mod ii 3 == 1
+                                            then $$green p
+                                            else $$blue  p) ||]

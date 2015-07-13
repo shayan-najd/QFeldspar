@@ -1,15 +1,46 @@
 {-# OPTIONS_GHC -fno-warn-unused-binds -fno-warn-name-shadowing #-}
 module QFeldspar.QDSL
-  (Qt,FO,Type,Num,Eq,Ord,
-   Word32,Float,Bool(..),while,fst,snd,Ary,mkArr,lnArr,ixArr,
-   Vec(..),Complex(..),Maybe(..),(*),(+),(-),(==),(<),save,
-   realPart,imagPart,div,(/),(.&.),(.|.),xor,shfRgt,shfLft,
-   complement,i2f,cis,ilog2,sqrt,hashTable,
-   maybe,return,(>>=),(.),
+  (Qt,FO,Type,Num,Eq,Ord,C,String,Rep,
+
+   Word32,Float,
+   (*),(+),(-),(==),(<),div,(/),mod,i2f,round,
+   sqrt,sin,cos,atan2,cis,ilog2,
+
+   Bool(..),
+   -- ifThenElse
+
+   Complex(..),
+   realPart,imagPart,
+
+   -- abstraction and application
+
+   -- ((,)),
+   fst,snd,
+
+   Maybe(..),
+   maybe,
+
+   Array,
+   Ary,
+   mkArr,lnArr,ixArr,
+
+   Vec(..),
+
+   (.&.),(.|.),xor,shfRgt,shfLft,complement,
+
+
+   return,(>>=),(.),
+
+   hashTable,
+
+   while, save,
+
    qdsl,evaluate,translate,translateF,compile,compileF,
    dbg1,dbg15,dbg2,dbg3,dbg4,dbg45,dbg5,dbg6,
+   dbgw1,dbgw15,dbgw2,dbgw3,dbgw4,dbgw45,dbgw5,dbgw6,
    testQt,testNrmQt,testNrmSmpQt,testDpF,toDp,wrp,
-   ghoF{-,nghoF-},gho{-,ngho-},trmEql,CDSL.makeIP,
+   ghoF{-,nghoF-}{-,ngho-},trmEql,CDSL.makeIP,CDSL.makeIPAt,
+   compileFunction,
    translateWith,translateFWith) where
 
 import QFeldspar.MyPrelude
@@ -22,7 +53,7 @@ import QFeldspar.Expression.Utils.Show.MiniFeldspar()
 import QFeldspar.CDSL (Dp)
 import qualified QFeldspar.CDSL as CDSL
 
-import QFeldspar.Singleton
+import qualified QFeldspar.Singleton as S
 
 import QFeldspar.Expression.Utils.TemplateHaskell
     (trmEql,stripNameSpace)
@@ -61,7 +92,8 @@ import QFeldspar.Expression.Conversions.EtaPrims(etaPrms)
 type Data a = TH.Q (TH.TExp a)
 type Qt a = Data a
 type C    = String
-type Type a = HasSin TG.Typ a
+type Type a = S.HasSin TG.Typ a
+type Rep a = (Type a , FO a)
 
 class    FO a                              where {}
 instance FO MP.Bool                        where {}
@@ -113,7 +145,7 @@ wrp = expand
 wrpTyp :: forall a. Type a => Data a -> Data a
 wrpTyp ee = do e <- ee
                return (TH.TExp (TH.SigE (TH.unType e)
-                         (frmRgtZro (cnv (sin :: TG.Typ a , ())))))
+                         (frmRgtZro (cnv (S.sin :: TG.Typ a , ())))))
 
 translate :: forall a.
              (Type a , FO a) =>
@@ -133,6 +165,9 @@ evaluate ::  forall a.
              (Type a , FO a) =>
              Qt a -> a
 evaluate = CDSL.evaluate . translate
+
+compileFunction :: (FO a , Type a , Type b) => Qt (a -> b) -> C
+compileFunction = CDSL.compileF' False True True . translateF
 
 compile :: forall a.
              (Type a, FO a) =>
@@ -154,7 +189,7 @@ dbg15 e = let e' = frmRgtZro (cnv (e,etTG , PHE.esTH))
 dbg2 :: Type a => Qt a -> AUD.Exp
 dbg2 e = frmRgtZro (cnv(e,etTG , PHE.esTH))
 
-dbg3 :: Type a => Qt a -> GTD.Exp (Len PHE.Prelude) NA.Zro TA.Typ
+dbg3 :: Type a => Qt a -> GTD.Exp (S.Len PHE.Prelude) NA.Zro TA.Typ
 dbg3 e = frmRgtZro (cnv(e,etTG , PHE.esTH))
 
 dbg4 :: Type a => Qt a -> GFO.Exp PHE.Prelude '[] a
@@ -170,8 +205,31 @@ dbg5 e = frmRgtZro (cnv(e,etTG , PHE.esTH))
 dbg6 :: Type a => Qt a -> Dp a
 dbg6 e = frmRgtZro (cnv(e,etTG , PHE.esTH))
 
-gho :: Type a => Qt a -> GHO.Exp PHE.Prelude a
-gho e = frmRgtZro (cnv(wrp e,etTG , PHE.esTH))
+dbgw1 :: Type a => Qt a -> AUN.Exp TH.Name
+dbgw1 e = frmRgtZro (cnv (wrp e,etTG , PHE.esTH))
+
+dbgw15 :: Type a => Qt a -> AUN.Exp TH.Name
+dbgw15 e = let e' = frmRgtZro (cnv (wrp e,etTG , PHE.esTH))
+          in frmRgtZro (etaPrms etTG PHE.esTH e')
+
+dbgw2 :: Type a => Qt a -> AUD.Exp
+dbgw2 e = frmRgtZro (cnv(wrp e,etTG , PHE.esTH))
+
+dbgw3 :: Type a => Qt a -> GTD.Exp (S.Len PHE.Prelude) NA.Zro TA.Typ
+dbgw3 e = frmRgtZro (cnv(wrp e,etTG , PHE.esTH))
+
+dbgw4 :: Type a => Qt a -> GFO.Exp PHE.Prelude '[] a
+dbgw4 e = frmRgtZro (cnv(wrp e,etTG , PHE.esTH))
+
+dbgw45 :: Type a => Qt a -> GFO.Exp PHE.Prelude '[] a
+dbgw45 e = let e' = frmRgtZro (cnv(wrp e,etTG , PHE.esTH))
+          in GFO.nrm e'
+
+dbgw5 :: Type a => Qt a -> GHO.Exp PHE.Prelude a
+dbgw5 e = frmRgtZro (cnv(wrp e,etTG , PHE.esTH))
+
+dbgw6 :: Type a => Qt a -> Dp a
+dbgw6 e = frmRgtZro (cnv(wrp e,etTG , PHE.esTH))
 
 ghoF :: (Type a , Type b) =>
         Qt (a -> b) -> GHO.Exp PHE.Prelude (a -> b)
@@ -185,7 +243,6 @@ ghoF e = frmRgtZro (cnv(wrp e,etTG , PHE.esTH))
 
 qdsl :: (FO a , Type a , Type b) => Qt (a -> b) -> C
 qdsl = compileF True True
-
 
 -- For paper
 testQt :: Qt a -> Qt a -> Bool
@@ -219,11 +276,12 @@ expand sbs ee = MP.frmRgt
                                           MP.return (AUN.sbs (stripNameSpace n) es' e))
                      ee' sbs)
 
-translateWith :: (Type a , FO a) => ET.Env TG.Typ s -> ES.Env (Len s) TH.Name -> TH.Q (TH.TExp a) -> MWS.Exp s a
+translateWith :: (Type a , FO a) => ET.Env TG.Typ s -> ES.Env (S.Len s) TH.Name -> TH.Q (TH.TExp a) -> MWS.Exp s a
 translateWith et es e = frmRgtZro (cnv (e , et , es))
 
 translateFWith :: forall a b s. (Type a , FO a , Type b , FO b) =>
-                   ET.Env TG.Typ s -> ES.Env (Len s) TH.Name -> TH.Q (TH.TExp (a -> b)) -> (MWS.Exp s a -> MWS.Exp s b)
+                   ET.Env TG.Typ s -> ES.Env (S.Len s) TH.Name ->
+                   TH.Q (TH.TExp (a -> b)) -> (MWS.Exp s a -> MWS.Exp s b)
 translateFWith et es f = let e  :: GFO.Exp s '[] (a -> b) = frmRgtZro (cnv (f , et , es))
                              e' :: GHO.Exp s (a -> b)     = cnvFOHO (GFO.nrm e)
                          in frmRgtZro (cnv (e' , ()))

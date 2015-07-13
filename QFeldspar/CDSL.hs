@@ -1,7 +1,7 @@
 module QFeldspar.CDSL
   (module QFeldspar.Prelude.MiniFeldspar{-,shared-},(.),
-   evaluate,compile,compileF,normalise,normaliseF,
-   simplify,simplifyF,cdsl,makeIP) where
+   evaluate,compile,compileF,normalise,normaliseF,compileF',
+   simplify,simplifyF,cdsl,makeIP,makeIPAt) where
 
 import QFeldspar.Prelude.MiniFeldspar
 import QFeldspar.Prelude.Environment
@@ -15,7 +15,7 @@ import QFeldspar.Expression.Conversion ()
 
 import qualified QFeldspar.Type.GADT                  as TG
 import qualified QFeldspar.Expression.GADTValue       as FGV
-import QFeldspar.Compiler(scompile)
+import QFeldspar.Compiler(scompileWith',scompile)
 import QFeldspar.Normalisation (nrm)
 -- import QFeldspar.ChangeMonad
 import QFeldspar.Expression.Utils.Reuse.MiniFeldspar
@@ -23,7 +23,7 @@ import QFeldspar.Expression.Utils.Reuse.MiniFeldspar
 import QFeldspar.CSE(cse,remTag)
 import QFeldspar.Simplification (smp)
 import System.Process
-
+import qualified Language.Haskell.TH.Syntax as TH
 
 type C    = String
 
@@ -40,12 +40,19 @@ compile bSmp bCSE ee = let e = toExp ee
                                     ((if bSmp then simplify else MP.id)
                                      (normalise bCSE e)))
 
-compileF :: forall a b. (Syn a , Syn b) =>
+compileF :: forall a b.
+            (Syn a , Syn b) =>
             Bool -> Bool -> (a -> b) -> String
-compileF cSmp cCSE ff = let f = toExpF ff
-                    in  frmRgt (scompile (sin :: TG.Typ (InT b)) esString
-                          ((if cSmp then simplifyF else MP.id)
-                           (normaliseF cCSE f)))
+compileF = compileF' MP.True
+
+compileF' :: forall a b.
+             (Syn a , Syn b) =>
+             Bool -> Bool -> Bool -> (a -> b) -> String
+compileF' b cSmp cCSE ff = let f = toExpF ff
+                           in  frmRgt (scompileWith' b [] (sin :: TG.Typ (InT b)) esString 0
+                               ((if cSmp then simplifyF else MP.id)
+                               (normaliseF cCSE f)))
+
 
 normalise :: Syn a => Bool -> a -> a
 normalise c ee = let e = toExp ee
@@ -68,9 +75,16 @@ cdsl :: (Type a , Type b) => (Dp a -> Dp b) -> C
 cdsl = compileF MP.True MP.True
 
 makeIP :: String -> String -> IO ()
-makeIP c name = do
-  let fileContent = "#include\"ppm.h\"\n" ++
-                    c ++
+makeIP = makeIPAt "./Examples/C/"
+
+makeIPAt :: String -> String -> String -> IO ()
+makeIPAt path c name  = do
+  let fileContent = $(do f1 <- TH.runIO (MP.readFile "QFeldspar/ppm.h")
+                         f2 <- TH.runIO (MP.readFile "QFeldspar/header.h")
+                         TH.lift (f1 ++"\n" ++ f2))
+                     ++ "\n" ++
+                    c
+                    ++
                     "\nint main(int argc, char *argv[])"++
                     "\n{"++
                     "\n  Image   imgIn = readImage(argv[1]);"++
@@ -84,12 +98,12 @@ makeIP c name = do
                     "\n  Image imgOut = {.sizeX = imgIn.sizeX, "++
                     "\n                  .sizeY = imgIn.sizeY,"++
                     "\n                  .type  = t,"++
-                    "\n                  .data  = malloc(len(aryOut) * sizeof(unsigned int))}; "++
-                    "\n  for(unsigned int i = 0; i < len(aryOut); i++)"++
+                    "\n                  .data  = malloc(len(aryOut) * (t == 3 ? 3 : 1) * sizeof(unsigned int))}; "++
+                    "\n  for(unsigned int i = 0; i < size(imgOut); i++)"++
                     "\n    imgOut.data[i] = ind(aryOut , i);"++
                     "\n  writeImage (argv[2] , imgOut);"++
                     "\n  return 0;"++
                     "\n}"
-     in do writeFile ("Examples/C/"++name++".c") fileContent
-           _ <- runCommand ("gcc -o ./Examples/C/" ++ name ++" ./Examples/C/" ++ name ++ ".c -lm -std=c99")
+     in do writeFile (path ++ "/" ++ name++".c") fileContent
+           _ <- runCommand ("gcc -o " ++ path ++ "/" ++ name ++" " ++ path ++ "/" ++ name ++ ".c -lm -std=c99")
            return ()

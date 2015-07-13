@@ -11,6 +11,7 @@ fre ee = case ee of
   _             -> $(recAppMQ 'ee ''Exp (const [| [] |]) ['Var]
                    [| \ _x -> [] |] [| (++) |] [| (++) |] (const id)
    (\ t -> if
+    | matchQ t [t| [Exp] |]  -> [| concatMap fre  |]
     | matchQ t [t| Fun |] -> [| freF |]
     | matchQ t [t| Exp |] -> [| fre  |]
     | otherwise           -> [| \ _x -> [] |]))

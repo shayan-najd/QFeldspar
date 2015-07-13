@@ -1,12 +1,12 @@
 module QFeldspar.Prelude.HaskellEnvironment where
 
-import QFeldspar.MyPrelude hiding (realPart,imagPart)
+import QFeldspar.MyPrelude hiding (realPart,imagPart,mod)
 
 import qualified QFeldspar.Environment.Scoped  as ES
 import qualified QFeldspar.Environment.Plain   as EP
 import qualified Language.Haskell.TH.Syntax    as TH
 import qualified QFeldspar.Nat.ADT             as NA
-import QFeldspar.Singleton
+import QFeldspar.Singleton hiding (sin)
 import QFeldspar.Environment.Conversion ()
 import QFeldspar.Expression.Utils.TemplateHaskell
 import QFeldspar.Conversion
@@ -36,7 +36,12 @@ type Prelude = [Complex Float -> Float,
                 Float -> Complex Float,
                 Word32 -> Word32,
                 Float -> Float,
-                Ary Word32]
+                Ary Word32,
+                Float -> Float,
+                Float -> Float,
+                Float -> Float -> Float,
+                Float -> Word32,
+                Word32 -> Word32 -> Word32]
 
 esTH' :: ES.Env (Len Prelude) TH.Name
 esTH' = 'realPart
@@ -54,6 +59,11 @@ esTH' = 'realPart
     <+> 'ilog2
     <+> 'sqrtFlt
     <+> 'hshTbl
+    <+> 'sin
+    <+> 'cos
+    <+> 'atan2
+    <+> 'round
+    <+> 'mod
     <+> ES.Emp
 
 realPart :: Complex Float -> Float
@@ -100,3 +110,18 @@ sqrtFlt = PH.sqrt
 
 hshTbl :: Ary Word32
 hshTbl = PH.hashTable
+
+sin :: Float -> Float
+sin = PH.sin
+
+cos :: Float -> Float
+cos = PH.cos
+
+atan2 :: Float -> Float -> Float
+atan2 = PH.atan2
+
+round :: Float -> Word32
+round = PH.round
+
+mod :: Word32 -> Word32 -> Word32
+mod = PH.mod

@@ -3,7 +3,8 @@ module QFeldspar.Prelude.Haskell
         non,som,may,save,fix,Vec(..),
         realPart,imagPart,div,(/),(.&.),(.|.),xor,
         shfRgt,shfLft,complement,
-        i2f,cis,ilog2,sqrt,hashTable,add)
+        i2f,cis,ilog2,sqrt,hashTable,add,
+        cos,sin,atan2,round,mod)
   where
 
 import Data.Array
