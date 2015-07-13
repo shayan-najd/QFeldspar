@@ -1,0 +1,2 @@
+run the following:
+  ./{name of executable} {source image} {target image} 3
