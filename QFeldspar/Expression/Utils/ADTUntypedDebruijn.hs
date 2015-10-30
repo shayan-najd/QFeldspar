@@ -9,7 +9,7 @@ fre :: Exp -> [Nat]
 fre ee = case ee of
   Var  n        -> [n]
   _             -> $(recAppMQ 'ee ''Exp (const [| [] |]) ['Var]
-                   [| \ _x -> [] |] [| (++) |] [| (++) |] (const id)
+                   [| \ _x -> [] |] [| (++) |] [| (++) |]
    (\ t -> if
     | matchQ t [t| [Exp] |]  -> [| concatMap fre  |]
     | matchQ t [t| Fun |] -> [| freF |]

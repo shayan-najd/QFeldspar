@@ -17,7 +17,6 @@ import QFeldspar.Conversion
 import QFeldspar.Type.Conversion ()
 import QFeldspar.Variable.Conversion ()
 import QFeldspar.Expression.Conversions.CodeGeneration (pretty)
-import QFeldspar.Expression.Utils.Common
 import QFeldspar.Singleton
 
 type CompileMonad a = StateT (Word32,[Var],[Var]) ErrM a
@@ -267,7 +266,7 @@ instance TG.Type a => TypeCollectable (MFS.Exp g a) where
   -- type of primitive does not matter, but type of its darguemtns does
    MFS.Prm _ es -> TG.fld (\ ls e -> ls ++ collectTypes e) [] es
    _             -> $(recAppMQ 'ee ''MFS.Exp (const [| [] |]) ['MFS.Prm]
-     [| \ _x -> [] |] [| (++) |] [| (++) |] (trvWrp 't)
+     [| \ _x -> [] |] [| (++) |] [| (++) |]
     (\ tt -> if
      | matchQ tt [t| MFS.Exp a a -> MFS.Exp a a |] -> [| collectTypes |]
      | matchQ tt [t| MFS.Exp a a |]                 -> [| collectTypes |]

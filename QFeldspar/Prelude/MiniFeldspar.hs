@@ -79,7 +79,7 @@ instance (Syn a , Syn b) => Syn (a , b) where
     frmExp ee        = let e = ee in
                        (frmExp (Fst e) , frmExp (Snd e))
 
-mkArr :: Dp Word32 -> (Dp Word32 -> Dp t) -> Dp (Ary t)
+mkArr :: Type t => Dp Word32 -> (Dp Word32 -> Dp t) -> Dp (Ary t)
 mkArr = Ary
 
 lnArr  :: Type t => Dp (Ary t) -> Dp Word32

@@ -3,7 +3,6 @@ module QFeldspar.Expression.Conversions.Lifting (cnvHOFOF,cnvFOHO,cnvFOHOF) wher
 import QFeldspar.MyPrelude
 import QFeldspar.Conversion
 import QFeldspar.Singleton
-import QFeldspar.Expression.Utils.Common
 import QFeldspar.Variable.Typed                             as VT
 import QFeldspar.Environment.Typed                          as ET
 import qualified QFeldspar.Expression.GADTFirstOrder        as GFO
@@ -51,7 +50,7 @@ cnvFOHO' g ee  = case ee of
     | matchQ tt [t| Env (GFO.Exp a a)  a |] -> [| ET.fmap (cnvFOHO' g) |]
     | matchQ tt [t| GFO.Exp a (a ': a) a |] -> [| cnvFOHO'F g |]
     | matchQ tt [t| GFO.Exp a a a |]        -> [| cnvFOHO'  g |]
-    | otherwise                              -> [| id |]))
+    | otherwise                             -> [| id |]))
 
 cnvFOHO'F :: Env (GHO.Exp s) g -> GFO.Exp s (a ': g) b ->
              (GHO.Exp s a -> GHO.Exp s b)
@@ -65,7 +64,7 @@ cnvHOFO' g s ee  = let t = sin :: TG.Typ a in case ee of
                   Exs1 v' t' -> case frmRgt (eqlSin t t') of
                     Rfl      -> GFO.Var v'
   GHO.Prm v es -> GFO.Prm v (TG.mapC (cnvHOFO' g s) es)
-  _          -> $(biGenOverloadedW 'ee ''GHO.Exp "GFO" ['GHO.Prm,'GHO.Tmp] (trvWrp 't)
+  _          -> $(biGenOverloaded 'ee ''GHO.Exp "GFO" ['GHO.Prm,'GHO.Tmp]
    (\ tt -> if
     | matchQ tt [t| GHO.Exp a a -> GHO.Exp a a |] -> [| cnvHOFO'F g s |]
     | matchQ tt [t| GHO.Exp a a |]                 -> [| cnvHOFO'  g s |]

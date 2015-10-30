@@ -27,7 +27,7 @@ showM e = case e of
   Tmp  x    -> pure x
   Prm v es  -> (pure ("Prm " ++ show v)) <$+> fmap show (TG.mapMC (fmap TT . showM) es)
   _         -> $(recAppMQ 'e ''Exp ( (\ s -> [| pure s |]) .  show . stripNameSpace) ['Prm,'Tmp]
-    [| id |] [| (<$+>) |] [| (<++>) |] (const id)
+    [| id |] [| (<$+>) |] [| (<++>) |]
    (\ tt -> if
     | matchQ tt [t| Exp t t -> Exp t t |] -> [| showMF |]
     | matchQ tt [t| Exp t t |]            -> [| showM  |]

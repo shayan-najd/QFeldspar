@@ -8,7 +8,6 @@ import QFeldspar.Expression.Utils.GADTFirstOrder
 import QFeldspar.Variable.Typed
 import QFeldspar.Singleton
 import QFeldspar.ChangeMonad
-import QFeldspar.Expression.Utils.Common
 import qualified QFeldspar.Type.GADT as TG
 import QFeldspar.Environment.Typed
 import QFeldspar.Magic
@@ -122,7 +121,7 @@ nrmOne ee = let t = sin :: TG.Typ a in case ee of
 
     Mem (NV e)                   -> chg (LeT e (Mem (Var Zro)))
 
-    _                            -> $(genOverloadedMW 'ee ''Exp  ['Prm] (trvWrp 't)
+    _                            -> $(genOverloadedM 'ee ''Exp  ['Prm]
      (\ tt -> if
       | matchQ tt [t| Exp a a a |] -> [| nrmOne |]
       | otherwise                  -> [| pure   |]))

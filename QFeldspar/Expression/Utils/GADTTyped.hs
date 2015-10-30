@@ -47,7 +47,7 @@ fre' v ee = case ee of
   | x >= v    -> [x]
   | otherwise -> []
  _            -> $(recAppMQ 'ee ''Exp (const [| [] |]) ['Var]
-    [| \ _x -> [] |] [| (++) |] [| (++) |] (const id)
+    [| \ _x -> [] |] [| (++) |] [| (++) |]
   (\ t -> if
    | matchQ t [t| Exp t (NA.Suc t) t |] ->  [| fmap prd . fre' (Suc v) |]
    | matchQ t [t| Exp t t t |]          ->  [| fre' v |]

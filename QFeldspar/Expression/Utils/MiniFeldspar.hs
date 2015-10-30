@@ -1,7 +1,6 @@
 module QFeldspar.Expression.Utils.MiniFeldspar where
 
 import QFeldspar.MyPrelude hiding (foldl)
-import QFeldspar.Expression.Utils.Common
 import QFeldspar.Expression.MiniFeldspar
 import QFeldspar.Variable.Typed
 import qualified QFeldspar.Environment.Typed as ET
@@ -37,14 +36,14 @@ mapVar f g ee = case ee of
 
 absTmp :: forall r t t'. (TG.Type t', TG.Type t) =>
           Exp r t' -> String -> Exp r t -> Exp r t
-absTmp xx s ee = let t = sin :: TG.Typ t in case ee of
+absTmp xx s ee = case ee of
   Prm v es     -> Prm v (TG.mapC (absTmp xx s) es)
   Tmp x
     | s == x    -> case eqlSin (sinTyp xx) (sin :: TG.Typ t) of
       Rgt Rfl   -> xx
       _         -> ee
     | otherwise -> ee
-  _             -> $(genOverloadedW 'ee ''Exp  ['Prm,'Tmp] (trvWrp 't)
+  _             -> $(genOverloaded 'ee ''Exp  ['Prm,'Tmp]
    (\ tt -> if
     | matchQ tt [t| Exp t t -> Exp t t |] -> [| (absTmp xx s .) |]
     | matchQ tt [t| Exp t t |]            -> [| absTmp xx s |]

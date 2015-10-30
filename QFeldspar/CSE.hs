@@ -3,7 +3,6 @@ module QFeldspar.CSE where
 import QFeldspar.Expression.GADTFirstOrder
 import QFeldspar.Expression.Utils.Equality.GADTFirstOrder
 import QFeldspar.Expression.Utils.GADTFirstOrder(prdAllM,sucAll,isVal)
-import QFeldspar.Expression.Utils.Common
 
 import QFeldspar.MyPrelude hiding (foldl,fmap)
 
@@ -155,7 +154,7 @@ absSubterm xx ex ee = let t = sin :: TG.Typ a in
     Rgt Rfl | eql ex ee -> xx
     _  -> case ee of
       Prm x es -> Prm x (TG.mapC (absSubterm xx ex) es)
-      _        -> $(genOverloadedW 'ee ''Exp  ['Prm] (trvWrp 't)
+      _        -> $(genOverloaded 'ee ''Exp  ['Prm]
         (\ tt -> if
            | matchQ tt [t| Exp a (a ': a) a |]     -> [| absSubterm (sucAll xx) (sucAll ex) |]
            | matchQ tt [t| Exp a a a |]            -> [| absSubterm xx ex |]
@@ -175,7 +174,7 @@ numSubterm ex ee = let t = sin :: TG.Typ a in
                        _        -> 0) + (case ee of
     Prm _ es -> TG.fld (\ b e -> b + numSubterm ex e) 0 es
     _        -> $(recAppMQ 'ee ''Exp (const [| 0 :: Word32 |]) ['Prm]
-                            [| \ _x -> (0 :: Word32) |] [| (+) |] [| (+) |] (trvWrp 't)
+                            [| \ _x -> (0 :: Word32) |] [| (+) |] [| (+) |]
                   (\ tt -> if
                        | matchQ tt [t| Exp a (a ': a) a |]     -> [| numSubterm (sucAll ex) |]
                        | matchQ tt [t| Exp a a a |]            -> [| numSubterm ex |]
@@ -183,13 +182,12 @@ numSubterm ex ee = let t = sin :: TG.Typ a in
 
 findSubterms :: forall s g a. TG.Type a =>
                 Exp s g a -> [Exs1 (Exp s g) TG.Typ]
-findSubterms ee = let t = sin :: TG.Typ a in
-                  (if not (isVal ee) && not (partialApp ee)
+findSubterms ee = (if not (isVal ee) && not (partialApp ee)
                    then ((Exs1 ee (sinTyp ee)) :)
                    else id)(case ee of
     Prm _ es -> TG.fld (\ b e -> b ++ findSubterms e) [] es
     _        -> $(recAppMQ 'ee ''Exp (const [| [] |]) ['Prm]
-                               [| \ _x -> [] |] [| (++) |] [| (++) |] (trvWrp 't)
+                               [| \ _x -> [] |] [| (++) |] [| (++) |]
                   (\ tt -> if
                        | matchQ tt [t| Exp a (a ': a) a |]     -> [| findSubtermsF |]
                        | matchQ tt [t| Exp a a a |]            -> [| findSubterms |]

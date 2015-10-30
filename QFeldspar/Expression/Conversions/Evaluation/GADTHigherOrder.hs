@@ -8,18 +8,17 @@ import QFeldspar.Environment.Typed hiding (fmap)
 import QFeldspar.Conversion
 import QFeldspar.Variable.Conversion ()
 import QFeldspar.Singleton
-import QFeldspar.Expression.Utils.Common
 import QFeldspar.Literal.GADT
 import qualified QFeldspar.Prelude.Haskell as PH
 
 instance (TG.Type a , a ~ a') =>
          Cnv (Exp s a , Env FGV.Exp s) (FGV.Exp a') where
-  cnv (ee , s) = let t = sin :: TG.Typ a in case ee of
+  cnv (ee , s) = case ee of
     Tmp _    -> impossibleM
     Prm x es -> FGV.prm  (get x s) <$>
                 TG.mapMC (cnvWth s)  es
-    _  -> $(biGenOverloadedMWL 'ee ''Exp "FGV"
-            ['Tmp,'Prm] (trvWrp 't)
+    _  -> $(biGenOverloadedML 'ee ''Exp "FGV"
+            ['Tmp,'Prm]
             (\ tt -> if
                  | matchQ tt [t| Exp a a -> Exp a a |] ->
                      [| \ f -> pure

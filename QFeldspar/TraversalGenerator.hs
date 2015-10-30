@@ -58,19 +58,7 @@ genOverloaded e t ns f = recAppMQ e t
                          [| id |]
                          [| ($) |]
                          [| ($) |]
-                         (const id)
                          f
-
-genOverloadedW :: Name -> Name -> [Name] -> (Name -> Q Exp -> Q Exp) ->
-                  (Type -> Q Exp) -> Q Exp
-genOverloadedW e t ns wf f = recAppMQ e t
-                             (return . ConE)
-                             ns
-                             [| id |]
-                             [| ($) |]
-                             [| ($) |]
-                             wf
-                             f
 
 genOverloadedM :: Name -> Name -> [Name] ->
                   (Type -> Q Exp) -> Q Exp
@@ -80,19 +68,7 @@ genOverloadedM e t ns f = recAppMQ e t
                           [| pure |]
                           [| (<$>) |]
                           [| (<*>) |]
-                          (const id)
                           f
-
-genOverloadedMW :: Name -> Name -> [Name] -> (Name -> Q Exp -> Q Exp) ->
-                  (Type -> Q Exp) -> Q Exp
-genOverloadedMW e t ns wf f = recAppMQ e t
-                              (return . ConE)
-                              ns
-                              [| pure |]
-                              [| (<$>) |]
-                              [| (<*>) |]
-                              wf
-                              f
 
 biGenOverloaded :: Name -> Name -> String -> [Name] ->
                    (Type -> Q Exp) -> Q Exp
@@ -102,19 +78,7 @@ biGenOverloaded e t g ns f = recAppMQ e t
                            [| id |]
                            [| ($) |]
                            [| ($) |]
-                           (const id)
                            f
-
-biGenOverloadedW :: Name -> Name -> String -> [Name] -> (Name -> Q Exp -> Q Exp) ->
-                  (Type -> Q Exp) -> Q Exp
-biGenOverloadedW e t g ns wf f = recAppMQ e t
-                               (\ n -> conE (mkName (g ++ "." ++ ( (nameBase n)))))
-                               ns
-                               [| id |]
-                               [| ($) |]
-                               [| ($) |]
-                               wf
-                               f
 
 biGenOverloadedM :: Name -> Name -> String -> [Name] ->
                   (Type -> Q Exp) -> Q Exp
@@ -124,19 +88,7 @@ biGenOverloadedM e t g ns f = recAppMQ e t
                                [| pure |]
                                [| (<$>) |]
                                [| (<*>) |]
-                               (const id)
                                f
-
-biGenOverloadedMW :: Name -> Name -> String -> [Name] -> (Name -> Q Exp -> Q Exp) ->
-                  (Type -> Q Exp) -> Q Exp
-biGenOverloadedMW e t g ns wf f = recAppMQ e t
-                                (\ n -> conE (mkName (g ++ "." ++ ( (nameBase n)))))
-                                ns
-                                [| pure |]
-                                [| (<$>) |]
-                                [| (<*>) |]
-                                wf
-                                f
 
 biGenOverloadedL :: Name -> Name -> String -> [Name] ->
                    (Type -> Q Exp) -> Q Exp
@@ -146,19 +98,8 @@ biGenOverloadedL e t g ns f = recAppMQ e t
                            [| id |]
                            [| ($) |]
                            [| ($) |]
-                           (const id)
                            f
 
-biGenOverloadedWL :: Name -> Name -> String -> [Name] -> (Name -> Q Exp -> Q Exp) ->
-                  (Type -> Q Exp) -> Q Exp
-biGenOverloadedWL e t g ns wf f = recAppMQ e t
-                               (\ n -> varE (mkName (g ++ "." ++ (lowerFirst(nameBase n)))))
-                               ns
-                               [| id |]
-                               [| ($) |]
-                               [| ($) |]
-                               wf
-                               f
 
 biGenOverloadedML :: Name -> Name -> String -> [Name] ->
                   (Type -> Q Exp) -> Q Exp
@@ -168,82 +109,23 @@ biGenOverloadedML e t g ns f = recAppMQ e t
                                [| pure |]
                                [| (<$>) |]
                                [| (<*>) |]
-                               (const id)
                                f
 
-biGenOverloadedMWL :: Name -> Name -> String -> [Name] -> (Name -> Q Exp -> Q Exp) ->
+biGenOverloadedMWL :: Name -> Name -> String -> [Name] ->
                   (Type -> Q Exp) -> Q Exp
-biGenOverloadedMWL e t g ns wf f = recAppMQ e t
+biGenOverloadedMWL e t g ns f = recAppMQ e t
                                 (\ n -> varE (mkName (g ++ "." ++ (lowerFirst(nameBase n)))))
                                 ns
                                 [| pure |]
                                 [| (<$>) |]
                                 [| (<*>) |]
-                                wf
                                 f
 
-{-
-biRecAppMQS :: Name -> Name -> String -> [Name] ->
-               (Name -> Q Exp -> Q Exp) -> Q Exp
-biRecAppMQS e dn g ns wf = recAppMQ e dn
-                           (\ n -> varE (mkName (g ++ "." ++ (lowerFirst (nameBase n)))))
-                           ns
-                           [| pure |]
-                           (varE $ stripNameSpace $ mkName "<$@>")
-                           (varE $ stripNameSpace $ mkName "<*@>")
-                           wf
-                           (const [| id |])
-
---biRecAppMQ :: Name -> Name -> String -> Q Exp
--- biRecAppMQ e dn g =  biRecAppMQW e dn g [] (const id)
-
-
-biRecAppQW :: Name -> Name -> String -> [Name] ->
-               (Name -> Q Exp -> Q Exp) -> Q Exp
-biRecAppQW e dn g ns wf = recAppMQ e dn
-                          (\ n -> conE (mkName (g ++ "." ++ nameBase n)))
-                          ns
-                          [| pure |]
-                          (varE $ stripNameSpace $ mkName "<$@>")
-                          (varE $ stripNameSpace $ mkName "<*@>")
-                          wf
-                          (const [| id |])
--}
-{-
-biRecAppMQW :: Name -> Name -> String -> [Name] ->
-               (Name -> Q Exp -> Q Exp) -> Q Exp
-biRecAppMQW e dn g ns wf = recAppMQ e dn
-   (\ n -> conE (mkName (g ++ "." ++ nameBase n)))
-   ns [| id |]
-   [| ($) |]
-   [| ($) |]
-   wf
-   (const [| id |])
-
-
-biOverloadedW :: Name -> Name -> String -> [Name] -> (Name -> Q Exp -> Q Exp) ->
-                  (Type -> Q Exp) -> Q Exp
-biOverloadedW e dn g = recAppQ e dn (\ n -> conE (mkName (g ++ "." ++ nameBase n)))
-
-
-recAppQ :: Name -> Name -> (Name -> Q Exp) -> [Name] ->
-           (Name -> Q Exp -> Q Exp) -> (Type -> Q Exp) -> Q Exp
-recAppQ e dn g ns wf fn = recApp e dn (unQ . g) ns
-                          (\ n -> unQ . wf n . return)
-                          (unQ . fn)
-
-recApp :: Name -> Name -> (Name -> Exp) -> [Name] -> (Name -> Exp -> Exp) ->
-          (Type -> Exp) -> Q Exp
-recApp e dn g ns = recAppM e dn g ns
-                   (unQ [| id |]) (unQ [| ($) |]) (unQ [| ($) |])
--}
-
 recAppMQ :: Name -> Name -> (Name -> Q Exp) -> [Name] -> Q Exp -> Q Exp ->
-            Q Exp -> (Name -> Q Exp -> Q Exp) -> (Type -> Q Exp) ->
-            Q Exp
-recAppMQ e dn g ns o0 o1 o2 wf fn = recAppM e dn (unQ . g) ns
-                                    (unQ o0) (unQ o1) (unQ o2)
-                                    (\ n -> unQ . wf n . return) (unQ . fn)
+            Q Exp -> (Type -> Q Exp) -> Q Exp
+recAppMQ e dn g ns o0 o1 o2 fn = recAppM e dn (unQ . g) ns
+                                 (unQ o0) (unQ o1) (unQ o2)
+                                 (\ _ -> unQ . return) (unQ . fn)
 
 recAppM :: Name -> Name -> (Name -> Exp) -> [Name] -> Exp -> Exp -> Exp ->
            (Name -> Exp -> Exp) ->

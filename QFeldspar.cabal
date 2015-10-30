@@ -78,7 +78,6 @@ library
      QFeldspar.Expression.Utils.ADTUntypedNamed,
      QFeldspar.Expression.Utils.ADTUntypedDebruijn,
      QFeldspar.Expression.Utils.GADTTyped,
-     QFeldspar.Expression.Utils.Common,
      QFeldspar.Expression.Utils.TemplateHaskell,
      QFeldspar.Expression.Utils.Equality.GADTHigherOrder,
      QFeldspar.Expression.Utils.Equality.MiniFeldspar,

@@ -5,7 +5,6 @@ module QFeldspar.Expression.Utils.GADTFirstOrder
 import QFeldspar.MyPrelude
 import QFeldspar.Expression.GADTFirstOrder as GFO
 import QFeldspar.Variable.Typed
-import QFeldspar.Expression.Utils.Common
 import QFeldspar.Singleton
 import QFeldspar.Type.GADT hiding (May,Cmx,Ary,Tpl,Int,Rat)
 import qualified QFeldspar.Environment.Typed as ET
@@ -72,7 +71,7 @@ cntVar v ee = let t = sin :: Typ a in case ee of
                else 0
     _       -> 0
   _         -> $(recAppMQ 'ee ''Exp (const [| (0 :: Word32) |]) ['Var]
-    [| \ _x -> 0 |] [| (+) |] [| (+) |] (trvWrp 't)
+    [| \ _x -> 0 |] [| (+) |] [| (+) |]
    (\ tt -> if
     | matchQ tt [t| Exp a (a ': a) a |] -> [| cntVar (Suc v) |]
     | matchQ tt [t| ET.Env (Exp a a)  a |] -> [| fld (\ b e -> b + cntVar v e) 0 |]
@@ -89,7 +88,7 @@ sbs' e' v' ee = let t = sin :: Typ a in case ee of
                 else ee
      _       -> ee
   Prm x ns   -> Prm x (mapC (sbs' e' v') ns)
-  _   -> $(genOverloadedW 'ee ''Exp  ['Var] (trvWrp 't)
+  _   -> $(genOverloaded 'ee ''Exp  ['Var]
    (\ tt -> if
       | matchQ tt [t| Exp a (a ': a) a |] -> [| sbs'F e' v' |]
       | matchQ tt [t| Exp a a a |]        -> [| sbs'  e' v' |]

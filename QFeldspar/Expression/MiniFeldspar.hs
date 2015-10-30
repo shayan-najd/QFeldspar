@@ -16,12 +16,12 @@ data Exp :: [*] -> * -> * where
   Cnd   :: Exp s Bool -> Exp s a -> Exp s a -> Exp s a
   Whl   :: (Exp s a -> Exp s Bool) -> (Exp s a -> Exp s a) ->
            Exp s a  -> Exp s a
-  Tpl   :: Exp s a -> Exp s b -> Exp s (a , b)
+  Tpl   :: (Type a , Type b) => Exp s a -> Exp s b -> Exp s (a , b)
   Fst   :: Type b =>
            Exp s (a , b)-> Exp s a
   Snd   :: Type a =>
            Exp s (a , b)-> Exp s b
-  Ary   :: Exp s Word32 -> (Exp s Word32 -> Exp s a) -> Exp s (Ary a)
+  Ary   :: Type a => Exp s Word32 -> (Exp s Word32 -> Exp s a) -> Exp s (Ary a)
   Len   :: Type a =>
            Exp s (Ary a) -> Exp s Word32
   Ind   :: Exp s (Ary a) -> Exp s Word32 -> Exp s a

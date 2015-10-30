@@ -9,7 +9,6 @@ import QFeldspar.Expression.Utils.GADTFirstOrder
 import QFeldspar.Variable.Typed
 import QFeldspar.Singleton
 import QFeldspar.ChangeMonad
-import QFeldspar.Expression.Utils.Common
 import qualified QFeldspar.Type.GADT as TG
 
 smp :: TG.Type a => Exp s g a -> Exp s g a
@@ -33,7 +32,7 @@ smpOne ee = let t = sin :: TG.Typ a in case ee of
             _       -> Ary <$> smpOne el <*> smpOne ef
           _         -> Ary <$> smpOne el <*> smpOne ef
         _           -> Ary <$> smpOne el <*> smpOne ef
-    _       -> $(genOverloadedMW 'ee ''Exp  ['Prm] (trvWrp 't)
+    _       -> $(genOverloadedM 'ee ''Exp  ['Prm]
       (\ tt -> if
            | matchQ tt [t| Exp a a a |] -> [| smpOne |]
            | otherwise                  -> [| pure   |]))

@@ -1,7 +1,6 @@
 module QFeldspar.Expression.Conversions.Normalisation () where
 
 import QFeldspar.MyPrelude
-import QFeldspar.Expression.Utils.Common
 import qualified QFeldspar.Expression.GADTHigherOrder as GHO
 import qualified QFeldspar.Expression.MiniFeldspar  as MFS
 
@@ -34,10 +33,10 @@ instance (TG.Type t , t ~ t' , r ~ r') =>
     GHO.Rat i                -> case t of
       TG.Flt                 -> pure (MFS.ConF (fromRational i))
       _                      -> fail "Normalisation Error!"
-    _                        -> $(biGenOverloadedMW 'ee ''GHO.Exp "MFS"
+    _                        -> $(biGenOverloadedM 'ee ''GHO.Exp "MFS"
      ['GHO.Prm,'GHO.Abs,'GHO.App,'GHO.Non,'GHO.Som,'GHO.May,'GHO.Lit
      ,'GHO.AryV,'GHO.LenV,'GHO.IndV,'GHO.Int,'GHO.Fix,'GHO.Rat]
-     (trvWrp 't) (const [| cnvWth r |]))
+     (const [| cnvWth r |]))
 
 instance (TG.Type a , TG.Type b, a ~ a' , b ~ b' , r ~ r') =>
     Cnv (GHO.Exp r' (a' -> b') , rr) (MFS.Exp r a -> MFS.Exp r b)  where
@@ -54,14 +53,14 @@ instance (TG.Type ta , TG.Type tb , r ~ r' , ta ~ ta' ,tb ~ tb') =>
 
 instance (TG.Type t , t' ~ t , r' ~ r) =>
          Cnv (MFS.Exp r' t' , rr) (GHO.Exp r t)  where
-  cnv (ee , r) = let t = sin :: TG.Typ t in
+  cnv (ee , r) =
     case ee of
       MFS.Prm x ns -> GHO.Prm x <$> TG.mapMC (cnvWth r) ns
       MFS.ConI i   -> pure (GHO.Int (toInteger i))
       MFS.ConF i   -> pure (GHO.Rat (toRational i))
-      _            -> $(biGenOverloadedMW 'ee ''MFS.Exp "GHO"
+      _            -> $(biGenOverloadedM 'ee ''MFS.Exp "GHO"
                         ['MFS.Prm,'MFS.ConI,'MFS.ConF]
-                            (trvWrp 't) (const [| cnvWth r |]))
+                           (const [| cnvWth r |]))
 
 instance (TG.Type a , TG.Type b, a ~ a' , b ~ b' , r ~ r') =>
     Cnv (MFS.Exp r a -> MFS.Exp r b , rr) (GHO.Exp r' (a' -> b')) where
