@@ -20,22 +20,19 @@ cse :: TG.Type a => Exp s g a -> Exp s g a
 cse = tilNotChg cseOne
 
 cseOne :: forall s g a. TG.Type a => Exp s g a -> Chg (Exp s g a)
-cseOne ee = let t = sin :: TG.Typ a in case ee of
+cseOne ee = case ee of
   Lit i                     -> pure (Lit i)
   ConB b                    -> pure (ConB b)
   Prm  x es                 -> cseOneEnv x Emp es
   Var x                     -> pure (Var x)
-  Abs eb                    -> case TG.getPrfHasSinArr t of
-    (PrfHasSin , PrfHasSin) -> Abs <$> cseOne eb
+  Abs eb                    -> Abs <$> cseOne eb
   App ef ea                 -> cseOne2 App ef ea
   Cnd ec et ef              -> cseOne3 Cnd ec et ef
   Whl ec eb ei              -> cseOne3 Whl ec eb ei
-  Tpl ef es                 -> case TG.getPrfHasSinTpl t of
-    (PrfHasSin , PrfHasSin) -> cseOne2 Tpl ef es
+  Tpl ef es                 -> cseOne2 Tpl ef es
   Fst e                     -> Fst <$> cseOne e
   Snd e                     -> Snd <$> cseOne e
-  Ary el ef                 -> case TG.getPrfHasSinAry t of
-    PrfHasSin               -> cseOne2 Ary el ef
+  Ary el ef                 -> cseOne2 Ary el ef
   Len e                     -> Len <$> cseOne e
   Ind ea ei                 -> cseOne2 Ind ea ei
   LeT el eb                 -> cseOne2F LeT el eb
@@ -47,11 +44,9 @@ cseOne ee = let t = sin :: TG.Typ a in case ee of
   Eql er ei                 -> cseOne2 Eql er ei
   Ltd er ei                 -> cseOne2 Ltd er ei
   Non                       -> pure Non
-  Som eb                    -> case TG.getPrfHasSinMay t of
-    PrfHasSin               -> Som <$> cseOne eb
+  Som eb                    -> Som <$> cseOne eb
   May l m n                 -> cseOne3 May l m n
-  AryV m n                  -> case TG.getPrfHasSinVec t of
-    PrfHasSin               -> cseOne2 AryV m n
+  AryV m n                  -> cseOne2 AryV m n
   LenV n                    -> LenV <$> cseOne n
   IndV m n                  -> cseOne2 IndV m n
   Int  i                    -> pure (Int i)

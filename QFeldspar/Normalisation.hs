@@ -35,7 +35,7 @@ hasNV :: Env (Exp s g) d -> Bool
 hasNV = foldl (\ b e -> b || (not (isVal e))) False
 
 nrmOne :: forall s g a. TG.Type a => Exp s g a -> Chg (Exp s g a)
-nrmOne ee = let t = sin :: TG.Typ a in case ee of
+nrmOne ee = case ee of
     Prm x es
       | hasNV es    -> cmt x Emp es
       | otherwise   -> Prm x <$> TG.mapMC nrmOne es
@@ -53,10 +53,8 @@ nrmOne ee = let t = sin :: TG.Typ a in case ee of
     Whl (V  ec) (NV eb) ei      -> chg (LeT eb (Whl (sucAll ec) (Var Zro)  (sucAll ei)))
     Whl (V  ec) (V  eb) (NV ei) -> chg (LeT ei (Whl (sucAll ec) (sucAll eb) (Var Zro)))
 
-    Tpl (NV ef) es               -> case TG.getPrfHasSinTpl t of
-      (PrfHasSin , PrfHasSin)    -> chg (LeT ef (Tpl (Var Zro) (sucAll es)))
-    Tpl (V ef)  (NV es)          -> case TG.getPrfHasSinTpl t of
-      (PrfHasSin , PrfHasSin)    -> chg (LeT es (Tpl (sucAll ef) (Var Zro)))
+    Tpl (NV ef) es               -> chg (LeT ef (Tpl (Var Zro) (sucAll es)))
+    Tpl (V ef)  (NV es)          -> chg (LeT es (Tpl (sucAll ef) (Var Zro)))
 
     Fst (NV e)                   -> chg (LeT e (Fst (Var Zro)))
     Fst (TF (Tpl (V ef) (V _)))  -> chg  ef
@@ -65,8 +63,7 @@ nrmOne ee = let t = sin :: TG.Typ a in case ee of
     Snd (TF (Tpl (V _)  (V es))) -> chg  es
 
     Ary (NV el) ef               -> chg (LeT el (Ary (Var Zro) (sucAll ef)))
-    Ary (V  el) (NV ef)          -> case TG.getPrfHasSinAry t of
-      PrfHasSin                  -> chg (LeT ef (Ary (sucAll el) (Var Zro)))
+    Ary (V  el) (NV ef)          -> chg (LeT ef (Ary (sucAll el) (Var Zro)))
 
     Len (NV ea)                  -> chg (LeT ea (Len (Var Zro)))
     Len (TF (Ary (V el) _))      -> chg  el
@@ -76,8 +73,7 @@ nrmOne ee = let t = sin :: TG.Typ a in case ee of
     Ind (TF (Ary (V _) ef)) (V ei) -> chg (App ef ei)
 
     AryV (NV el) ef              -> chg (LeT el (AryV (Var Zro) (sucAll ef)))
-    AryV (V  el) (NV ef)         -> case TG.getPrfHasSinVec t of
-      PrfHasSin                  -> chg (LeT ef (AryV (sucAll el) (Var Zro)))
+    AryV (V  el) (NV ef)         -> chg (LeT ef (AryV (sucAll el) (Var Zro)))
 
     LenV (NV ea)                 -> chg (LeT ea (LenV (Var Zro)))
     LenV (TF (AryV (V el) _))    -> chg  el
@@ -95,8 +91,7 @@ nrmOne ee = let t = sin :: TG.Typ a in case ee of
     LeT (NV v)         eb
       | cntVar Zro eb == 0       -> chg (sbs v eb)
 
-    Som (NV e)                   -> case TG.getPrfHasSinMay t of
-      PrfHasSin                  -> chg (LeT e  (Som (Var Zro)))
+    Som (NV e)                   -> chg (LeT e  (Som (Var Zro)))
 
     May (NV em) en      es       -> chg (LeT em (May (Var Zro)   (sucAll en) (sucAll es)))
     May (V  em) (NV en) es       -> chg (LeT en (May (sucAll em) (Var Zro)   (sucAll es)))

@@ -177,26 +177,6 @@ getPrfHasSinMay :: forall ta t. Type (Maybe ta) =>
 getPrfHasSinMay _ = case sin :: Typ (Maybe ta) of
   May ta    -> getPrfHasSin ta
 
-getPrfHasSinArrM :: Type (ta -> tb) =>
-                    t (ta -> tb) -> ErrM (PrfHasSin Typ ta , PrfHasSin Typ tb)
-getPrfHasSinArrM = return . getPrfHasSinArr
-
-getPrfHasSinTplM :: Type (tf , ts) =>
-                    t (tf , ts) -> ErrM (PrfHasSin Typ tf , PrfHasSin Typ ts)
-getPrfHasSinTplM = return . getPrfHasSinTpl
-
-getPrfHasSinAryM :: Type (Ary ta) =>
-                   t (Ary ta) -> ErrM (PrfHasSin Typ ta)
-getPrfHasSinAryM = return  . getPrfHasSinAry
-
-getPrfHasSinVecM :: Type (Vec ta) =>
-                   t (Vec ta) -> ErrM (PrfHasSin Typ ta)
-getPrfHasSinVecM = return  . getPrfHasSinVec
-
-getPrfHasSinMayM :: Type (Maybe ta) =>
-                   t (Maybe ta) -> ErrM (PrfHasSin Typ ta)
-getPrfHasSinMayM = return  . getPrfHasSinMay
-
 mapC :: Types as =>
         (forall a. Type a => f a -> f' a) ->
         ET.Env f as -> ET.Env f' as

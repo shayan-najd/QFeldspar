@@ -157,34 +157,32 @@ instance (TG.Type t, n ~ Len r) =>
                                       [Whl ec'
                                        (sb ++
                                        [Assign xs eb'] ++ sc)])
-      MFS.Tpl ef es           -> case TG.getPrfHasSinTpl t of
-       (PrfHasSin , PrfHasSin) -> do (ef' , sf) <- cmpWth r ef
-                                     (es' , ss) <- cmpWth r es
-                                     return (newTpl t' ef' es', sf ++ ss)
+      MFS.Tpl ef es           -> do (ef' , sf) <- cmpWth r ef
+                                    (es' , ss) <- cmpWth r es
+                                    return (newTpl t' ef' es', sf ++ ss)
       MFS.Fst e               -> do (e'  , se) <- cmpWth r e
                                     return (fst e' , se)
       MFS.Snd e               -> do (e' , se) <- cmpWth r e
                                     return (snd e' , se)
-      MFS.Ary l f             -> case TG.getPrfHasSinAry t of
-        PrfHasSin              -> do xl <- newName
-                                     addVar (xl , TA.Wrd)
-                                     xa <- newName
-                                     addVar (xa , t')
-                                     xi <- newName
-                                     addVar (xi , TA.Wrd)
-                                     (el , sl) <- cmpWth r l
-                                     (ef , sf) <- cmpWth r (f (MFS.Tmp xi))
-                                     return ( Var xa
-                                            ,   sl ++
-                                              [ Assign xl el
-                                              , Assign xa (newAry t' (Var xl))
-                                              , Assign xi (Wrd 0)
-                                              , Whl (ltd (Var xi) (Var xl))
-                                                (sf ++
-                                                 [ Assign xa (setAry (Var xa)
-                                                               (Var xi) ef)
-                                                 , Assign xi (add (Var xi)
-                                                              (Wrd 1))])])
+      MFS.Ary l f             -> do xl <- newName
+                                    addVar (xl , TA.Wrd)
+                                    xa <- newName
+                                    addVar (xa , t')
+                                    xi <- newName
+                                    addVar (xi , TA.Wrd)
+                                    (el , sl) <- cmpWth r l
+                                    (ef , sf) <- cmpWth r (f (MFS.Tmp xi))
+                                    return ( Var xa
+                                           ,   sl ++
+                                             [ Assign xl el
+                                             , Assign xa (newAry t' (Var xl))
+                                             , Assign xi (Wrd 0)
+                                             , Whl (ltd (Var xi) (Var xl))
+                                               (sf ++
+                                                [ Assign xa (setAry (Var xa)
+                                                             (Var xi) ef)
+                                               , Assign xi (add (Var xi)
+                                                             (Wrd 1))])])
       MFS.Len e               -> do (e'  , se) <- cmpWth r e
                                     return (len e' , se)
       MFS.Ind ea ei           -> do (ea' , sa) <- cmpWth r ea
