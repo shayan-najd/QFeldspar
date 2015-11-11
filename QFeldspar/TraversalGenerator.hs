@@ -26,6 +26,7 @@ matchQ :: Type -> Q Type -> Bool
 matchQ t t' = match t (unQ t')
 
 match :: Type -> Type -> Bool
+match (SigT a _)            a'                    = match a a'
 match _                     (VarT _)              = True
 match (ConT n)              (PromotedT n')        = n == n'
 match (PromotedT n)         (ConT n')             = n == n'

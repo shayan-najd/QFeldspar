@@ -136,6 +136,15 @@ option_R d f o    =   def o ? (f (val o), d)
 newtype Opt a = O { unO :: forall b . Undef b =>
                            ((a -> Opt_R b) -> Opt_R b) }
 
+instance MP.Functor Opt where
+  fmap f m = f MP.<$> m
+
+instance MP.Applicative Opt where
+  pure    = return
+  m <*> n = do m' <- m
+               n' <- n
+               return (m' n')
+
 instance Monad Opt where
   return x    =  O (\g -> g x)
   m >>= k     =  O (\g -> unO m (\x -> unO (k x) g))
