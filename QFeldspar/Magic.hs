@@ -22,78 +22,78 @@ type family Subs s a where
 
 -- Helper function
 type family Case_Subs x t where
-  Case_Subs x (Just t) = t
-  Case_Subs x Nothing  = TVr x
+  Case_Subs x ('Just t) = t
+  Case_Subs x 'Nothing  = TVr x
 
 -- Most general unifier
 type family Mgu a a' :: Maybe [(Nat,*)] where
-  Mgu (TVr x)   a'           = Just '[ '(x  , a')]
+  Mgu (TVr x)   a'           = 'Just '[ '(x  , a')]
   Mgu (k a b c) (k a' b' c') = Case_Mgu c c' (Case_Mgu b b' (Mgu a a'))
   Mgu (k a b)   (k a' b')    = Case_Mgu b b' (Mgu a a')
   Mgu (k a)     (k a')       = Mgu a a'
-  Mgu a         a            = Just '[]
-  Mgu a         a'           = Nothing
+  Mgu a         a            = 'Just '[]
+  Mgu a         a'           = 'Nothing
 
 -- Helper Function
 type family Case_Mgu b b' t  where
-  Case_Mgu b b' (Just s) = FMapAppend s (Mgu (Subs s b) b')
-  Case_Mgu b b' Nothing  = Nothing
+  Case_Mgu b b' ('Just s) = FMapAppend s (Mgu (Subs s b) b')
+  Case_Mgu b b' 'Nothing  = 'Nothing
 
 -- type-level fmap (xs ++) mys
 type family FMapAppend xs mys where
-  FMapAppend '[] x         = x
-  FMapAppend xs  (Just ys) = Just (Add xs ys)
-  FMapAppend xs  Nothing   = Nothing
+  FMapAppend '[] x          = x
+  FMapAppend xs  ('Just ys) = 'Just (Add xs ys)
+  FMapAppend xs  'Nothing   = 'Nothing
 
 -- fully applies a function type to list of arguments
 type family AppFul a b where
   AppFul (a -> b) (a' ': as) = Case_AppFul (Mgu a a') b as
-  AppFul (a -> b) '[]        = Nothing
-  AppFul a        '[]        = Just a
-  AppFul a        a'         = Nothing
+  AppFul (a -> b) '[]        = 'Nothing
+  AppFul a        '[]        = 'Just a
+  AppFul a        a'         = 'Nothing
 
 -- Helper Function
 type family Case_AppFul s b as where
-  Case_AppFul (Just s) b as = AppFul (Subs s b) as
-  Case_AppFul Nothing  b as = Nothing
+  Case_AppFul ('Just s) b as = AppFul (Subs s b) as
+  Case_AppFul 'Nothing  b as = 'Nothing
 
 -- a predicate stating whether a type has TVr inside it
 type family NoTVr a where
-  NoTVr (TVr x)  = False
+  NoTVr (TVr x)   = 'False
   NoTVr (k a b c) = And  (NoTVr a)
                      (And (NoTVr b)
                           (NoTVr c))
   NoTVr (k a b)   = And  (NoTVr a)
                           (NoTVr b)
   NoTVr (k a)     = NoTVr a
-  NoTVr a         = True
+  NoTVr a         = 'True
 
-type Match a d b = Case_Match (AppFul a d) b ~ True
+type Match a d b = Case_Match (AppFul a d) b ~ 'True
 
 type family Case_Match c b where
-  Case_Match (Just c) b = ToBool (Mgu c b)
-  Case_Match Nothing  b = False
+  Case_Match ('Just c) b = ToBool (Mgu c b)
+  Case_Match 'Nothing  b = 'False
 
 type family ToBool s where
-  ToBool (Just x) = True
-  ToBool Nothing  = False
+  ToBool ('Just x) = 'True
+  ToBool 'Nothing  = 'False
 
 type family NoTVrs as where
-  NoTVrs '[]       = True
+  NoTVrs '[]       = 'True
   NoTVrs (a ': as) = Case_NoTVrs (NoTVr a) as
 
 type family Case_NoTVrs p as where
-  Case_NoTVrs True  as = NoTVrs as
-  Case_NoTVrs False as = False
+  Case_NoTVrs 'True  as = NoTVrs as
+  Case_NoTVrs 'False as = 'False
 
 data PrfNoTVr a where
-  PrfNoTVr :: NoTVr a ~ True => PrfNoTVr a
+  PrfNoTVr :: NoTVr a ~ 'True => PrfNoTVr a
 
 data PrfNoTVrs as where
-  PrfNoTVrs :: NoTVrs as ~ True => PrfNoTVrs as
+  PrfNoTVrs :: NoTVrs as ~ 'True => PrfNoTVrs as
 
 getPrfNoTVrsEnv :: forall a as ass f.
-                  (NoTVrs ass ~ True , ass ~ (a ': as)) =>
+                  (NoTVrs ass ~ 'True , ass ~ (a ': as)) =>
                   f ass -> (PrfNoTVr a , PrfNoTVrs as)
 getPrfNoTVrsEnv _ = case obvious :: NoTVr a :~: 'True of
   Rfl -> (PrfNoTVr , PrfNoTVrs)
@@ -143,8 +143,8 @@ lookup x (Ext (SPair (x' :: f x') (a :: g a))
     Rfl   ->  lookup x xas
 
 data SMaybe (f :: k -> *) (a :: Maybe k) where
-  SNothing :: SMaybe f Nothing
-  SJust :: f x -> SMaybe f (Just x)
+  SNothing :: SMaybe f 'Nothing
+  SJust :: f x -> SMaybe f ('Just x)
 
 data SPair f g a where
   SPair :: f a -> g b -> SPair f g '(a , b)
@@ -162,7 +162,7 @@ mgu TG.Bol       TG.Bol         = SJust Emp
 mgu TG.Flt       TG.Flt         = SJust Emp
 mgu TG.Cmx       TG.Cmx         = SJust Emp
 mgu _            _              = case obvious :: Mgu a a' :~:
-                                                  Nothing of
+                                                  'Nothing of
   Rfl                          -> SNothing
 
 case_Mgu :: TG.Typ b -> TG.Typ b' -> SMaybe (Env (SPair NG.Nat TG.Typ)) s ->
@@ -181,10 +181,10 @@ appFul :: forall a a'.
 appFul (TG.Arr a b) (Ext a' as) = case_AppFul (mgu a a') b as
 appFul (TG.Arr _ _) Emp         = SNothing
 appFul a            Emp         = case obvious :: AppFul a '[] :~:
-                                                  Just a  of
+                                                  'Just a  of
   Rfl                          -> SJust a
 appFul _            (Ext _ _)   = case obvious :: AppFul a a' :~:
-                                                  Nothing  of
+                                                  'Nothing  of
   Rfl                          -> SNothing
 
 case_AppFul :: SMaybe (Env (SPair NG.Nat TG.Typ)) s -> TG.Typ b ->
@@ -193,8 +193,8 @@ case_AppFul (SJust s) b as = appFul (subs s b) as
 case_AppFul SNothing  _ _  = SNothing
 
 data SBool b where
-  SFalse :: SBool False
-  STrue :: SBool True
+  SFalse :: SBool 'False
+  STrue  :: SBool 'True
 
 case_Match :: SMaybe TG.Typ c -> TG.Typ b -> SBool (Case_Match c b)
 case_Match (SJust c) b = toBool (mgu c b)

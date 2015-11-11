@@ -12,7 +12,7 @@ import QFeldspar.Conversion
 import QFeldspar.Expression.Conversions.Evaluation.GADTTyped ()
 import QFeldspar.Inference
 
-dbl :: Exp (NA.Suc NA.Zro) NA.Zro TA.Typ
+dbl :: Exp ('NA.Suc 'NA.Zro) 'NA.Zro TA.Typ
 dbl = Abs (Prm [TA.Wrd ,TA.Wrd] Zro
                    [Var Zro , Var Zro])
 
@@ -21,7 +21,7 @@ compose ta tb = Abs (Abs (Abs
   (App tb (Var (Suc (Suc Zro)))
    (App ta (Var (Suc Zro)) (Var Zro)))))
 
-four :: Exp (NA.Suc NA.Zro) NA.Zro TA.Typ
+four :: Exp ('NA.Suc 'NA.Zro) 'NA.Zro TA.Typ
 four = App TA.Wrd
        (App (TA.Arr TA.Wrd TA.Wrd)
         (App (TA.Arr TA.Wrd TA.Wrd)

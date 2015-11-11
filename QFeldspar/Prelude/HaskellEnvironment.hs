@@ -13,7 +13,7 @@ import QFeldspar.Conversion
 import qualified QFeldspar.Prelude.Haskell as PH
 
 infixr 5 <+>
-(<+>) :: t -> ES.Env n t -> ES.Env (NA.Suc n) t
+(<+>) :: t -> ES.Env n t -> ES.Env ('NA.Suc n) t
 (<+>) = ES.Ext
 
 esTH :: ES.Env (Len Prelude) TH.Name

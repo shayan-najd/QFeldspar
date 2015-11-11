@@ -53,12 +53,12 @@ instance (s ~ s' , a ~ a' , n ~ Len s , TG.Type a') =>
          Cnv (TH.Q (TH.TExp a) , ET.Env TG.Typ s , ES.Env n TH.Name)
              (GFO.Exp s' '[] a')
          where
-  cnv (e , s , v) = do e' :: GTD.Exp n Zro TA.Typ <- cnv (e , s , v)
+  cnv (e , s , v) = do e' :: GTD.Exp n 'Zro TA.Typ <- cnv (e , s , v)
                        cnv (e' , s , v)
 
 instance (n ~ n' , n ~ Len s , TG.Type a)  =>
          Cnv (TH.Q (TH.TExp a) , ET.Env TG.Typ s , ES.Env n TH.Name)
-             (GTD.Exp n' Zro TA.Typ)
+             (GTD.Exp n' 'Zro TA.Typ)
          where
   cnv (e , s , v) = do e' :: AUD.Exp <- cnv (e , s , v)
                        cnv (e' , s , v)
@@ -110,12 +110,12 @@ instance (s ~ s' , n ~ Len s , TG.Type a') =>
          Cnv (TH.Exp , ET.Env TG.Typ s , ES.Env n TH.Name)
              (GFO.Exp s' '[] a')
          where
-  cnv (e , s , v) = do e' :: GTD.Exp n Zro TA.Typ <- cnv (e , s , v)
+  cnv (e , s , v) = do e' :: GTD.Exp n 'Zro TA.Typ <- cnv (e , s , v)
                        cnv (e' , s , v)
 
 instance (n ~ n' , n ~ Len s)  =>
          Cnv (TH.Exp , ET.Env TG.Typ s , ES.Env n TH.Name)
-             (GTD.Exp n' Zro TA.Typ)
+             (GTD.Exp n' 'Zro TA.Typ)
          where
   cnv (e , s , v) = do e' :: AUD.Exp <- cnv (e , s , v)
                        cnv (e' , s , v)
@@ -160,12 +160,12 @@ instance (s ~ s' , n ~ Len s , TG.Type a') =>
          Cnv (AUN.Exp TH.Name , ET.Env TG.Typ s , ES.Env n TH.Name)
              (GFO.Exp s' '[] a')
          where
-  cnv (e , s , v) = do e' :: GTD.Exp n Zro TA.Typ <- cnv (e , s , v)
+  cnv (e , s , v) = do e' :: GTD.Exp n 'Zro TA.Typ <- cnv (e , s , v)
                        cnv (e' , s , v)
 
 instance (n ~ Len s)  =>
          Cnv (AUN.Exp TH.Name , ET.Env TG.Typ s , ES.Env n TH.Name)
-             (GTD.Exp n Zro TA.Typ)
+             (GTD.Exp n 'Zro TA.Typ)
          where
   cnv (e , s , v) = do e' :: AUD.Exp <- cnv (e , s , v)
                        cnv (e' , s , v)
@@ -202,16 +202,17 @@ instance (s ~ s' , n ~ Len s , TG.Type a') =>
          Cnv (AUD.Exp , ET.Env TG.Typ s , ES.Env n TH.Name)
              (GFO.Exp s' '[] a')
          where
-  cnv (e , s , v) = do e' :: GTD.Exp n Zro TA.Typ <- cnv (e , s , v)
+  cnv (e , s , v) = do e' :: GTD.Exp n 'Zro TA.Typ <- cnv (e , s , v)
                        cnv (e' , s , v)
 
 instance (n' ~ Len s) =>
          Cnv (AUD.Exp , ET.Env TG.Typ s , en)
-             (GTD.Exp n' Zro TA.Typ)
+             (GTD.Exp n' 'Zro TA.Typ)
          where
-  cnv (e , s , _) = do e' :: GTD.Exp n' Zro (Maybe TA.Typ) <- cnv (e , (ET.len s , NG.Zro))
+  cnv (e , s , _) = do e' :: GTD.Exp n' 'Zro (Maybe TA.Typ)
+                             <- cnv (e , (ET.len s , NG.Zro))
                        s' :: ES.Env   n' TA.Typ <- cnv (s , ())
-                       cnv (e' , (s', ES.Emp :: ES.Env Zro TA.Typ))
+                       cnv (e' , (s', ES.Emp :: ES.Env 'Zro TA.Typ))
 
 instance Cnv (AUD.Exp , es , en)
              AUD.Exp
@@ -222,28 +223,28 @@ instance Cnv (AUD.Exp , es , en)
 -- Conversion from GTD
 -----------------------------------------------------------------------
 instance (s ~ s' , n ~ Len s , TG.Type a') =>
-         Cnv (GTD.Exp n Zro TA.Typ , ET.Env TG.Typ s , ES.Env n TH.Name)
+         Cnv (GTD.Exp n 'Zro TA.Typ , ET.Env TG.Typ s, ES.Env n TH.Name)
              (MFS.Exp s' a')
          where
   cnv (e , s , v) = do e' :: GHO.Exp s a' <- cnv (e , s , v)
                        cnv (e' , s , v)
 
 instance (s ~ s' , n ~ Len s , TG.Type a') =>
-         Cnv (GTD.Exp n Zro TA.Typ , ET.Env TG.Typ s , ES.Env n TH.Name)
+         Cnv (GTD.Exp n 'Zro TA.Typ, ET.Env TG.Typ s , ES.Env n TH.Name)
              (GHO.Exp s' a')
          where
   cnv (e , s , v) = do e' :: GFO.Exp s '[] t <- cnv (e , s , v)
                        cnv (e' , s , v)
 
 instance (s ~ s' , n ~ Len s , TG.Type a') =>
-         Cnv (GTD.Exp n Zro TA.Typ , ET.Env TG.Typ s , en)
+         Cnv (GTD.Exp n 'Zro TA.Typ , ET.Env TG.Typ s , en)
              (GFO.Exp s' '[] a')
          where
   cnv (e , s , _) = cnv (e , (s , ET.Emp :: ET.Env TG.Typ '[]))
 
 instance (n ~ n') =>
-         Cnv (GTD.Exp n  Zro TA.Typ , es , en)
-             (GTD.Exp n' Zro TA.Typ)
+         Cnv (GTD.Exp n  'Zro TA.Typ , es , en)
+             (GTD.Exp n' 'Zro TA.Typ)
          where
   cnv (e , _ , _) = return e
 

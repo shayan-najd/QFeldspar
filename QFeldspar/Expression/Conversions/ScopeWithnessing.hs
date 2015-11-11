@@ -34,5 +34,6 @@ instance (m ~ m' , n ~ n') =>
       'AUD.LeT,'AUD.May,'AUD.Typ] (const [| cnvWth r |]))
 
 instance (m ~ m' , n ~ n') =>
-         Cnv (AUD.Fun , (Nat m , Nat n)) (GTD.Exp m' (NA.Suc n') (Maybe TA.Typ)) where
+         Cnv (AUD.Fun , (Nat m , Nat n)) (GTD.Exp m' ('NA.Suc n')
+                                          (Maybe TA.Typ)) where
   cnv (AUD.Fun e , (m , n)) = cnv (e , (m , Suc n))

@@ -33,7 +33,7 @@ import QFeldspar.Expression.Conversion          ()
 import qualified QFeldspar.Nat.ADT as NA
 import QFeldspar.Expression.Utils.TemplateHaskell
 
-type One    = NA.Suc NA.Zro
+type One    = 'NA.Suc 'NA.Zro
 type Add    = Word32 -> Word32 -> Word32
 type EnvAdd = '[Add]
 
@@ -60,7 +60,8 @@ envAddValA = (FAV.toExp ((+) :: Word32 -> Word32 -> Word32)) : []
 envAddValM :: EM.Env TH.Name FAV.Exp
 envAddValM = (stripNameSpace 'TH.add , FAV.toExp ((+) :: Word32 -> Word32 -> Word32)) : []
 
-cnvMFS :: Cnv (e , ET.Env TG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
+cnvMFS :: Cnv (e , ET.Env TG.Typ EnvAdd , ES.Env ('NA.Suc 'NA.Zro)
+              TH.Name)
                (GFO.Exp EnvAdd '[] Word32) => e -> Word32 -> Bool
 cnvMFS e j = case runNamM
               (do e'   :: GFO.Exp EnvAdd '[] Word32 <- cnv (e , envAddTypG
@@ -72,7 +73,8 @@ cnvMFS e j = case runNamM
            Rgt (FGV.Exp i) -> i == j
            _     -> False
 
-cnvGHO :: Cnv (e , ET.Env TG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
+cnvGHO :: Cnv (e , ET.Env TG.Typ EnvAdd , ES.Env ('NA.Suc 'NA.Zro)
+                                          TH.Name)
            (GHO.Exp EnvAdd Word32) => e -> Word32 -> Bool
 cnvGHO e j = case runNamM
               (do e' :: GHO.Exp EnvAdd  Word32 <- cnv (e , envAddTypG,vec)
@@ -80,7 +82,8 @@ cnvGHO e j = case runNamM
            Rgt (FGV.Exp i) -> i == j
            _     -> False
 
-cnvGFO :: Cnv (e , ET.Env TG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
+cnvGFO :: Cnv (e , ET.Env TG.Typ EnvAdd , ES.Env ('NA.Suc 'NA.Zro)
+                                          TH.Name)
            (GFO.Exp EnvAdd '[] Word32) => e -> Word32 -> Bool
 cnvGFO e j = case runNamM
               (do e' :: GFO.Exp EnvAdd '[] Word32 <- cnv (e , envAddTypG ,vec)
@@ -89,14 +92,16 @@ cnvGFO e j = case runNamM
            _               -> False
 
 cnvGTD :: Cnv (e , ET.Env TG.Typ EnvAdd , ES.Env One TH.Name)
-           (GTD.Exp One NA.Zro TA.Typ) => e -> Word32 -> Bool
+           (GTD.Exp One 'NA.Zro TA.Typ) => e -> Word32 -> Bool
 cnvGTD e j = case runNamM
-              (do e' :: GTD.Exp One NA.Zro TA.Typ <- cnv (e , envAddTypG , vec)
-                  cnv (e' , (envAddValV,ES.Emp :: ES.Env NA.Zro FAV.Exp))) of
+              (do e' :: GTD.Exp One 'NA.Zro TA.Typ <- cnv (e , envAddTypG , vec)
+                  cnv (e' , (envAddValV,ES.Emp :: ES.Env 'NA.Zro
+                                                  FAV.Exp))) of
            Rgt (FAV.frmExp -> Rgt i) -> i == j
            _                        -> False
 
-cnvAUD :: Cnv (e , ET.Env TG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
+cnvAUD :: Cnv (e , ET.Env TG.Typ EnvAdd , ES.Env ('NA.Suc 'NA.Zro)
+                                                  TH.Name)
            AUD.Exp => e -> Word32 -> Bool
 cnvAUD e j = case runNamM
               (do e' :: AUD.Exp <- cnv (e , envAddTypG , vec)
@@ -104,7 +109,8 @@ cnvAUD e j = case runNamM
            Rgt (FAV.frmExp -> Rgt i) -> i == j
            _                        -> False
 
-cnvAUN :: Cnv (e , ET.Env TG.Typ EnvAdd , ES.Env (NA.Suc NA.Zro) TH.Name)
+cnvAUN :: Cnv (e , ET.Env TG.Typ EnvAdd , ES.Env ('NA.Suc 'NA.Zro)
+                                          TH.Name)
            (AUN.Exp TH.Name) => e -> Word32 -> Bool
 cnvAUN e j = case runNamM
               (do e' :: AUN.Exp TH.Name <- cnv (e , envAddTypG , vec)

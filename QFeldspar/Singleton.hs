@@ -45,8 +45,8 @@ samTypM _ = id
 data T t = T
 
 type family Len (l :: [k]) :: NA.Nat where
-  Len (x ': xs) = NA.Suc (Len xs)
-  Len '[]       = NA.Zro
+  Len (x ': xs) = 'NA.Suc (Len xs)
+  Len '[]       = 'NA.Zro
 
 type family Add (ll :: [k]) (lr :: [k]) :: [k]  where
   Add '[]       lr = lr
@@ -60,15 +60,15 @@ obvious = unsafeCoerce Rfl
 -- Type-level Lookup
 type family Lookup (n :: k) (xss :: [(k , k')]) :: Maybe k' where
   Lookup x '[]                 = 'Nothing
-  Lookup x ('(x   , a) ': xas) = Just a
+  Lookup x ('(x   , a) ': xas) = 'Just a
   Lookup x ('( x' , a) ': xas) = Lookup x xas
 
 -- type-leve conditional
 type family If a b c where
-  If True  a b = a
-  If False a b = b
+  If 'True  a b = a
+  If 'False a b = b
 
 -- type-level boolean and operator
 type family And a b where
-  And True True = True
-  And a    b    = False
+  And 'True 'True = 'True
+  And a     b     = 'False

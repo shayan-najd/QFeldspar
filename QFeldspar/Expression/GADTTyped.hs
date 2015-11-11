@@ -11,7 +11,7 @@ data Exp :: NA.Nat -> NA.Nat -> * -> * where
   ConB :: Bool    -> Exp n m t
   Var  :: Var m   -> Exp n m t
   Prm  :: [t] -> Var n -> [Exp n m t] -> Exp n m t
-  Abs  :: Exp n (NA.Suc m) t -> Exp n m t
+  Abs  :: Exp n ('NA.Suc m) t -> Exp n m t
   App  :: t -> Exp n m t -> Exp n m t -> Exp n m t
   Cnd  :: Exp n m t -> Exp n m t -> Exp n m t -> Exp n m t
   Whl  :: Exp n m t -> Exp n m t -> Exp n m t -> Exp n m t
@@ -24,7 +24,7 @@ data Exp :: NA.Nat -> NA.Nat -> * -> * where
   AryV :: Exp n m t -> Exp n m t -> Exp n m t
   LenV :: t -> Exp n m t -> Exp n m t
   IndV :: Exp n m t -> Exp n m t -> Exp n m t
-  LeT  :: t -> Exp n m t -> Exp n (NA.Suc m) t -> Exp n m t
+  LeT  :: t -> Exp n m t -> Exp n ('NA.Suc m) t -> Exp n m t
   Cmx  :: Exp n m t -> Exp n m t -> Exp n m t
   Non  :: Exp n m t
   Som  :: Exp n m t -> Exp n m t

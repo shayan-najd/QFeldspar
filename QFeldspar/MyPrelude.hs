@@ -8,7 +8,7 @@ module QFeldspar.MyPrelude
    String,lines,unlines,
    read,
    (.),flip,curry,uncurry,id,const,
-   (++),zip,head,dropWhile,iterate,length,zipWith,filter,(!!),nub,init,
+   (++),zip,head,dropWhile,iterate,zipWith,filter,(!!),nub,init,
    delete,
    ord,
    Num(..),fromIntegral,toRational,

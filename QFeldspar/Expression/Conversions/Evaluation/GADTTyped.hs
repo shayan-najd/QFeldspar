@@ -26,5 +26,5 @@ instance Cnv (Exp m n t , (Env m FAV.Exp , Env n FAV.Exp)) FAV.Exp where
      ['Prm,'Var,'App,'Fst,'Snd,'Len,'LenV,'LeT,'Eql,'Ltd,'May,'Typ]
       (const [| \ e -> cnv (e , r) |])))
 
-instance Cnv (Exp m (Suc n) a , (Env m FAV.Exp , Env n FAV.Exp)) (FAV.Exp -> FAV.Exp) where
+instance Cnv (Exp m ('Suc n) a , (Env m FAV.Exp , Env n FAV.Exp)) (FAV.Exp -> FAV.Exp) where
   cnv (e , (s , g)) = pure (\ x -> frmRgtZro (cnv (e , (s , Ext x g))))

@@ -189,7 +189,7 @@ dbg15 e = let e' = frmRgtZro (cnv (e,etTG , PHE.esTH))
 dbg2 :: Type a => Qt a -> AUD.Exp
 dbg2 e = frmRgtZro (cnv(e,etTG , PHE.esTH))
 
-dbg3 :: Type a => Qt a -> GTD.Exp (S.Len PHE.Prelude) NA.Zro TA.Typ
+dbg3 :: Type a => Qt a -> GTD.Exp (S.Len PHE.Prelude) 'NA.Zro TA.Typ
 dbg3 e = frmRgtZro (cnv(e,etTG , PHE.esTH))
 
 dbg4 :: Type a => Qt a -> GFO.Exp PHE.Prelude '[] a
@@ -215,7 +215,7 @@ dbgw15 e = let e' = frmRgtZro (cnv (wrp e,etTG , PHE.esTH))
 dbgw2 :: Type a => Qt a -> AUD.Exp
 dbgw2 e = frmRgtZro (cnv(wrp e,etTG , PHE.esTH))
 
-dbgw3 :: Type a => Qt a -> GTD.Exp (S.Len PHE.Prelude) NA.Zro TA.Typ
+dbgw3 :: Type a => Qt a -> GTD.Exp (S.Len PHE.Prelude) 'NA.Zro TA.Typ
 dbgw3 e = frmRgtZro (cnv(wrp e,etTG , PHE.esTH))
 
 dbgw4 :: Type a => Qt a -> GFO.Exp PHE.Prelude '[] a

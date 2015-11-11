@@ -5,7 +5,7 @@ import Language.Haskell.TH.Syntax hiding (unQ)
 import Language.Haskell.TH hiding (match)
 import QFeldspar.Expression.Utils.TemplateHaskell
 import Data.Char
-import Control.Applicative
+import Control.Applicative ()
 
 lowerFirst :: String -> String
 lowerFirst []        = []

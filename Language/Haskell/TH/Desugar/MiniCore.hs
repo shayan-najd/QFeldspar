@@ -8,9 +8,9 @@ module Language.Haskell.TH.Desugar.MiniCore where
 import qualified Language.Haskell.TH as TH
 import Prelude
 import Control.Monad
-import Control.Applicative
+import Control.Applicative ()
 import Data.Graph
-import Data.Monoid
+import Data.Monoid ()
 import Data.Data
 import Data.Generics (everywhereM, mkM)
 import Data.Function (fix)

@@ -8,8 +8,8 @@ import qualified QFeldspar.Nat.ADT  as NA
 import qualified QFeldspar.Nat.GADT as NG
 
 data Env :: NA.Nat -> * -> * where
-  Emp :: Env NA.Zro t
-  Ext :: t -> Env n t -> Env (NA.Suc n) t
+  Emp :: Env 'NA.Zro t
+  Ext :: t -> Env n t -> Env ('NA.Suc n) t
 
 deriving instance Eq   a => Eq   (Env n a)
 deriving instance Show a => Show (Env n a)

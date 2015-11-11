@@ -8,8 +8,8 @@ import QFeldspar.Singleton
 import qualified QFeldspar.Nat.ADT as NA
 
 data Nat :: NA.Nat -> * where
-  Zro :: Nat NA.Zro
-  Suc :: Nat n -> Nat (NA.Suc n)
+  Zro :: Nat 'NA.Zro
+  Suc :: Nat n -> Nat ('NA.Suc n)
 
 deriving instance Eq   (Nat n)
 deriving instance Ord  (Nat n)
@@ -21,16 +21,16 @@ int (Suc x) = 1 + int x
 instance Show (Nat n) where
   show v = show (int v)
 
-prd :: Nat (NA.Suc n) -> Nat n
+prd :: Nat ('NA.Suc n) -> Nat n
 prd (Suc n) = n
 
 --type instance Trm (Nat NA.Zro)     = Maybe ()
 --type instance Trm (Nat (NA.Suc n)) = Maybe (Trm (Nat n))
 
-instance HasSin Nat NA.Zro where
+instance HasSin Nat 'NA.Zro where
   sin = Zro
 
-instance (HasSin Nat n) => HasSin Nat (NA.Suc n) where
+instance (HasSin Nat n) => HasSin Nat ('NA.Suc n) where
   sin = Suc sin
 
 instance EqlSin Nat where
